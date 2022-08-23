@@ -156,6 +156,8 @@ class netsuiteV2Sink(BatchSink):
                     sale_order["entity"] = {"id": customer_data.get("internalId")}
 
         trandate = record.get("transaction_date")
+        if isinstance(trandate, str):
+            trandate = parse(trandate)
         sale_order["tranDate"] = trandate.strftime("%Y-%m-%d")
         for line in record.get("line_items", []):
             order_item = {}
