@@ -6,15 +6,24 @@ from target_netsuite_v2.netsuite import NetSuite
 
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 
+import requests
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
-import json
+from oauthlib import oauth1
+from requests_oauthlib import OAuth1
+from pendulum import parse
 
 
 class netsuiteV2Sink(BatchSink):
     """netsuite-v2 target sink class."""
 
-    max_size = 100  # Max records to write in one batch
+    max_size = 100
+
+    @property
+    def url_base(self) -> str:
+        """Return the API URL root, configurable via tap settings."""
+        url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
+        return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
 
     def get_close_matches(self, word, possibilities, n=20, cutoff=0.7):
         if not n >  0:
@@ -60,6 +69,7 @@ class netsuiteV2Sink(BatchSink):
         self.logger.info(f"Readding data from API...")
         reference_data = {}
         reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
+        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
         reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
         reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
         reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
@@ -68,7 +78,7 @@ class netsuiteV2Sink(BatchSink):
         except NetSuiteRequestError as e:
             message = e.message.replace("error", "failure").replace("Error", "")
             self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"].get_all(["acctName", "acctNumber", "subsidiaryList"])
+        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
 
         return reference_data
 
@@ -77,10 +87,97 @@ class netsuiteV2Sink(BatchSink):
 
         self.get_ns_client()
         context["reference_data"] = self.get_reference_data()
-        context["records"] = []
+        context["JournalEntry"] = []
+        context["SalesOrder"] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
+        if self.stream_name=="JournalEntry":
+            journal_entry = self.process_journal_entry(context, record)
+            context["JournalEntry"].append(journal_entry)
+        elif self.stream_name=="SalesOrder":
+            sale_order = self.process_order(context, record)
+            context["SalesOrder"].append(sale_order)
+
+    def process_batch(self, context: dict) -> None:
+        """Write out any prepped records and return once fully written."""
+        self.logger.info(f"Posting data for entity {self.stream_name}")
+        if self.stream_name in ["JournalEntry"]:
+            for record in context.get(self.stream_name, []):
+                response = self.ns_client.entities[self.stream_name].post(record)
+                self.logger.info(response)
+        elif self.stream_name in ["SalesOrder"]:
+            url = f"{self.url_base}salesOrder"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
+
+    def rest_post(self, **kwarg):
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(**kwarg, headers=headers, auth=oauth)
+        response.raise_for_status()
+        return response
+
+    def process_order(self, context, record):
+        sale_order = {}
+        items = []
+
+        # Get the NetSuite Customer Ref
+        if context["reference_data"].get("Customer") and record.get("customer_name"):
+            customer_names = []
+            for c in context["reference_data"]["Customer"]:
+                if "name" in c.keys():
+                    if c["name"]:
+                        customer_names.append(c["name"])
+                else:
+                    if c["companyName"]:
+                        customer_names.append(c["companyName"])
+            customer_name = self.get_close_matches(record["customer_name"], customer_names, n=2, cutoff=0.95)
+            if customer_name:
+                customer_name = max(customer_name, key=customer_name.get)
+                customer_data = []
+                for c in context["reference_data"]["Customer"]:
+                    if "name" in c.keys():
+                        if c["name"] == customer_name:
+                            customer_data.append(c)
+                    else:
+                        if c["companyName"] == customer_name:
+                            customer_data.append(c)
+                if customer_data:
+                    customer_data = customer_data[0]
+                    sale_order["entity"] = {"id": customer_data.get("internalId")}
+
+        trandate = record.get("transaction_date")
+        sale_order["tranDate"] = trandate.strftime("%Y-%m-%d")
+        for line in record.get("line_items", []):
+            order_item = {}
+
+            # Get the product Id
+            if context["reference_data"].get("Items") and line.get("product_name"):
+                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
+                product_name = self.get_close_matches(line["product_name"], product_names, n=2, cutoff=0.95)
+                if product_name:
+                    product_name = max(product_name, key=product_name.get)
+                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
+                    if product_data:
+                        product_data = product_data[0]
+                        order_item["item"] = {"id": product_data.get("internalId")}
+
+            order_item["quantity"] = line.get("quantity")
+            order_item["amount"] = line.get("unit_price")
+            items.append(order_item)
+        sale_order["item"] = {"items": items}
+        return sale_order
+
+    def process_journal_entry(self, context, record):
         subsidiaries = {}
         line_items = []
         for line in record.get("lines"):
@@ -234,12 +331,4 @@ class netsuiteV2Sink(BatchSink):
         # Update the entry with subsidiaries
         journal_entry.update(subsidiaries)
 
-        context["records"].append(journal_entry)
-
-    def process_batch(self, context: dict) -> None:
-        """Write out any prepped records and return once fully written."""
-        entity = "JournalEntry"
-        self.logger.info(f"Posting data for entity {entity}")
-        for journal in context["records"]:
-            response = self.ns_client.entities[entity].post(journal)
-            self.logger.info(response)
+        return journal_entry
