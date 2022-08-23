@@ -80,6 +80,20 @@ class Classifications(BaseFilter):
         ApiBase.__init__(self, ns_client=ns_client, type_name='Classification')
 
 
+class Items(BaseFilter):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='Item')
+        self.require_lastModified_date = True
+
+    def get_all_generator(self, page_size=1000, last_modified_date=None):
+        search_record = self.ns_client.basic_search_factory(type_name="Item",
+                                                            lastModifiedDate=last_modified_date)
+        
+        ps = PaginatedSearch(client=self.ns_client, type_name='Item', pageSize=page_size,
+                             search_record=search_record)
+        return self._paginated_search_generator(ps)
+
+
 class JournalEntries(ApiBase):
     def __init__(self, ns_client):
         ApiBase.__init__(self, ns_client=ns_client, type_name='journalEntry')

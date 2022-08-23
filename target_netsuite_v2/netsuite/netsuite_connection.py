@@ -3,7 +3,7 @@ from netsuitesdk.api.currencies import Currencies
 import time
 import json
 import singer
-from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications
+from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items
 from .netsuite_client import ExtendedNetSuiteClient
 
 LOGGER = singer.get_logger()
@@ -14,8 +14,8 @@ class ExtendedNetSuiteConnection:
         # NetSuiteConnection.__init__(self, account, consumer_key, consumer_secret, token_key, token_secret)
         # ns_client: NetSuiteClient = self.client
 
-        ns_client = ExtendedNetSuiteClient(account=account, caching=caching)
-        ns_client.connect_tba(
+        self.ns_client = ExtendedNetSuiteClient(account=account, caching=caching)
+        self.ns_client.connect_tba(
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
             token_key=token_key,
@@ -23,13 +23,14 @@ class ExtendedNetSuiteConnection:
         )
 
         self.entities = {
-            'Customer': Customers(ns_client),
-            'Accounts': Accounts(ns_client),
-            'JournalEntry': JournalEntries(ns_client),
-            'Classifications': Classifications(ns_client),
-            'Currencies': Currencies(ns_client),
-            'Locations': Locations(ns_client),
-            'Departments': Departments(ns_client)
+            'Customer': Customers(self.ns_client),
+            'Accounts': Accounts,
+            'JournalEntry': JournalEntries(self.ns_client),
+            'Classifications': Classifications(self.ns_client),
+            'Currencies': Currencies(self.ns_client),
+            'Locations': Locations(self.ns_client),
+            'Departments': Departments(self.ns_client),
+            'Items': Items(self.ns_client),
         }
 
     def _query_entity(self, data, entity, stream):
