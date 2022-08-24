@@ -6,6 +6,7 @@ from target_netsuite_v2.netsuite import NetSuite
 
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 
+import json
 import requests
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
@@ -123,7 +124,13 @@ class netsuiteV2Sink(BatchSink):
 
         headers = {"Content-Type": "application/json"}
         response = requests.post(**kwarg, headers=headers, auth=oauth)
-        response.raise_for_status()
+        if response.status_code>=400:
+            try:
+                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
+                self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
+                response.raise_for_status()
+            except:
+                response.raise_for_status()
         return response
 
     def process_order(self, context, record):
