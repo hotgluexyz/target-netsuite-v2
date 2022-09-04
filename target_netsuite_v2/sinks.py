@@ -1,18 +1,20 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-from dateutil.parser import parse
-from singer_sdk.sinks import BatchSink
-from target_netsuite_v2.netsuite import NetSuite
-
-from netsuitesdk.internal.exceptions import NetSuiteRequestError
-
 import json
-import requests
+import os
+from datetime import datetime
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
+
+import requests
+from dateutil.parser import parse
+from netsuitesdk.internal.exceptions import NetSuiteRequestError
 from oauthlib import oauth1
-from requests_oauthlib import OAuth1
 from pendulum import parse
+from requests_oauthlib import OAuth1
+from singer_sdk.sinks import BatchSink
+
+from target_netsuite_v2.netsuite import NetSuite
 
 
 class netsuiteV2Sink(BatchSink):
@@ -67,6 +69,18 @@ class netsuiteV2Sink(BatchSink):
         self.logger.info(f"Successfully created netsuite connection..")
 
     def get_reference_data(self):
+        if self.config.get("snapshot_hours"):
+            try:
+                with open('snapshots/reference_data.json') as json_file:
+                    reference_data = json.load(json_file)
+                    if reference_data.get("write_date"):
+                        last_run = parse(reference_data["write_date"])
+                        last_run = last_run.replace(tzinfo=None)
+                        if (datetime.utcnow()-last_run).hours<int(self.config["snapshot_hours"]):
+                            return reference_data
+            except:
+                self.logger.info(f"Snapshot not found or not readable.")
+
         self.logger.info(f"Readding data from API...")
         reference_data = {}
         reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
@@ -80,6 +94,12 @@ class netsuiteV2Sink(BatchSink):
             message = e.message.replace("error", "failure").replace("Error", "")
             self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
         reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
+
+        if self.config.get("snapshot_hours"):
+            reference_data["write_date"] = datetime.utcnow().isoformat()
+            os.makedirs("snapshots", exist_ok=True)
+            with open('snapshots/reference_data.json', 'w') as outfile:
+                json.dump(reference_data, outfile)
 
         return reference_data
 
