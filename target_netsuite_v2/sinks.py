@@ -130,7 +130,35 @@ class netsuiteV2Sink(BatchSink):
         elif self.stream_name in ["SalesOrder"]:
             url = f"{self.url_base}salesOrder"
             for record in context.get(self.stream_name, []):
-                response = self.rest_post(url=url, json=record)
+                if record.get("order_number") is None:
+                    response = self.rest_post(url=url, json=record)
+                else:
+                    self.logger.info(f"Updating Order: {record.get('order_number')}")
+                    response = self.rest_patch(url=f"{url}/{record.pop('order_number')}", json=record)
+
+
+    def rest_patch(self, **kwarg):
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+
+        headers = {"Content-Type": "application/json"}
+        response = requests.patch(**kwarg, headers=headers, auth=oauth)
+        self.logger.info(response.text)
+        if response.status_code>=400:
+            try:
+                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
+                self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
+                response.raise_for_status()
+            except:
+                response.raise_for_status()
+        return response
+
 
     def rest_post(self, **kwarg):
         oauth = OAuth1(
@@ -204,6 +232,10 @@ class netsuiteV2Sink(BatchSink):
             order_item["amount"] = line.get("unit_price")
             items.append(order_item)
         sale_order["item"] = {"items": items}
+        # Get order number
+        if record.get("order_number") is not None:
+            sale_order['order_number'] = record.get("order_number")
+
         return sale_order
 
     def process_journal_entry(self, context, record):
