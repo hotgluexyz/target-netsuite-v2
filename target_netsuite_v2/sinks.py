@@ -71,7 +71,7 @@ class netsuiteV2Sink(BatchSink):
     def get_reference_data(self):
         if self.config.get("snapshot_hours"):
             try:
-                with open('snapshots/reference_data.json') as json_file:
+                with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json') as json_file:
                     reference_data = json.load(json_file)
                     if reference_data.get("write_date"):
                         last_run = parse(reference_data["write_date"])
@@ -97,8 +97,8 @@ class netsuiteV2Sink(BatchSink):
 
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
-            os.makedirs("snapshots", exist_ok=True)
-            with open('snapshots/reference_data.json', 'w') as outfile:
+            os.makedirs(self.config.get("snapshot_dir", "snapshots"), exist_ok=True)
+            with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json', 'w') as outfile:
                 json.dump(reference_data, outfile)
 
         return reference_data
