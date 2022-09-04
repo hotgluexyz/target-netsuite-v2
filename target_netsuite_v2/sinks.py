@@ -76,7 +76,7 @@ class netsuiteV2Sink(BatchSink):
                     if reference_data.get("write_date"):
                         last_run = parse(reference_data["write_date"])
                         last_run = last_run.replace(tzinfo=None)
-                        if (datetime.utcnow()-last_run).hours<int(self.config["snapshot_hours"]):
+                        if (datetime.utcnow()-last_run).total_hours()<int(self.config["snapshot_hours"]):
                             return reference_data
             except:
                 self.logger.info(f"Snapshot not found or not readable.")
