@@ -226,6 +226,8 @@ class netsuiteRestV2Sink(BatchSink):
 
         headers = {"SOAPAction":"initialize", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
         res_xml = etree.fromstring(res.text.encode())
         record = res_xml[1][0][0][-1]
 
@@ -265,5 +267,6 @@ class netsuiteRestV2Sink(BatchSink):
     
         headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        res.raise_for_status()
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
         return res
