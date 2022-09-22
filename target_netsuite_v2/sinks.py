@@ -1,107 +1,11 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-import json
-import os
-from datetime import datetime
-from difflib import SequenceMatcher
-from heapq import nlargest as _nlargest
-
-import requests
-from dateutil.parser import parse
-from netsuitesdk.internal.exceptions import NetSuiteRequestError
-from oauthlib import oauth1
-from pendulum import parse
-from requests_oauthlib import OAuth1
-from singer_sdk.sinks import BatchSink
-
-from target_netsuite_v2.netsuite import NetSuite
+from target_netsuite_v2.soap_client import netsuiteSoapV2Sink
+from target_netsuite_v2.rest_client import netsuiteRestV2Sink
 
 
-class netsuiteV2Sink(BatchSink):
+class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
     """netsuite-v2 target sink class."""
-
-    max_size = 100
-
-    @property
-    def url_base(self) -> str:
-        """Return the API URL root, configurable via tap settings."""
-        url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
-        return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
-
-    def get_close_matches(self, word, possibilities, n=20, cutoff=0.7):
-        if not n >  0:
-            raise ValueError("n must be > 0: %r" % (n,))
-        if not 0.0 <= cutoff <= 1.0:
-            raise ValueError("cutoff must be in [0.0, 1.0]: %r" % (cutoff,))
-        result = []
-        s = SequenceMatcher()
-        s.set_seq2(word)
-        for x in possibilities:
-            s.set_seq1(x)
-            if s.real_quick_ratio() >= cutoff and \
-            s.quick_ratio() >= cutoff and \
-            s.ratio() >= cutoff:
-                result.append((s.ratio(), x))
-        result = _nlargest(n, result)
-
-        return {v: k for (k, v) in result}
-
-    def get_ns_client(self):
-        ns_account = self.config.get("ns_account")
-        ns_consumer_key = self.config.get("ns_consumer_key")
-        ns_consumer_secret = self.config.get("ns_consumer_secret")
-        ns_token_key = self.config.get("ns_token_key")
-        ns_token_secret = self.config.get("ns_token_secret")
-        is_sandbox = self.config.get("is_sandbox")
-
-        self.logger.info(f"Starting netsuite connection")
-        ns = NetSuite(
-            ns_account=ns_account,
-            ns_consumer_key=ns_consumer_key,
-            ns_consumer_secret=ns_consumer_secret,
-            ns_token_key=ns_token_key,
-            ns_token_secret=ns_token_secret,
-            is_sandbox=is_sandbox,
-        )
-
-        ns.connect_tba(caching=False)
-        self.ns_client = ns.ns_client
-        self.logger.info(f"Successfully created netsuite connection..")
-
-    def get_reference_data(self):
-        if self.config.get("snapshot_hours"):
-            try:
-                with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json') as json_file:
-                    reference_data = json.load(json_file)
-                    if reference_data.get("write_date"):
-                        last_run = parse(reference_data["write_date"])
-                        last_run = last_run.replace(tzinfo=None)
-                        if (datetime.utcnow()-last_run).total_hours()<int(self.config["snapshot_hours"]):
-                            return reference_data
-            except:
-                self.logger.info(f"Snapshot not found or not readable.")
-
-        self.logger.info(f"Readding data from API...")
-        reference_data = {}
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
-        reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
-        try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
-        except NetSuiteRequestError as e:
-            message = e.message.replace("error", "failure").replace("Error", "")
-            self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
-
-        if self.config.get("snapshot_hours"):
-            reference_data["write_date"] = datetime.utcnow().isoformat()
-            os.makedirs(self.config.get("snapshot_dir", "snapshots"), exist_ok=True)
-            with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json', 'w') as outfile:
-                json.dump(reference_data, outfile)
-
-        return reference_data
 
     def start_batch(self, context: dict) -> None:
         """Start a batch."""
@@ -110,20 +14,31 @@ class netsuiteV2Sink(BatchSink):
         context["reference_data"] = self.get_reference_data()
         context["JournalEntry"] = []
         context["SalesOrder"] = []
+        context["Invoice"] = []
+        context["InvoicePayment"] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
         if self.stream_name=="JournalEntry":
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
+        elif self.stream_name=="CustomerPayment":
+            customer_payment = self.process_customer_payment(context, record)
+            context["CustomerPayment"].append(customer_payment)
         elif self.stream_name=="SalesOrder":
             sale_order = self.process_order(context, record)
             context["SalesOrder"].append(sale_order)
+        elif self.stream_name=="Invoice":
+            sale_order = self.process_invoice(context, record)
+            context["Invoice"].append(sale_order)
+        elif self.stream_name=="InvoicePayment":
+            invoice_payment = self.invoice_payment(context, record)
+            context["InvoicePayment"].append(invoice_payment)
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
         self.logger.info(f"Posting data for entity {self.stream_name}")
-        if self.stream_name in ["JournalEntry"]:
+        if self.stream_name in ["JournalEntry", "CustomerPayment"]:
             for record in context.get(self.stream_name, []):
                 response = self.ns_client.entities[self.stream_name].post(record)
                 self.logger.info(response)
@@ -135,261 +50,13 @@ class netsuiteV2Sink(BatchSink):
                 else:
                     self.logger.info(f"Updating Order: {record.get('order_number')}")
                     response = self.rest_patch(url=f"{url}/{record.pop('order_number')}", json=record)
-
-
-    def rest_patch(self, **kwarg):
-        oauth = OAuth1(
-            client_key=self.config["ns_consumer_key"],
-            client_secret=self.config["ns_consumer_secret"],
-            resource_owner_key=self.config["ns_token_key"],
-            resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
-            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
-        )
-
-        headers = {"Content-Type": "application/json"}
-        response = requests.patch(**kwarg, headers=headers, auth=oauth)
-        self.logger.info(response.text)
-        if response.status_code>=400:
-            try:
-                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
-                self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                response.raise_for_status()
-            except:
-                response.raise_for_status()
-        return response
-
-
-    def rest_post(self, **kwarg):
-        oauth = OAuth1(
-            client_key=self.config["ns_consumer_key"],
-            client_secret=self.config["ns_consumer_secret"],
-            resource_owner_key=self.config["ns_token_key"],
-            resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
-            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
-        )
-
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(**kwarg, headers=headers, auth=oauth)
-        if response.status_code>=400:
-            try:
-                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
-                self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                response.raise_for_status()
-            except:
-                response.raise_for_status()
-        return response
-
-    def process_order(self, context, record):
-        sale_order = {}
-        items = []
-
-        # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Customer") and record.get("customer_name"):
-            customer_names = []
-            for c in context["reference_data"]["Customer"]:
-                if "name" in c.keys():
-                    if c["name"]:
-                        customer_names.append(c["name"])
-                else:
-                    if c["companyName"]:
-                        customer_names.append(c["companyName"])
-            customer_name = self.get_close_matches(record["customer_name"], customer_names, n=2, cutoff=0.95)
-            if customer_name:
-                customer_name = max(customer_name, key=customer_name.get)
-                customer_data = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"] == customer_name:
-                            customer_data.append(c)
-                    else:
-                        if c["companyName"] == customer_name:
-                            customer_data.append(c)
-                if customer_data:
-                    customer_data = customer_data[0]
-                    sale_order["entity"] = {"id": customer_data.get("internalId")}
-
-        trandate = record.get("transaction_date")
-        if isinstance(trandate, str):
-            trandate = parse(trandate)
-        sale_order["tranDate"] = trandate.strftime("%Y-%m-%d")
-        for line in record.get("line_items", []):
-            order_item = {}
-
-            # Get the product Id
-            if context["reference_data"].get("Items") and line.get("product_name"):
-                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
-                product_name = self.get_close_matches(line["product_name"], product_names, n=2, cutoff=0.95)
-                if product_name:
-                    product_name = max(product_name, key=product_name.get)
-                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
-                    if product_data:
-                        product_data = product_data[0]
-                        order_item["item"] = {"id": product_data.get("internalId")}
-
-            order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = line.get("unit_price")
-            items.append(order_item)
-        sale_order["item"] = {"items": items}
-        # Get order number
-        if record.get("order_number") is not None:
-            sale_order['order_number'] = record.get("order_number")
-
-        return sale_order
-
-    def process_journal_entry(self, context, record):
-        subsidiaries = {}
-        line_items = []
-        for line in record.get("lines"):
-            if context["reference_data"].get("Accounts") and line.get("accountNumber"):
-                acct_num = str(line["accountNumber"])
-                acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
-                if not acct_data:
-                    self.logger.warning(f"{acct_num} is not valid for this netsuite account, skipping line")
-                    continue
-                acct_data = acct_data[0]
-                ref_acct = {
-                    "name": acct_data.get("acctName"),
-                    "externalId": acct_data.get("externalId"),
-                    "internalId": acct_data.get("internalId"),
-                }
-                journal_entry_line = {"account": ref_acct}
-
-                # Extract the subsidiaries from Account
-                if line.get("Subsidiary"):
-                    subsidiary = dict(name=None, internalId=line.get("subsidiary"), externalId=None, type=None)
-                else:
-                    subsidiary = acct_data['subsidiaryList']
-                if subsidiary:
-                    subsidiary = subsidiary[0]
-                    if line["postingType"].lower() == "credit":
-                        subsidiaries["toSubsidiary"] = subsidiary
-                    elif line["postingType"].lower() == "debit":
-                        subsidiaries["subsidiary"] = subsidiary
-                    else:
-                        raise('Posting Type must be "credit" or "debit"')
-
-            # Get the NetSuite Class Ref
-            if context["reference_data"].get("Classifications") and line.get("className"):
-                class_names = [c["name"] for c in context["reference_data"]["Classifications"]]
-                class_name = self.get_close_matches(line["className"], class_names)
-                if class_name:
-                    class_name = max(class_name, key=class_name.get)
-                    class_data = [c for c in context["reference_data"]["Classifications"] if c["name"]==class_name]
-                    if class_data:
-                        class_data = class_data[0]
-                        journal_entry_line["class"] = {
-                            "name": class_data.get("name"),
-                            "externalId": class_data.get("externalId"),
-                            "internalId": class_data.get("internalId"),
-                        }
-
-            # Get the NetSuite Department Ref
-            if context["reference_data"].get("Departments") and line.get("department"):
-                dept_names = [d["name"] for d in context["reference_data"]["Departments"]]
-                dept_name = self.get_close_matches(line["department"], dept_names)
-                if dept_name:
-                    dept_name = max(dept_name, key=dept_name.get)
-                    dept_data = [d for d in context["reference_data"]["Departments"] if d["name"] == dept_name]
-                    if dept_data:
-                        dept_data = dept_data[0]
-                        journal_entry_line["department"] = {
-                            "name": dept_data.get("name"),
-                            "externalId": dept_data.get("externalId"),
-                            "internalId": dept_data.get("internalId"),
-                        }
-
-            # Get the NetSuite Location Ref
-            if context["reference_data"].get("Locations") and line.get("location"):
-                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
-                if loc_data:
-                    loc_data = loc_data[0]
-                    journal_entry_line["location"] = {
-                        "name": loc_data.get("name"),
-                        "externalId": loc_data.get("externalId"),
-                        "internalId": loc_data.get("internalId"),
-                    }
-
-            # Get the NetSuite Location Ref
-            if context["reference_data"].get("Customer") and line.get("customerName"):
-                customer_names = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"]:
-                            customer_names.append(c["name"])
-                    else:
-                        if c["companyName"]:
-                            customer_names.append(c["companyName"])
-                customer_name = self.get_close_matches(line["customerName"], customer_names, n=2, cutoff=0.95)
-                if customer_name:
-                    customer_name = max(customer_name, key=customer_name.get)
-                    customer_data = []
-                    for c in context["reference_data"]["Customer"]:
-                        if "name" in c.keys():
-                            if c["name"] == customer_name:
-                                customer_data.append(c)
-                        else:
-                            if c["companyName"] == customer_name:
-                                customer_data.append(c)
-                    if customer_data:
-                        customer_data = customer_data[0]
-                        journal_entry_line["entity"] = {
-                            "externalId": customer_data.get("externalId"),
-                            "internalId": customer_data.get("internalId"),
-                        }
-
-            # Check the Posting Type and insert the Amount
-            amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
-            if line["postingType"].lower() == "credit":
-                journal_entry_line["credit"] = amount
-            elif line["postingType"].lower() == "debit":
-                journal_entry_line["debit"] = amount
-
-            # Insert the Journal Entry to the memo field
-            if "Description" in line.keys():
-                journal_entry_line["memo"] = line["Description"]
-            
-            line_items.append(journal_entry_line)
-
-        # Get the currency ID
-        if context["reference_data"].get("Currencies") and record.get("currency"):
-            currency_data = [
-                c for c in context["reference_data"]["Currencies"] if c["symbol"] == record["currency"]
-                ]
-            if currency_data:
-                currency_data = currency_data[0]
-                currency_ref = {
-                    "name": currency_data.get("symbol"),
-                    "externalId": currency_data.get("externalId"),
-                    "internalId": currency_data.get("internalId"),
-                }
-        else:
-            currency_ref = None
-
-        # Check if subsidiary is duplicated and delete toSubsidiary if true
-        if len(subsidiaries)>1:
-            if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
-                del subsidiaries['toSubsidiary']
-
-        if "transactionDate" in record.keys():
-            created_date = parse(record["transactionDate"])
-        else:
-            created_date = None
-
-        # Create the journal entry
-        journal_entry = {
-            "createdDate": created_date,
-            "tranDate": created_date,
-            "externalId": record["id"],
-            "lineList": line_items,
-            "currency": currency_ref
-        }
-
-        if "journalDesc" in record.keys():
-            journal_entry["memo"] = "" if not record["JournalDesc"] else record["JournalDesc"]
-        
-        # Update the entry with subsidiaries
-        journal_entry.update(subsidiaries)
-
-        return journal_entry
+        elif self.stream_name in ["Invoice"]:
+            endpoint = list(self.stream_name)
+            endpoint[0] = endpoint[0].lower()
+            endpoint = "".join(endpoint)
+            url = f"{self.url_base}{endpoint}"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
+        elif self.stream_name in ["InvoicePayment"]:
+            for record in context.get(self.stream_name, []):
+                response = self.push_payments(record)
