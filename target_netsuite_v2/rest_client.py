@@ -154,7 +154,7 @@ class netsuiteRestV2Sink(BatchSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": "1"}
+            location = {"id": record.get("locationId", "1")}
         
         invoice["Location"] = location
 
