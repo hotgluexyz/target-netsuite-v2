@@ -158,10 +158,10 @@ class netsuiteRestV2Sink(BatchSink):
         
         invoice["Location"] = location
 
-        asofdate = record.get("dueDate")
-        if isinstance(asofdate, str):
-            asofdate = parse(asofdate)
-        invoice["asofdate"] = asofdate.strftime("%Y-%m-%d")
+        duedate = record.get("dueDate")
+        if isinstance(duedate, str):
+            duedate = parse(duedate)
+        invoice["duedate"] = duedate.strftime("%Y-%m-%d")
         
         enddate = record.get("paidDate")
         if isinstance(enddate, str):
@@ -188,7 +188,7 @@ class netsuiteRestV2Sink(BatchSink):
                         order_item["item"] = {"id": product_data.get("internalId")}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = line.get("unitPrice")
+            order_item["amount"] = line.get("quantity") * line.get("unitPrice")
             order_item["Location"] = location
             items.append(order_item)
         invoice["item"] = {"items": items}
