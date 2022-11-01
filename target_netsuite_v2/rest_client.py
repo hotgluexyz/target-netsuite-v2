@@ -154,9 +154,16 @@ class netsuiteRestV2Sink(BatchSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": record.get("locationId", "1")}
+            location = {"id": record.get("locationId", "17")}
         
         invoice["Location"] = location
+
+        # Get the NetSuite Subsidiary Ref
+        if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
+            sub_data = [s for s in context["reference_data"]["Subsidiaries"] if s["name"] == record["subsidiary"]]
+            if sub_data:
+                sub_data = sub_data[0]
+                invoice["Subsidiary"] = {"id": sub_data.get("internalId")}
 
         duedate = record.get("dueDate")
         if isinstance(duedate, str):
