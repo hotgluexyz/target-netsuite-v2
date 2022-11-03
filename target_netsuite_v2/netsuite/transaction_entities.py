@@ -64,6 +64,10 @@ class Subsidiaries(BaseFilter):
         ApiBase.__init__(self, ns_client=ns_client, type_name='Subsidiary')
 
 
+class Vendors(BaseFilter):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='Vendor')
+
 class Departments(BaseFilter):
     def __init__(self, ns_client):
         ApiBase.__init__(self, ns_client=ns_client, type_name='Department')

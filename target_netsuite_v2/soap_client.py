@@ -70,6 +70,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
         self.logger.info(f"Readding data from API...")
         reference_data = {}
+        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
         reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
         reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
         reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
