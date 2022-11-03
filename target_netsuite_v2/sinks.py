@@ -16,6 +16,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["SalesOrder"] = []
         context["Invoice"] = []
         context["InvoicePayment"] = []
+        context["vendorBill"] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -29,8 +30,12 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             sale_order = self.process_order(context, record)
             context["SalesOrder"].append(sale_order)
         elif self.stream_name=="Invoice":
-            sale_order = self.process_invoice(context, record)
-            context["Invoice"].append(sale_order)
+            invoice = self.process_invoice(context, record)
+            context["Invoice"].append(invoice)
+        elif self.stream_name=="vendorBill":
+            vendor_bill = self.process_vendor_bill(context, record)
+            context["vendorBill"].append(vendor_bill)
+            
         elif self.stream_name=="InvoicePayment":
             invoice_payment = self.invoice_payment(context, record)
             context["InvoicePayment"].append(invoice_payment)
@@ -51,6 +56,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     self.logger.info(f"Updating Order: {record.get('order_number')}")
                     response = self.rest_patch(url=f"{url}/{record.pop('order_number')}", json=record)
         elif self.stream_name in ["Invoice"]:
+            endpoint = list(self.stream_name)
+            endpoint[0] = endpoint[0].lower()
+            endpoint = "".join(endpoint)
+            url = f"{self.url_base}{endpoint}"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
+        elif self.stream_name in ["vendorBill"]:
             endpoint = list(self.stream_name)
             endpoint[0] = endpoint[0].lower()
             endpoint = "".join(endpoint)
