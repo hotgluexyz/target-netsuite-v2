@@ -157,9 +157,17 @@ class netsuiteRestV2Sink(BatchSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": record.get("locationId", "17")}
+            location = {"id": record.get("locationId", "1")}
+
+        if context["reference_data"].get("Departments") and record.get("department"):
+            dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == record["department"]]
+            if dep_data:
+                dep_data = dep_data[0]
+                department = {"id": dep_data.get("internalId")}
         
         vendor_bill["Location"] = location
+        vendor_bill["Department"] = department
+        vendor_bill["tranid"] = record.get("invoiceNumber")
 
         startdate = record.get("issueDate")
         if isinstance(startdate, str):
@@ -181,6 +189,7 @@ class netsuiteRestV2Sink(BatchSink):
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = round(line.get("quantity") * line.get("unitPrice"), 3)
+            order_item["Department"] = department
             items.append(order_item)
         vendor_bill["item"] = {"items": items}
         return vendor_bill
