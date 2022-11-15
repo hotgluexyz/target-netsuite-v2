@@ -354,3 +354,59 @@ class netsuiteRestV2Sink(BatchSink):
         if res.status_code>=400:
             raise ConnectionError(res.text)
         return res
+
+
+    def po_to_vb(self, payload):
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        po_id = payload["poNumber"]
+
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+
+        headers = {"Content-Type": "application/json"}
+        response = requests.get(f"{self.url_base}purchaseOrder/{po_id}", headers=headers, auth=oauth)
+        response.raise_for_status()
+
+        response = response.json()
+
+        entity_id = response["entity"]["id"]
+        location_id = response["location"]["id"]
+
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>  
+               <add xmlns="urn:messages_2017_2.platform.webservices.netsuite.com">   
+                  <record xsi:type="ns6:VendorBill" xmlns:ns6="urn:purchases_2017_2.transactions.webservices.netsuite.com">    
+                     <ns6:entity internalId="{entity_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2017_2.platform.webservices.netsuite.com"/>
+                     <ns6:location internalId="{location_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2017_2.platform.webservices.netsuite.com"/> 
+                     <ns6:purchaseOrderList xsi:type="ns8:RecordRefList" xmlns:ns8="urn:core_2017_2.platform.webservices.netsuite.com">     
+                        <ns8:recordRef internalId="{po_id}" type="purchaseOrder" xsi:type="ns8:RecordRef"/>
+                     </ns6:purchaseOrderList>   
+                  </record>  
+               </add> 
+            </soap:Body> 
+        </soap:Envelope>"""
+
+        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        return res

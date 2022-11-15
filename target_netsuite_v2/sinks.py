@@ -17,6 +17,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["Invoice"] = []
         context["InvoicePayment"] = []
         context["vendorBill"] = []
+        context["PurchaseOrderToVendorBill"] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -35,10 +36,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name in ["vendorBill", "VendorBill"]:
             vendor_bill = self.process_vendor_bill(context, record)
             context["vendorBill"].append(vendor_bill)
-            
         elif self.stream_name=="InvoicePayment":
             invoice_payment = self.invoice_payment(context, record)
             context["InvoicePayment"].append(invoice_payment)
+        elif self.stream_name=="PurchaseOrderToVendorBill":
+            context["PurchaseOrderToVendorBill"].append(record)
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
@@ -72,3 +74,6 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name in ["InvoicePayment"]:
             for record in context.get(self.stream_name, []):
                 response = self.push_payments(record)
+        elif self.stream_name in ["PurchaseOrderToVendorBill"]:
+            for record in context.get(self.stream_name, []):
+                response = self.po_to_vb(record)
