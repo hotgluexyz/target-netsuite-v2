@@ -17,6 +17,12 @@ class netsuiteRestV2Sink(BatchSink):
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
+    
+    @property
+    def url_suiteql(self) -> str:
+        """Return the API URL root, configurable via tap settings."""
+        url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
+        return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
 
     def rest_post(self, **kwarg):
         oauth = OAuth1(
@@ -361,7 +367,7 @@ class netsuiteRestV2Sink(BatchSink):
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
-        po_id = payload["poNumber"]
+        po_number = payload["poNumber"]
 
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
@@ -371,6 +377,13 @@ class netsuiteRestV2Sink(BatchSink):
             realm=self.config["ns_account"],
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
+
+        headers = {"Content-Type": "application/json", "Prefer": "transient"}
+        payload = {"q": f"SELECT id, abbrevtype, entity FROM Transaction WHERE TranID like '{po_number}'"}
+        response = requests.post(self.url_suiteql, headers=headers, json=payload, auth=oauth)
+        response.raise_for_status()
+        response = response.json()
+        po_id = response["items"][0]["id"]
 
         headers = {"Content-Type": "application/json"}
         response = requests.get(f"{self.url_base}purchaseOrder/{po_id}", headers=headers, auth=oauth)
