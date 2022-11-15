@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "target-netsuite-v2"
-version = "0.0.4"
+version = "0.0.5"
 description = "`target-netsuite-v2` is a Singer target for netsuite-v2, built with the Meltano SDK for Singer Targets."
 authors = ["Hotglue Inc"]
 keywords = [
