@@ -7,6 +7,7 @@ from requests_oauthlib import OAuth1
 from pendulum import parse
 import json
 from lxml import etree
+from requests.exceptions import HTTPError
 
 
 class netsuiteRestV2Sink(BatchSink):
@@ -381,13 +382,19 @@ class netsuiteRestV2Sink(BatchSink):
         headers = {"Content-Type": "application/json", "Prefer": "transient"}
         payload = {"q": f"SELECT id, abbrevtype, entity FROM Transaction WHERE TranID like '{po_number}'"}
         response = requests.post(self.url_suiteql, headers=headers, json=payload, auth=oauth)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            raise HTTPError(response.text)
         response = response.json()
         po_id = response["items"][0]["id"]
 
         headers = {"Content-Type": "application/json"}
         response = requests.get(f"{self.url_base}purchaseOrder/{po_id}", headers=headers, auth=oauth)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            raise HTTPError(response.text)
 
         response = response.json()
 
