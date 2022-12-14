@@ -7,7 +7,6 @@ from requests_oauthlib import OAuth1
 from pendulum import parse
 import json
 from lxml import etree
-from requests.exceptions import HTTPError
 
 
 class netsuiteRestV2Sink(BatchSink):
@@ -379,27 +378,11 @@ class netsuiteRestV2Sink(BatchSink):
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
-        headers = {"Content-Type": "application/json", "Prefer": "transient"}
-        payload = {"q": f"SELECT id, abbrevtype, entity FROM Transaction WHERE TranID like '{po_number}'"}
-        response = requests.post(self.url_suiteql, headers=headers, json=payload, auth=oauth)
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            raise HTTPError(response.text)
-        response = response.json()
-        po_id = response["items"][0]["id"]
+        response = self.ns_client.entities["PurchaseOrder"].get_all(["entity", "location"], tran_id=po_number)[0]
+        po_id = response.get("internalId")
 
-        headers = {"Content-Type": "application/json"}
-        response = requests.get(f"{self.url_base}purchaseOrder/{po_id}", headers=headers, auth=oauth)
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            raise HTTPError(response.text)
-
-        response = response.json()
-
-        entity_id = response["entity"]["id"]
-        location_id = response["location"]["id"]
+        entity_id = response["entity"]["internalId"]
+        location_id = response["location"]["internalId"]
 
         base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>

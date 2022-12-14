@@ -11,11 +11,11 @@ import singer
 logger = singer.get_logger()
 
 class BaseFilter(ApiBase):
-    def get_all(self, selected_fileds=[]):
+    def get_all(self, selected_fileds=[], **kwargs):
         output = []
         page_n = 1
         selected_fileds = selected_fileds + ["externalId", "internalId"]
-        for page in self.get_page():
+        for page in self.get_page(**kwargs):
             logger.info(f"Getting {self.type_name}: page {page_n}")
             for record in page:
                 record = record.__dict__["__values__"]
@@ -23,8 +23,12 @@ class BaseFilter(ApiBase):
                 for k, v in record.items():
                     if k in selected_fileds:
                         if getattr(v, "__dict__", None):
-                            values = v.__dict__["__values__"]["recordRef"]
-                            rec_dict[k] = [dict(value.__dict__["__values__"]) for value in values]
+                            values = v.__dict__["__values__"]
+                            if "recordRef" in values:
+                                values = values["recordRef"]
+                                rec_dict[k] = [dict(value.__dict__["__values__"]) for value in values]
+                            else:
+                                rec_dict[k] = dict(values)
                         else:
                             rec_dict[k] = v
                 output.append(rec_dict)
@@ -32,8 +36,8 @@ class BaseFilter(ApiBase):
         return output
     
     @backoff.on_exception(backoff.expo, (Fault, Exception), max_tries=5, factor=3)
-    def get_page(self):
-        for page in self.get_all_generator():
+    def get_page(self, **kwargs):
+        for page in self.get_all_generator(**kwargs):
             yield page
 
 
@@ -101,6 +105,30 @@ class Items(BaseFilter):
         ps = PaginatedSearch(client=self.ns_client, type_name='Item', pageSize=page_size,
                              search_record=search_record)
         return self._paginated_search_generator(ps)
+
+
+class PurchaseOrder(BaseFilter):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='PurchaseOrder')
+        self.require_paging = True
+        self.require_lastModified_date = True
+
+    def get_all_generator(self, page_size=200, tran_id=None):
+        record_type_search_field = self.ns_client.SearchStringField(searchValue='PurchaseOrder', operator='contains')
+        tran_id_search_field = self.ns_client.SearchStringField(searchValue=tran_id, operator='is')
+        basic_search = self.ns_client.basic_search_factory('Transaction',
+                                                           tranId=tran_id_search_field,
+                                                           recordType=record_type_search_field)
+
+        paginated_search = PaginatedSearch(client=self.ns_client,
+                                           search_record=basic_search,
+                                           type_name='Transaction',
+                                           pageSize=page_size)
+
+        return self._paginated_search_generator(paginated_search=paginated_search)
+
+    def post(self, data) -> OrderedDict:
+        return None
 
 
 class JournalEntries(ApiBase):
