@@ -164,7 +164,7 @@ class netsuiteRestV2Sink(BatchSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": record.get("locationId", "1")}
+            location = {"id": record.get("locationId", "11")}
 
         department = None
         if context["reference_data"].get("Departments") and record.get("department"):
