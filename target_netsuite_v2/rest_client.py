@@ -157,6 +157,7 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_bill["enddate"] = enddate.strftime("%Y-%m-%d")
         
         # Get the NetSuite Location Ref
+        location = None
         if context["reference_data"].get("Locations") and record.get("location"):
             loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
             if loc_data:
@@ -165,14 +166,17 @@ class netsuiteRestV2Sink(BatchSink):
         else:
             location = {"id": record.get("locationId", "1")}
 
+        department = None
         if context["reference_data"].get("Departments") and record.get("department"):
             dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == record["department"]]
             if dep_data:
                 dep_data = dep_data[0]
                 department = {"id": dep_data.get("internalId")}
         
-        vendor_bill["Location"] = location
-        vendor_bill["Department"] = department
+        if location:
+            vendor_bill["Location"] = location
+        if department:
+            vendor_bill["Department"] = department
         vendor_bill["tranid"] = record.get("invoiceNumber")
 
         startdate = record.get("issueDate")
