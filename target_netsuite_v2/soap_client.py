@@ -278,3 +278,10 @@ class netsuiteSoapV2Sink(BatchSink):
         }
 
         return journal_entry
+    
+
+    def process_inbound_shipment(self, context, record):
+        inbound_shipment = record
+        inbound_shipment["internalId"] = record["id"]
+
+        return inbound_shipment

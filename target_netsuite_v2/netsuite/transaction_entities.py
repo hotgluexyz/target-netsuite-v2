@@ -216,3 +216,32 @@ class JournalEntries(ApiBase):
             f"Posting JournalEntries now with {len(je['lineList']['line'])} entries. ExternalId {je['externalId']} tranDate {je['tranDate']}")
         res = self.ns_client.upsert(je)
         return self._serialize(res)
+
+
+class InboundShipment(ApiBase):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='InboundShipment')
+        self.require_lastModified_date = True
+
+    def get_all(self, last_modified_date=None, **kwargs):
+        return self.get_all_generator(last_modified_date=last_modified_date, **kwargs)
+
+    def get_all_generator(self, page_size=200, last_modified_date=None, **kwargs):
+        search_record = self.ns_client.basic_search_factory(type_name="InboundShipment",
+                                                            lastModifiedDate=last_modified_date,
+                                                            **kwargs)
+        ps = PaginatedSearch(client=self.ns_client, type_name='InboundShipment', pageSize=page_size,
+                             search_record=search_record)
+        return self._paginated_search_to_generator(ps)
+
+    def post(self, data) -> OrderedDict:
+        assert data['internalId'], 'missing external id'
+        inbound_shipment = self.ns_client.InboundShipment(internalId=data['internalId'])
+
+        for key in inbound_shipment.__dict__["__values__"].keys():
+            inbound_shipment[key] = data.get(key)
+
+        logger.info(f"Updating InboundShipment {data['internalId']}")
+
+        res = self.ns_client.update(record=inbound_shipment)
+        return self._serialize(res)
