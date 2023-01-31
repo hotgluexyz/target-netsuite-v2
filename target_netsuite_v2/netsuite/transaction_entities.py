@@ -15,24 +15,24 @@ class BaseFilter(ApiBase):
         output = []
         page_n = 1
         selected_fileds = selected_fileds + ["externalId", "internalId"]
-        # for page in self.get_page(**kwargs):
-        #     logger.info(f"Getting {self.type_name}: page {page_n}")
-        #     for record in page:
-        #         record = record.__dict__["__values__"]
-        #         rec_dict = {}
-        #         for k, v in record.items():
-        #             if k in selected_fileds:
-        #                 if getattr(v, "__dict__", None):
-        #                     values = v.__dict__["__values__"]
-        #                     if "recordRef" in values:
-        #                         values = values["recordRef"]
-        #                         rec_dict[k] = [dict(value.__dict__["__values__"]) for value in values]
-        #                     else:
-        #                         rec_dict[k] = dict(values)
-        #                 else:
-        #                     rec_dict[k] = v
-        #         output.append(rec_dict)
-        #     page_n +=1
+        for page in self.get_page(**kwargs):
+            logger.info(f"Getting {self.type_name}: page {page_n}")
+            for record in page:
+                record = record.__dict__["__values__"]
+                rec_dict = {}
+                for k, v in record.items():
+                    if k in selected_fileds:
+                        if getattr(v, "__dict__", None):
+                            values = v.__dict__["__values__"]
+                            if "recordRef" in values:
+                                values = values["recordRef"]
+                                rec_dict[k] = [dict(value.__dict__["__values__"]) for value in values]
+                            else:
+                                rec_dict[k] = dict(values)
+                        else:
+                            rec_dict[k] = v
+                output.append(rec_dict)
+            page_n +=1
         return output
     
     @backoff.on_exception(backoff.expo, (Fault, Exception), max_tries=5, factor=3)
