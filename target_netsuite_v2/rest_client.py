@@ -417,3 +417,7 @@ class netsuiteRestV2Sink(BatchSink):
         if res.status_code>=400:
             raise ConnectionError(res.text)
         return res
+
+    def process_credit_memo(self, context, record):
+
+        return record

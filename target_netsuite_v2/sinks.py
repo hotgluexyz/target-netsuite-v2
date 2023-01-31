@@ -19,6 +19,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["vendorBill"] = []
         context["PurchaseOrderToVendorBill"] = []
         context["InboundShipment"] = []
+        context['CreditMemo'] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -37,6 +38,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name=="Invoice":
             invoice = self.process_invoice(context, record)
             context["Invoice"].append(invoice)
+        elif self.stream_name == "CreditMemo":
+            credit_memo = self.process_credit_memo(context, record)
+            context["CreditMemo"].append(credit_memo)
         elif self.stream_name in ["vendorBill", "VendorBill"]:
             vendor_bill = self.process_vendor_bill(context, record)
             context["vendorBill"].append(vendor_bill)
@@ -68,6 +72,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}{endpoint}"
             for record in context.get(self.stream_name, []):
                 response = self.rest_post(url=url, json=record)
+        elif self.stream_name in ["CreditMemo"]:   
+            endpoint = self.stream_name.lower()
+            url = f"{self.url_base}{endpoint}"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
         elif self.stream_name in ["vendorBill", "VendorBill"]:
             endpoint = list(self.stream_name)
             endpoint[0] = endpoint[0].lower()
@@ -90,3 +99,5 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 endpoint = endpoint.format(id=record.pop("id"))
                 url = f"{self.url_base}{endpoint}"
                 response = self.rest_patch(url=url, json=record)
+
+
