@@ -129,7 +129,9 @@ class netsuiteRestV2Sink(BatchSink):
         items = []
 
         # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Vendors") and record.get("vendorName"):
+        if record.get("vendorId"):
+            vendor_bill["entity"] = {"id": record["vendorId"]}
+        elif context["reference_data"].get("Vendors") and record.get("vendorName"):
             vendor_names = []
             for c in context["reference_data"]["Vendors"]:
                 if "entityId" in c.keys():
@@ -158,7 +160,9 @@ class netsuiteRestV2Sink(BatchSink):
         
         # Get the NetSuite Location Ref
         location = None
-        if context["reference_data"].get("Locations") and record.get("location"):
+        if record.get("locationId"):
+            location = {"id": record["locationId"]}
+        elif context["reference_data"].get("Locations") and record.get("location"):
             loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
             if loc_data:
                 loc_data = loc_data[0]
@@ -167,7 +171,9 @@ class netsuiteRestV2Sink(BatchSink):
             location = {"id": record.get("locationId", "11")}
 
         department = None
-        if context["reference_data"].get("Departments") and record.get("department"):
+        if record.get("departmentId"):
+            department = {"id": record["departmentId"]}
+        elif context["reference_data"].get("Departments") and record.get("department"):
             dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == record["department"]]
             if dep_data:
                 dep_data = dep_data[0]
@@ -186,8 +192,13 @@ class netsuiteRestV2Sink(BatchSink):
         for line in record.get("lineItems", []):
             order_item = {}
 
+            if record.get("purchaseOrderNumber"):
+                order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
+
             # Get the product Id
-            if context["reference_data"].get("Items") and line.get("productName"):
+            if line.get("productId"):
+                order_item["item"] = {"id": line.get("productId")}
+            elif context["reference_data"].get("Items") and line.get("productName"):
                 product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
                 product_name = self.get_close_matches(line["productName"], product_names, n=2, cutoff=0.95)
                 if product_name:
@@ -202,6 +213,53 @@ class netsuiteRestV2Sink(BatchSink):
             order_item["Department"] = department
             items.append(order_item)
         vendor_bill["item"] = {"items": items}
+
+        return vendor_bill
+
+
+    def process_invoice_to_vb(self, context, record):
+        vendor_bill = {}
+
+        response = self.ns_client.entities["Invoices"].get(internalId=record["id"])
+
+        response = response.__dict__["__values__"]
+        invoice = {}
+        for k, v in response.items():
+            if getattr(v, "__dict__", None):
+                values = v.__dict__["__values__"]
+                if "recordRef" in values:
+                    values = values["recordRef"]
+                    invoice[k] = [dict(value.__dict__["__values__"]) for value in values]
+                else:
+                    invoice[k] = dict(values)
+            else:
+                invoice[k] = v
+
+        vendor_bill["dueDate"] = invoice["dueDate"].strftime("%Y-%m-%d")
+        vendor_bill["tranDate"] = invoice["tranDate"].strftime("%Y-%m-%d")
+        
+        for ref in ["entity", "location", "department", "subsidiary", "currency"]:
+            if isinstance(invoice[ref], dict):
+                if invoice[ref].get("internalId"):
+                    vendor_bill[ref] = {"id": invoice[ref]["internalId"]}
+        vendor_bill["email"] = invoice["email"]
+        vendor_bill["total"] = float(record["amount"])
+        vendor_bill["userTotal"] = float(record["amount"])
+
+        items = []
+        for line in invoice["itemList"]["item"]:
+            order_item = {}
+            
+            # Get the product Id
+            if line.item:
+                order_item["item"] = {"id": line.item.internalId}
+
+                order_item["quantity"] = line.quantity
+                order_item["amount"] = line.amount
+            items.append(order_item)
+
+        vendor_bill["item"] = {"items": items}
+        
         return vendor_bill
 
 

@@ -131,6 +131,30 @@ class PurchaseOrder(BaseFilter):
         return None
 
 
+class Invoices(BaseFilter):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='Invoice')
+        self.require_paging = True
+        self.require_lastModified_date = True
+
+    def get_all_generator(self, page_size=200, id=None):
+        record_type_search_field = self.ns_client.SearchStringField(searchValue='Invoice', operator='contains')
+        id_search_field = self.ns_client.SearchMultiSelectField(searchValue=[id], operator='anyOf')
+        basic_search = self.ns_client.basic_search_factory('Transaction',
+                                                           internalId=id_search_field,
+                                                           recordType=record_type_search_field)
+
+        paginated_search = PaginatedSearch(client=self.ns_client,
+                                           search_record=basic_search,
+                                           type_name='Transaction',
+                                           pageSize=page_size)
+
+        return self._paginated_search_generator(paginated_search=paginated_search)
+
+    def post(self, data) -> OrderedDict:
+        return None
+
+
 class JournalEntries(ApiBase):
     def __init__(self, ns_client):
         ApiBase.__init__(self, ns_client=ns_client, type_name='journalEntry')
