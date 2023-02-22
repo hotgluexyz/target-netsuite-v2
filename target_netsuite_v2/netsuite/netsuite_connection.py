@@ -3,7 +3,7 @@ from netsuitesdk.api.currencies import Currencies
 import time
 import json
 import singer
-from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment
+from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices
 from .netsuite_client import ExtendedNetSuiteClient
 
 LOGGER = singer.get_logger()
@@ -34,7 +34,8 @@ class ExtendedNetSuiteConnection:
             'Items': Items(self.ns_client),
             'Subsidiaries': Subsidiaries(self.ns_client),
             'Vendors': Vendors(self.ns_client),
-            'PurchaseOrder': PurchaseOrder(self.ns_client)
+            'PurchaseOrder': PurchaseOrder(self.ns_client),
+            'Invoices': Invoices(self.ns_client)
         }
 
     def _query_entity(self, data, entity, stream):

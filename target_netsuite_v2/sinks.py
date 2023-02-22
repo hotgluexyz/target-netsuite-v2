@@ -78,11 +78,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             for record in context.get(self.stream_name, []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name in ["vendorBill", "VendorBill"]:
-            endpoint = list(self.stream_name)
-            endpoint[0] = endpoint[0].lower()
-            endpoint = "".join(endpoint)
-            url = f"{self.url_base}{endpoint}"
-            for record in context.get(endpoint, []):
+            url = f"{self.url_base}vendorbill"
+            for record in context.get("vendorBill", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name in ["InvoicePayment"]:
             for record in context.get(self.stream_name, []):

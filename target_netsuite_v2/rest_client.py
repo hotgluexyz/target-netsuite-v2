@@ -128,8 +128,13 @@ class netsuiteRestV2Sink(BatchSink):
         vendor_bill = {}
         items = []
 
+        if record.get("vendorBillNumber"):
+            vendor_bill["externalId"] = record["vendorBillNumber"]
+
         # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Vendors") and record.get("vendorName"):
+        if record.get("vendorId"):
+            vendor_bill["entity"] = {"id": record["vendorId"]}
+        elif context["reference_data"].get("Vendors") and record.get("vendorName"):
             vendor_names = []
             for c in context["reference_data"]["Vendors"]:
                 if "entityId" in c.keys():
@@ -158,7 +163,9 @@ class netsuiteRestV2Sink(BatchSink):
         
         # Get the NetSuite Location Ref
         location = None
-        if context["reference_data"].get("Locations") and record.get("location"):
+        if record.get("locationId"):
+            location = {"id": record["locationId"]}
+        elif context["reference_data"].get("Locations") and record.get("location"):
             loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
             if loc_data:
                 loc_data = loc_data[0]
@@ -167,7 +174,9 @@ class netsuiteRestV2Sink(BatchSink):
             location = {"id": record.get("locationId", "11")}
 
         department = None
-        if context["reference_data"].get("Departments") and record.get("department"):
+        if record.get("departmentId"):
+            department = {"id": record["departmentId"]}
+        elif context["reference_data"].get("Departments") and record.get("department"):
             dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == record["department"]]
             if dep_data:
                 dep_data = dep_data[0]
@@ -186,8 +195,13 @@ class netsuiteRestV2Sink(BatchSink):
         for line in record.get("lineItems", []):
             order_item = {}
 
+            if record.get("purchaseOrderNumber"):
+                order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
+
             # Get the product Id
-            if context["reference_data"].get("Items") and line.get("productName"):
+            if line.get("productId"):
+                order_item["item"] = {"id": line.get("productId")}
+            elif context["reference_data"].get("Items") and line.get("productName"):
                 product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
                 product_name = self.get_close_matches(line["productName"], product_names, n=2, cutoff=0.95)
                 if product_name:
@@ -202,6 +216,7 @@ class netsuiteRestV2Sink(BatchSink):
             order_item["Department"] = department
             items.append(order_item)
         vendor_bill["item"] = {"items": items}
+
         return vendor_bill
 
 
