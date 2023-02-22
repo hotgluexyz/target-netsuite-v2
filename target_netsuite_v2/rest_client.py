@@ -128,6 +128,9 @@ class netsuiteRestV2Sink(BatchSink):
         vendor_bill = {}
         items = []
 
+        if record.get("vendorBillNumber"):
+            vendor_bill["externalId"] = record["vendorBillNumber"]
+
         # Get the NetSuite Customer Ref
         if record.get("vendorId"):
             vendor_bill["entity"] = {"id": record["vendorId"]}
@@ -214,52 +217,6 @@ class netsuiteRestV2Sink(BatchSink):
             items.append(order_item)
         vendor_bill["item"] = {"items": items}
 
-        return vendor_bill
-
-
-    def process_invoice_to_vb(self, context, record):
-        vendor_bill = {}
-
-        response = self.ns_client.entities["Invoices"].get(internalId=record["id"])
-
-        response = response.__dict__["__values__"]
-        invoice = {}
-        for k, v in response.items():
-            if getattr(v, "__dict__", None):
-                values = v.__dict__["__values__"]
-                if "recordRef" in values:
-                    values = values["recordRef"]
-                    invoice[k] = [dict(value.__dict__["__values__"]) for value in values]
-                else:
-                    invoice[k] = dict(values)
-            else:
-                invoice[k] = v
-
-        vendor_bill["dueDate"] = invoice["dueDate"].strftime("%Y-%m-%d")
-        vendor_bill["tranDate"] = invoice["tranDate"].strftime("%Y-%m-%d")
-        
-        for ref in ["entity", "location", "department", "subsidiary", "currency"]:
-            if isinstance(invoice[ref], dict):
-                if invoice[ref].get("internalId"):
-                    vendor_bill[ref] = {"id": invoice[ref]["internalId"]}
-        vendor_bill["email"] = invoice["email"]
-        vendor_bill["total"] = float(record["amount"])
-        vendor_bill["userTotal"] = float(record["amount"])
-
-        items = []
-        for line in invoice["itemList"]["item"]:
-            order_item = {}
-            
-            # Get the product Id
-            if line.item:
-                order_item["item"] = {"id": line.item.internalId}
-
-                order_item["quantity"] = line.quantity
-                order_item["amount"] = line.amount
-            items.append(order_item)
-
-        vendor_bill["item"] = {"items": items}
-        
         return vendor_bill
 
 
