@@ -126,7 +126,6 @@ class netsuiteRestV2Sink(BatchSink):
 
     def process_vendor_bill(self, context, record):
         vendor_bill = {}
-        items = []
 
         if record.get("vendorBillNumber"):
             vendor_bill["externalId"] = record["vendorBillNumber"]
@@ -192,6 +191,8 @@ class netsuiteRestV2Sink(BatchSink):
         if isinstance(startdate, str):
             startdate = parse(startdate)
         vendor_bill["tranDate"] = startdate.strftime("%Y-%m-%d")
+
+        items = []
         for line in record.get("lineItems", []):
             order_item = {}
 
@@ -213,9 +214,29 @@ class netsuiteRestV2Sink(BatchSink):
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = round(line.get("quantity") * line.get("unitPrice"), 3)
-            order_item["Department"] = department
+            if department:
+                order_item["Department"] = department
             items.append(order_item)
-        vendor_bill["item"] = {"items": items}
+        if items:
+            vendor_bill["item"] = {"items": items}
+        
+        expenses = []
+        for line in record.get("expenses", []):
+            expense = {}
+
+            # Get the account Id
+            if line.get("accountId"):
+                expense["account"] = {"id": line.get("accountId")}
+            elif context["reference_data"].get("Accounts") and line.get("accountNumber"):
+                acct_num = str(line["accountNumber"])
+                acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
+                expense["account"] = {"id": acct_data.get("internalId")}
+            expense["amount"] = round(line.get("amount"), 3)
+            if department:
+                expense["Department"] = department
+            expenses.append(expense)
+        if expenses:
+            vendor_bill["expense"] = {"items": expenses}
 
         return vendor_bill
 
