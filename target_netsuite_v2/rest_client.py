@@ -230,7 +230,9 @@ class netsuiteRestV2Sink(BatchSink):
             elif context["reference_data"].get("Accounts") and line.get("accountNumber"):
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
-                expense["account"] = {"id": acct_data.get("internalId")}
+                if acct_data:
+                    acct_data = acct_data[0]
+                    expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
             if department:
                 expense["Department"] = department
