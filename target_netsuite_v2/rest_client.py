@@ -293,7 +293,7 @@ class netsuiteRestV2Sink(BatchSink):
         duedate = record.get("dueDate")
         if isinstance(duedate, str):
             duedate = parse(duedate)
-        invoice["duedate"] = duedate.strftime("%Y-%m-%d")
+            invoice["duedate"] = duedate.strftime("%Y-%m-%d")
         
         enddate = record.get("paidDate")
         if isinstance(enddate, str):
@@ -304,12 +304,14 @@ class netsuiteRestV2Sink(BatchSink):
         startdate = record.get("issueDate")
         if isinstance(startdate, str):
             startdate = parse(startdate)
-        invoice["startdate"] = startdate.strftime("%Y-%m-%d")
+            invoice["startdate"] = startdate.strftime("%Y-%m-%d")
         for line in record.get("lineItems", []):
             order_item = {}
 
             # Get the product Id
-            if context["reference_data"].get("Items") and line.get("productName"):
+            if "productId" in line:
+                order_item["item"] = {"id": line["productId"]}
+            elif context["reference_data"].get("Items") and line.get("productName"):
                 product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
                 product_name = self.get_close_matches(line["productName"], product_names, n=2, cutoff=0.95)
                 if product_name:
