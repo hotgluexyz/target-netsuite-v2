@@ -129,6 +129,8 @@ class netsuiteRestV2Sink(BatchSink):
 
         if record.get("vendorBillNumber"):
             vendor_bill["externalId"] = record["vendorBillNumber"]
+        elif record.get("externalId"):
+            vendor_bill["externalId"] = record["externalId"].get("value")
 
         # Get the NetSuite Customer Ref
         if record.get("vendorId"):
@@ -185,9 +187,10 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_bill["Location"] = location
         if department:
             vendor_bill["Department"] = department
-        vendor_bill["tranid"] = record.get("invoiceNumber")
 
-        startdate = record.get("issueDate")
+        vendor_bill["tranid"] = record.get("invoiceNumber", record.get("number"))
+
+        startdate = record.get("issueDate", record.get("createdAt"))
         if isinstance(startdate, str):
             startdate = parse(startdate)
         vendor_bill["tranDate"] = startdate.strftime("%Y-%m-%d")
