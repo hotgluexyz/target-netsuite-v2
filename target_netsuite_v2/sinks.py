@@ -41,7 +41,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name == "CreditMemo":
             credit_memo = self.process_credit_memo(context, record)
             context["CreditMemo"].append(credit_memo)
-        elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices"]:
+        elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices", "Bill", "Bills", "bill", "bills"]:
             vendor_bill = self.process_vendor_bill(context, record)
             context["vendorBill"].append(vendor_bill)
         elif self.stream_name=="InvoicePayment":
@@ -77,7 +77,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}{endpoint}"
             for record in context.get(self.stream_name, []):
                 response = self.rest_post(url=url, json=record)
-        elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices"]:
+        elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices", "Bill", "Bills", "bill", "bills"]:
             url = f"{self.url_base}vendorbill"
             for record in context.get("vendorBill", []):
                 response = self.rest_post(url=url, json=record)
