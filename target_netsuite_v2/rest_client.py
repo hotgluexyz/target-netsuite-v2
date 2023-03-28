@@ -154,7 +154,7 @@ class netsuiteRestV2Sink(BatchSink):
         duedate = record.get("dueDate")
         if isinstance(duedate, str):
             duedate = parse(duedate)
-        vendor_bill["duedate"] = duedate.strftime("%Y-%m-%d")
+            vendor_bill["duedate"] = duedate.strftime("%Y-%m-%d")
         
         enddate = record.get("paidDate")
         if isinstance(enddate, str):
