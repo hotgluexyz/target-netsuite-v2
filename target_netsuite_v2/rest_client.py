@@ -131,6 +131,8 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_bill["externalId"] = record["vendorBillNumber"]
         elif record.get("externalId"):
             vendor_bill["externalId"] = record["externalId"].get("value")
+        
+        vendor_bill["memo"] = record.get("description")
 
         # Get the NetSuite Customer Ref
         if record.get("vendorId"):
@@ -202,6 +204,8 @@ class netsuiteRestV2Sink(BatchSink):
             if record.get("purchaseOrderNumber"):
                 order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
 
+            order_item["description"] = line.get("description")
+
             # Get the product Id
             if line.get("productId"):
                 order_item["item"] = {"id": line.get("productId")}
@@ -226,6 +230,8 @@ class netsuiteRestV2Sink(BatchSink):
         expenses = []
         for line in record.get("expenses", []):
             expense = {}
+
+            expense["memo"] = line.get("description")
 
             # Get the account Id
             if line.get("accountId"):

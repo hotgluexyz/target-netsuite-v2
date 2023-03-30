@@ -23,7 +23,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
-        if self.stream_name=="JournalEntry":
+        if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
         if self.stream_name=="InboundShipment":
@@ -53,9 +53,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
         self.logger.info(f"Posting data for entity {self.stream_name}")
-        if self.stream_name in ["JournalEntry", "CustomerPayment", "InboundShipment"]:
-            for record in context.get(self.stream_name, []):
-                response = self.ns_client.entities[self.stream_name].post(record)
+        if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment", "inboundshipment"]:
+            if self.stream_name.lower() in ["journalentries", "journalentry"]:
+                name = "JournalEntry"
+            else:
+                name = self.stream_name
+            for record in context.get(name, []):
+                response = self.ns_client.entities[name].post(record)
                 self.logger.info(response)
         elif self.stream_name in ["SalesOrder"]:
             url = f"{self.url_base}salesOrder"

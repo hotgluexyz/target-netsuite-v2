@@ -111,12 +111,13 @@ class netsuiteSoapV2Sink(BatchSink):
                 journal_entry_line = {"account": ref_acct}
 
                 # Extract the subsidiaries from Account
-                if line.get("Subsidiary"):
+                if line.get("subsidiary"):
                     subsidiary = dict(name=None, internalId=line.get("subsidiary"), externalId=None, type=None)
                 else:
                     subsidiary = acct_data['subsidiaryList']
+                    if subsidiary:
+                        subsidiary = subsidiary[0]
                 if subsidiary:
-                    subsidiary = subsidiary[0]
                     if line["postingType"].lower() == "credit":
                         subsidiaries["toSubsidiary"] = subsidiary
                     elif line["postingType"].lower() == "debit":
@@ -155,7 +156,9 @@ class netsuiteSoapV2Sink(BatchSink):
                         }
 
             # Get the NetSuite Location Ref
-            if context["reference_data"].get("Locations") and line.get("location"):
+            if line.get("locationId"):
+                journal_entry_line["location"] = {"internalId": line.get("locationId")}
+            elif context["reference_data"].get("Locations") and line.get("location"):
                 loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
                 if loc_data:
                     loc_data = loc_data[0]
@@ -165,7 +168,7 @@ class netsuiteSoapV2Sink(BatchSink):
                         "internalId": loc_data.get("internalId"),
                     }
 
-            # Get the NetSuite Location Ref
+            # Get the NetSuite Customer Ref
             if context["reference_data"].get("Customer") and line.get("customerName"):
                 customer_names = []
                 for c in context["reference_data"]["Customer"]:
@@ -201,9 +204,12 @@ class netsuiteSoapV2Sink(BatchSink):
                 journal_entry_line["debit"] = amount
 
             # Insert the Journal Entry to the memo field
-            if "Description" in line.keys():
-                journal_entry_line["memo"] = line["Description"]
-            
+            if "description" in line.keys():
+                journal_entry_line["memo"] = line["description"]
+
+            if line.get("asset"):
+                journal_entry_line["customFieldList"] = [{"type": "Select", "scriptId": "custcol_far_trn_relatedasset", "value": line["asset"]}]
+
             line_items.append(journal_entry_line)
 
         # Get the currency ID
@@ -241,7 +247,7 @@ class netsuiteSoapV2Sink(BatchSink):
         }
 
         if "journalDesc" in record.keys():
-            journal_entry["memo"] = "" if not record["JournalDesc"] else record["JournalDesc"]
+            journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
         
         # Update the entry with subsidiaries
         journal_entry.update(subsidiaries)
