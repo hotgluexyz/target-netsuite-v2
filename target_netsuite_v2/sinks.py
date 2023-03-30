@@ -23,7 +23,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
-        if self.stream_name=="JournalEntry":
+        if self.stream_name in ["JournalEntry"]:
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
         if self.stream_name=="InboundShipment":
