@@ -228,9 +228,12 @@ class netsuiteSoapV2Sink(BatchSink):
             currency_ref = None
 
         # Check if subsidiary is duplicated and delete toSubsidiary if true
-        if len(subsidiaries)>1:
+        subsidiary = None
+        if record.get("subsidiary"):
+            subsidiary = {"internalId": record["subsidiary"]}
+        elif len(subsidiaries)>1:
             if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
-                del subsidiaries['toSubsidiary']
+                subsidiary = subsidiaries['subsidiary']
 
         if "transactionDate" in record.keys():
             created_date = parse(record["transactionDate"])
@@ -243,14 +246,12 @@ class netsuiteSoapV2Sink(BatchSink):
             "tranDate": created_date,
             "externalId": record["id"],
             "lineList": line_items,
-            "currency": currency_ref
+            "currency": currency_ref,
+            "subsidiary": subsidiary
         }
 
         if "journalDesc" in record.keys():
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
-        
-        # Update the entry with subsidiaries
-        journal_entry.update(subsidiaries)
 
         return journal_entry
 
