@@ -197,6 +197,15 @@ class netsuiteRestV2Sink(BatchSink):
             startdate = parse(startdate)
         vendor_bill["tranDate"] = startdate.strftime("%Y-%m-%d")
 
+        # Get the NetSuite Subsidiary Ref
+        if record.get("subsidiaryId"):
+            vendor_bill["subsidiary"] = {"id": sub_data.get("subsidiaryId")}
+        if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
+            sub_data = [s for s in context["reference_data"]["Subsidiaries"] if s["name"] == record["subsidiary"]]
+            if sub_data:
+                sub_data = sub_data[0]
+                vendor_bill["subsidiary"] = {"id": sub_data.get("internalId")}
+
         items = []
         for line in record.get("lineItems", []):
             order_item = {}
