@@ -152,17 +152,19 @@ class netsuiteRestV2Sink(BatchSink):
                 if vendor_data:
                     vendor_data = vendor_data[0]
                     vendor_bill["entity"] = {"id": vendor_data.get("internalId")}
-
+        #Prevent parse function from failing on empty date
         duedate = record.get("dueDate")
-        if isinstance(duedate, str):
-            duedate = parse(duedate)
-            vendor_bill["duedate"] = duedate.strftime("%Y-%m-%d")
+        if duedate:
+            if isinstance(duedate, str):
+                duedate = parse(duedate)
+                vendor_bill["duedate"] = duedate.strftime("%Y-%m-%d")
         
         enddate = record.get("paidDate")
-        if isinstance(enddate, str):
-            enddate = parse(enddate)
         if enddate:
-            vendor_bill["enddate"] = enddate.strftime("%Y-%m-%d")
+            if isinstance(enddate, str):
+                enddate = parse(enddate)
+            if enddate:
+                vendor_bill["enddate"] = enddate.strftime("%Y-%m-%d")
         
         # Get the NetSuite Location Ref
         location = None
