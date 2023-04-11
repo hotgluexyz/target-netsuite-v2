@@ -254,6 +254,20 @@ class netsuiteRestV2Sink(BatchSink):
                     acct_data = acct_data[0]
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
+
+            # Get the NetSuite Location Ref
+            location = None
+            if line.get("locationId"):
+                location = {"id": line["locationId"]}
+            elif context["reference_data"].get("Locations") and line.get("location"):
+                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
+                if loc_data:
+                    loc_data = loc_data[0]
+                    location = {"id": loc_data.get("internalId")}
+
+            if location:
+                expense["Location"] = location
+
             if department:
                 expense["Department"] = department
             expenses.append(expense)
