@@ -129,6 +129,8 @@ class netsuiteRestV2Sink(BatchSink):
 
         if record.get("vendorBillNumber"):
             vendor_bill["externalId"] = record["vendorBillNumber"]
+        elif record.get("invoiceNumber"):
+            vendor_bill["externalId"] = record["invoiceNumber"]
         elif record.get("externalId"):
             vendor_bill["externalId"] = record["externalId"].get("value")
         
