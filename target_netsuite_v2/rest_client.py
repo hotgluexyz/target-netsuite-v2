@@ -136,6 +136,9 @@ class netsuiteRestV2Sink(BatchSink):
         
         vendor_bill["memo"] = record.get("description")
 
+        if record.get("customFormId"):
+            vendor_bill["customForm"] = {"id": record["customFormId"]}
+
         # Get the NetSuite Customer Ref
         if record.get("vendorId"):
             vendor_bill["entity"] = {"id": record["vendorId"]}
