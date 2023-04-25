@@ -201,7 +201,7 @@ class netsuiteRestV2Sink(BatchSink):
 
         # Get the NetSuite Subsidiary Ref
         if record.get("subsidiaryId"):
-            vendor_bill["subsidiary"] = {"id": sub_data.get("subsidiaryId")}
+            vendor_bill["subsidiary"] = {"id": record.get("subsidiaryId")}
         if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
             sub_data = [s for s in context["reference_data"]["Subsidiaries"] if s["name"] == record["subsidiary"]]
             if sub_data:
