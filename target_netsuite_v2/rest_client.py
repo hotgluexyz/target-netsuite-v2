@@ -139,9 +139,9 @@ class netsuiteRestV2Sink(BatchSink):
         if record.get("customFormId"):
             vendor_bill["customForm"] = {"id": record["customFormId"]}
 
-        # Get the NetSuite Customer Ref
-        if record.get("vendorId"):
-            vendor_bill["entity"] = {"id": record["vendorId"]}
+        # Get the NetSuite Vendor Ref
+        if record.get("vendorId") or record.get("vendorNum"):
+            vendor_bill["entity"] = {"id": record.get("vendorId", record.get("vendorNum"))}
         elif context["reference_data"].get("Vendors") and record.get("vendorName"):
             vendor_names = []
             for c in context["reference_data"]["Vendors"]:
