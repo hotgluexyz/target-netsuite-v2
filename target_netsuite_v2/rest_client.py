@@ -232,11 +232,24 @@ class netsuiteRestV2Sink(BatchSink):
                     if product_data:
                         product_data = product_data[0]
                         order_item["item"] = {"id": product_data.get("internalId")}
-
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = round(line.get("quantity") * line.get("unitPrice"), 3)
             if department:
                 order_item["Department"] = department
+            elif line.get("departmentId"):
+                department = {"id": line["departmentId"]}
+                order_item["Department"] = department
+            elif context["reference_data"].get("Departments") and line.get("department"):
+                dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == line["department"]]
+                if dep_data:
+                    dep_data = dep_data[0]
+                    department = {"id": dep_data.get("internalId")}
+                    order_item["Department"] = department
+            class_data = None
+            if line.get("classId"):
+                class_data = {"id": line["classId"]}
+                order_item["Class"] = class_data
+             
             items.append(order_item)
         if items:
             vendor_bill["item"] = {"items": items}
