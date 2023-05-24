@@ -421,6 +421,83 @@ class netsuiteRestV2Sink(BatchSink):
 
         return etree.tostring(record, pretty_print=True)
 
+    def vendor_payment(self, context, record):
+
+        vendor_id = record.get("vendor_id")
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <soap:Header>
+        <tokenPassport>
+            <account>{oauth_creds["account"]}</account>
+            <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+            <token>{oauth_creds["token"]}</token>
+            <nonce>{oauth_creds["nonce"]}</nonce>
+            <timestamp>{oauth_creds["timestamp"]}</timestamp>
+            <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+        </tokenPassport>
+    </soap:Header>
+    <soap:Body>
+        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2017_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com">
+            <platformMsgs:initializeRecord>
+                <platformCore:type>vendorPayment</platformCore:type>
+                <platformCore:reference internalId="{vendor_id}" type="vendor">
+                </platformCore:reference>
+            </platformMsgs:initializeRecord>
+        </platformMsgs:initialize>
+    </soap:Body>
+</soap:Envelope>"""
+
+        headers = {"SOAPAction":"initialize", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        res_xml = etree.fromstring(res.text.encode())
+        record = res_xml[1][0][0][-1]
+
+        for r in record:
+            if isinstance(r.text, str):
+                r.getparent().remove(r)
+
+        return etree.tostring(record, pretty_print=True)
+
+    def push_vendor_payments(self, payload):
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        payload = payload.decode()
+        payload = "\n".join(payload.split("\n")[1:-2])
+
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <platformMsgs:add>
+                <platformMsgs:record xsi:type="tranCust:VendorPayment" xmlns:tranCust="urn:vendors_2017_2.transactions.webservices.netsuite.com">
+                    {payload}
+                </platformMsgs:record>
+                </platformMsgs:add>
+            </soap:Body>
+        </soap:Envelope>"""
+    
+        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        return res
+
     def push_payments(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -511,3 +588,20 @@ class netsuiteRestV2Sink(BatchSink):
     def process_credit_memo(self, context, record):
 
         return record
+    
+    def process_vendors(self, context, record):
+
+        vendor_mapping = {
+            "accountNumber" : record.get("vendorNumber"),
+            "altEmail" : record.get("emailAddress"),
+            "companyName" : record.get("companyName"),
+            "dateCreated" : record.get("createdAt"),
+            "id": record.get("id"),
+            "internalId": record.get("id"),
+            "entityId": record.get("companyName"),
+            "firstName" : record.get("contactName"),
+            "lastModifiedDate" : record.get("updatedAt"),
+            "symbol" : record.get("currency"),
+        }
+
+        return vendor_mapping

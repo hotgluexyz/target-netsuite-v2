@@ -17,6 +17,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["Invoice"] = []
         context["InvoicePayment"] = []
         context["vendorBill"] = []
+        context["VendorPayment"] = []
+        context["Vendor"] = []
         context["PurchaseOrderToVendorBill"] = []
         context["InboundShipment"] = []
         context['CreditMemo'] = []
@@ -41,12 +43,18 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name == "CreditMemo":
             credit_memo = self.process_credit_memo(context, record)
             context["CreditMemo"].append(credit_memo)
+        elif self.stream_name == "Vendor":
+            vendor = self.process_vendors(context, record)
+            context["Vendor"].append(vendor)
         elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices", "Bill", "Bills", "bill", "bills"]:
             vendor_bill = self.process_vendor_bill(context, record)
             context["vendorBill"].append(vendor_bill)
         elif self.stream_name=="InvoicePayment":
             invoice_payment = self.invoice_payment(context, record)
             context["InvoicePayment"].append(invoice_payment)
+        elif self.stream_name=="VendorPayment":
+            vendor_payment = self.vendor_payment(context, record)
+            context["VendorPayment"].append(vendor_payment)
         elif self.stream_name=="PurchaseOrderToVendorBill":
             context["PurchaseOrderToVendorBill"].append(record)
 
@@ -81,6 +89,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}{endpoint}"
             for record in context.get(self.stream_name, []):
                 response = self.rest_post(url=url, json=record)
+        elif self.stream_name in ["Vendor"]:   
+            endpoint = self.stream_name.lower()
+            url = f"{self.url_base}{endpoint}"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
         elif self.stream_name in ["vendorBill", "VendorBill", "PurchaseInvoices", "Bill", "Bills", "bill", "bills"]:
             url = f"{self.url_base}vendorbill"
             for record in context.get("vendorBill", []):
@@ -88,6 +101,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name in ["InvoicePayment"]:
             for record in context.get(self.stream_name, []):
                 response = self.push_payments(record)
+        elif self.stream_name in ["VendorPayment"]:
+            for record in context.get(self.stream_name, []):
+                response = self.push_vendor_payments(record)
         elif self.stream_name in ["PurchaseOrderToVendorBill"]:
             for record in context.get(self.stream_name, []):
                 response = self.po_to_vb(record)
