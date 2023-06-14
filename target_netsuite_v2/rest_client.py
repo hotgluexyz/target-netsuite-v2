@@ -18,12 +18,14 @@ class netsuiteRestV2Sink(BatchSink):
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
     
+
+    
     @property
     def url_suiteql(self) -> str:
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
-
+    
     def rest_post(self, **kwarg):
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
@@ -219,7 +221,7 @@ class netsuiteRestV2Sink(BatchSink):
                 order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
 
             order_item["description"] = line.get("description")
-
+            
             # Get the product Id
             if line.get("productId"):
                 order_item["item"] = {"id": line.get("productId")}
@@ -271,6 +273,10 @@ class netsuiteRestV2Sink(BatchSink):
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
 
+            if line.get('customFields'):
+                for field in line.get('customFields'):
+                        expense[field['name']] = field['value']
+
             # Get the NetSuite Location Ref
             location = None
             if line.get("locationId"):
@@ -289,7 +295,7 @@ class netsuiteRestV2Sink(BatchSink):
             expenses.append(expense)
         if expenses:
             vendor_bill["expense"] = {"items": expenses}
-
+            
         return vendor_bill
 
 
