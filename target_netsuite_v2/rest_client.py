@@ -428,8 +428,8 @@ class netsuiteRestV2Sink(BatchSink):
         return etree.tostring(record, pretty_print=True)
 
     def vendor_payment(self, context, record):
-
-        vendor_id = record.get("vendor_id")
+        
+        vendor_bill_id = record.get("id")
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -450,7 +450,7 @@ class netsuiteRestV2Sink(BatchSink):
         <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2017_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com">
             <platformMsgs:initializeRecord>
                 <platformCore:type>vendorPayment</platformCore:type>
-                <platformCore:reference internalId="{vendor_id}" type="vendor">
+                <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
                 </platformCore:reference>
             </platformMsgs:initializeRecord>
         </platformMsgs:initialize>
@@ -596,18 +596,28 @@ class netsuiteRestV2Sink(BatchSink):
         return record
     
     def process_vendors(self, context, record):
-
-        vendor_mapping = {
-            "accountNumber" : record.get("vendorNumber"),
-            "altEmail" : record.get("emailAddress"),
-            "companyName" : record.get("companyName"),
+        vendors = context['reference_data']['Vendors']
+        vendor = None
+        if record.get("id"):
+            vendor = list(filter(lambda x: x["internalId"] == record.get("id") or x['externalId'] == record.get("id"), vendors))
+        
+        address = record.get("addresses")
+        phoneNumber = record.get("phoneNumbers")
+        vendor_mapping = { 
+            "email" : record.get("emailAddress"),
+            "companyName" : record.get("vendorName") ,
             "dateCreated" : record.get("createdAt"),
-            "id": record.get("id"),
-            "internalId": record.get("id"),
-            "entityId": record.get("companyName"),
+            "entityId": record.get("vendorName"),      
             "firstName" : record.get("contactName"),
+            "subsidiary": {'id': record.get("subsidiary")},
             "lastModifiedDate" : record.get("updatedAt"),
-            "symbol" : record.get("currency"),
+            "currency" : {'refName': record.get("currency") },
+            "homePhone": phoneNumber[0]['number'] if phoneNumber else None,
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']}, {address[0]['state'], address[0]['country'], address[0]['postalCode']}" if address else None
         }
+
+        if vendor: 
+            vendor_mapping['internalId'] = vendor.get("internalId")
+            vendor_mapping['accountNumber'] = vendor.get("accountNumber")
 
         return vendor_mapping
