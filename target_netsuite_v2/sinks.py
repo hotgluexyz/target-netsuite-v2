@@ -22,12 +22,17 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["PurchaseOrderToVendorBill"] = []
         context["InboundShipment"] = []
         context['CreditMemo'] = []
+        context['Customer'] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
+        
+        if self.stream_name.lower() in ["customer"]:
+            customer = self.process_customer(context,record)
+            context['Customer'].append(customer)
         if self.stream_name=="InboundShipment":
             inbound_shipment = self.process_inbound_shipment(context, record)
             context["InboundShipment"].append(inbound_shipment)
@@ -116,5 +121,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 endpoint = endpoint.format(id=record.pop("id"))
                 url = f"{self.url_base}{endpoint}"
                 response = self.rest_patch(url=url, json=record)
+        elif self.stream_name in ['Customer']:
+            url = f"{self.url_base}{self.stream_name.lower()}"
+            for record in context.get(self.stream_name, []):
+                response = self.rest_post(url=url, json=record)
+
+
 
 
