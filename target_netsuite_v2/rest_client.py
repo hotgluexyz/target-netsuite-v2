@@ -605,13 +605,13 @@ class netsuiteRestV2Sink(BatchSink):
             "addressBookAddress": {
                 "defaultbilling": True,
                 "defaultshipping": True,
-                "addr1": address.get("line1") if address.get("addresses") else None,
-                "addr2": address.get("line2") if address.get("addresses") else None,
-                "addr3": address.get("line3") if address.get("addresses") else None,
-                "city": address.get("city") if address.get("addresses") else None,
-                "state": address.get("state") if address.get("addresses") else None,
-                "zip": address.get("postalCode") if address.get("addresses") else None,
-                "country": address.get("country") if address.get("addresses") else None
+                "addr1": address.get("line1") ,
+                "addr2": address.get("line2") ,
+                "addr3": address.get("line3"),
+                "city": address.get("city"),
+                "state": address.get("state"),
+                "zip": address.get("postalCode"),
+                "country": address.get("country"),
         }
 
         } for address in record.get("addresses")]
