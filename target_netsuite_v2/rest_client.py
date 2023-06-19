@@ -591,6 +591,53 @@ class netsuiteRestV2Sink(BatchSink):
             raise ConnectionError(res.text)
         return res
 
+    def process_customer(self,context,record):
+        subsidiary = record.get("subsidiary")
+        names = record.get("contactName").split(" ")
+        if len(names) > 0:
+            first_name = names[0]
+            last_name = " ".join(names[1:])
+        else: 
+            first_name = names[0]
+            last_name = " ",
+    
+        address_book = [ {
+            "addressBookAddress": {
+                "defaultbilling": True,
+                "defaultshipping": True,
+                "addr1": address.get("line1") if address.get("addresses") else None,
+                "addr2": address.get("line2") if address.get("addresses") else None,
+                "addr3": address.get("line3") if address.get("addresses") else None,
+                "city": address.get("city") if address.get("addresses") else None,
+                "state": address.get("state") if address.get("addresses") else None,
+                "zip": address.get("postalCode") if address.get("addresses") else None,
+                "country": address.get("country") if address.get("addresses") else None
+        }
+
+        } for address in record.get("addresses")]
+        
+        customer =  {
+            "companyName": record.get("customerName"),
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": record.get("emailAddress"),
+            "phone": record.get("phoneNumbers")[0].get("number") if record.get("phoneNumbers") else None,
+            "comments": record.get("notes"),
+            "balance": record.get("balance"),
+            "datecreated": record.get("balanceDate"),
+            "taxable": record.get("taxable"),
+            "isPerson": True,
+            "isInactive": not record.get("active"),
+            "addressbook": {
+                "items": address_book
+            }
+        }
+
+        if subsidiary: 
+            customer['subsidiary'] = { "id": subsidiary },
+        
+        return customer
+
     def process_credit_memo(self, context, record):
 
         return record
