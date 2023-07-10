@@ -603,8 +603,6 @@ class netsuiteRestV2Sink(BatchSink):
     
         address_book = [ {
             "addressBookAddress": {
-                "defaultbilling": True,
-                "defaultshipping": True,
                 "addr1": address.get("line1") ,
                 "addr2": address.get("line2") ,
                 "addr3": address.get("line3"),
@@ -616,6 +614,7 @@ class netsuiteRestV2Sink(BatchSink):
 
         } for address in record.get("addresses")]
         
+        address = record.get("addresses")
         customer =  {
             "companyName": record.get("customerName"),
             "firstName": first_name,
@@ -624,17 +623,18 @@ class netsuiteRestV2Sink(BatchSink):
             "phone": record.get("phoneNumbers")[0].get("number") if record.get("phoneNumbers") else None,
             "comments": record.get("notes"),
             "balance": record.get("balance"),
-            "datecreated": record.get("balanceDate"),
+            "datecreated": record.get("createdAt"),
             "taxable": record.get("taxable"),
-            "isPerson": True,
             "isInactive": not record.get("active"),
             "addressbook": {
                 "items": address_book
-            }
+            },
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}" if address else None
+
         }
 
         if subsidiary: 
-            customer['subsidiary'] = { "id": subsidiary },
+            customer['subsidiary'] = { "id": subsidiary }
         
         return customer
 
