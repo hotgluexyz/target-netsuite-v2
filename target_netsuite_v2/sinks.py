@@ -23,6 +23,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["InboundShipment"] = []
         context['CreditMemo'] = []
         context['Customer'] = []
+        context['Items'] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -62,6 +63,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             context["VendorPayment"].append(vendor_payment)
         elif self.stream_name=="PurchaseOrderToVendorBill":
             context["PurchaseOrderToVendorBill"].append(record)
+        elif self.stream_name == 'Items':
+            item = self.process_item(context,record)
+            context['Items'].append(item)
+
+
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
@@ -125,6 +131,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}{self.stream_name.lower()}"
             for record in context.get(self.stream_name, []):
                 response = self.rest_post(url=url, json=record)
+        elif self.stream_name in ['Item','Items']:
+            url = f"{self.url_base}inventoryItem"
+            for record in context.get(self.stream_name,[]):
+                response = self.rest_post(url=url,json=record)
+            
+
+
 
 
 

@@ -668,3 +668,48 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_mapping['accountNumber'] = vendor.get("accountNumber")
 
         return vendor_mapping
+
+
+    def process_item(self,context,record):
+
+        def get_account_by_name_or_id(x,accountName, id):
+            if accountName:
+                return x['acctName'] == accountName
+            elif id:
+                return x['internalId'] == id
+            else:
+                return False
+            
+        payload = {
+            'displayName': record.get('name'),
+            'createdAt': record.get('createdAt'),
+            'reorderPoint': record.get('reorderPoint'), 
+            'upcCode':record.get('sku'),
+            'quantityOnHand': record.get('quantityOnHand'), 
+            'isInactive': not record.get('active'), 
+            'itemId': record.get('code'),
+        }
+        
+
+        if record.get('isBillItem'):
+            cogsAccount = json.loads(record.get('billItem'))
+            cost = cogsAccount.get('unitPrice')
+            accountName = cogsAccount.get('accountName')
+            id = cogsAccount.get('accountId')
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            payload['cogsAccount'] = {'id': account['internalId']}
+            payload['cost'] = cost
+        
+        if record.get('isInvoiceItem'):
+            invoiceAccount = json.loads(record.get('invoiceItem'))
+            price = invoiceAccount['unitPrice']
+            accountName = invoiceAccount['accountName']
+            id = invoiceAccount.get('accountId')
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            payload['incomeAccount'] = {'id': account['internalId']}
+        
+
+        return payload
+
+
+
