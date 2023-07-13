@@ -18,12 +18,14 @@ class netsuiteRestV2Sink(BatchSink):
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
     
+
+    
     @property
     def url_suiteql(self) -> str:
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
-
+    
     def rest_post(self, **kwarg):
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
@@ -219,7 +221,7 @@ class netsuiteRestV2Sink(BatchSink):
                 order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
 
             order_item["description"] = line.get("description")
-
+            
             # Get the product Id
             if line.get("productId"):
                 order_item["item"] = {"id": line.get("productId")}
@@ -232,11 +234,24 @@ class netsuiteRestV2Sink(BatchSink):
                     if product_data:
                         product_data = product_data[0]
                         order_item["item"] = {"id": product_data.get("internalId")}
-
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = round(line.get("quantity") * line.get("unitPrice"), 3)
             if department:
                 order_item["Department"] = department
+            elif line.get("departmentId"):
+                department = {"id": line["departmentId"]}
+                order_item["Department"] = department
+            elif context["reference_data"].get("Departments") and line.get("department"):
+                dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == line["department"]]
+                if dep_data:
+                    dep_data = dep_data[0]
+                    department = {"id": dep_data.get("internalId")}
+                    order_item["Department"] = department
+            class_data = None
+            if line.get("classId"):
+                class_data = {"id": line["classId"]}
+                order_item["Class"] = class_data
+             
             items.append(order_item)
         if items:
             vendor_bill["item"] = {"items": items}
@@ -258,6 +273,10 @@ class netsuiteRestV2Sink(BatchSink):
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
 
+            if line.get('customFields'):
+                for field in line.get('customFields'):
+                        expense[field['name']] = field['value']
+
             # Get the NetSuite Location Ref
             location = None
             if line.get("locationId"):
@@ -276,7 +295,7 @@ class netsuiteRestV2Sink(BatchSink):
             expenses.append(expense)
         if expenses:
             vendor_bill["expense"] = {"items": expenses}
-
+            
         return vendor_bill
 
 
@@ -408,6 +427,83 @@ class netsuiteRestV2Sink(BatchSink):
 
         return etree.tostring(record, pretty_print=True)
 
+    def vendor_payment(self, context, record):
+        
+        vendor_bill_id = record.get("id")
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <soap:Header>
+        <tokenPassport>
+            <account>{oauth_creds["account"]}</account>
+            <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+            <token>{oauth_creds["token"]}</token>
+            <nonce>{oauth_creds["nonce"]}</nonce>
+            <timestamp>{oauth_creds["timestamp"]}</timestamp>
+            <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+        </tokenPassport>
+    </soap:Header>
+    <soap:Body>
+        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2017_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com">
+            <platformMsgs:initializeRecord>
+                <platformCore:type>vendorPayment</platformCore:type>
+                <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
+                </platformCore:reference>
+            </platformMsgs:initializeRecord>
+        </platformMsgs:initialize>
+    </soap:Body>
+</soap:Envelope>"""
+
+        headers = {"SOAPAction":"initialize", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        res_xml = etree.fromstring(res.text.encode())
+        record = res_xml[1][0][0][-1]
+
+        for r in record:
+            if isinstance(r.text, str):
+                r.getparent().remove(r)
+
+        return etree.tostring(record, pretty_print=True)
+
+    def push_vendor_payments(self, payload):
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        payload = payload.decode()
+        payload = "\n".join(payload.split("\n")[1:-2])
+
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <platformMsgs:add>
+                <platformMsgs:record xsi:type="tranCust:VendorPayment" xmlns:tranCust="urn:vendors_2017_2.transactions.webservices.netsuite.com">
+                    {payload}
+                </platformMsgs:record>
+                </platformMsgs:add>
+            </soap:Body>
+        </soap:Envelope>"""
+    
+        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        return res
+
     def push_payments(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -495,6 +591,125 @@ class netsuiteRestV2Sink(BatchSink):
             raise ConnectionError(res.text)
         return res
 
+    def process_customer(self,context,record):
+        subsidiary = record.get("subsidiary")
+        names = record.get("contactName").split(" ")
+        if len(names) > 0:
+            first_name = names[0]
+            last_name = " ".join(names[1:])
+        else: 
+            first_name = names[0]
+            last_name = " ",
+    
+        address_book = [ {
+            "addressBookAddress": {
+                "addr1": address.get("line1") ,
+                "addr2": address.get("line2") ,
+                "addr3": address.get("line3"),
+                "city": address.get("city"),
+                "state": address.get("state"),
+                "zip": address.get("postalCode"),
+                "country": address.get("country"),
+        }
+
+        } for address in record.get("addresses")]
+        
+        address = record.get("addresses")
+        customer =  {
+            "companyName": record.get("customerName"),
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": record.get("emailAddress"),
+            "phone": record.get("phoneNumbers")[0].get("number") if record.get("phoneNumbers") else None,
+            "comments": record.get("notes"),
+            "balance": record.get("balance"),
+            "datecreated": record.get("createdAt"),
+            "taxable": record.get("taxable"),
+            "isInactive": not record.get("active"),
+            "addressbook": {
+                "items": address_book
+            },
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}" if address else None
+
+        }
+
+        if subsidiary: 
+            customer['subsidiary'] = { "id": subsidiary }
+        
+        return customer
+
     def process_credit_memo(self, context, record):
 
         return record
+    
+    def process_vendors(self, context, record):
+        vendors = context['reference_data']['Vendors']
+        vendor = None
+        if record.get("id"):
+            vendor = list(filter(lambda x: x["internalId"] == record.get("id") or x['externalId'] == record.get("id"), vendors))
+        
+        address = record.get("addresses")
+        phoneNumber = record.get("phoneNumbers")
+        vendor_mapping = { 
+            "email" : record.get("emailAddress"),
+            "companyName" : record.get("vendorName") ,
+            "dateCreated" : record.get("createdAt"),
+            "entityId": record.get("vendorName"),      
+            "firstName" : record.get("contactName"),
+            "subsidiary": {'id': record.get("subsidiary")},
+            "lastModifiedDate" : record.get("updatedAt"),
+            "currency" : {'refName': record.get("currency") },
+            "homePhone": phoneNumber[0]['number'] if phoneNumber else None,
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']}, {address[0]['state'], address[0]['country'], address[0]['postalCode']}" if address else None
+        }
+
+        if vendor: 
+            vendor_mapping['internalId'] = vendor.get("internalId")
+            vendor_mapping['accountNumber'] = vendor.get("accountNumber")
+
+        return vendor_mapping
+
+
+    def process_item(self,context,record):
+
+        def get_account_by_name_or_id(x,accountName, id):
+            if accountName:
+                return x['acctName'] == accountName
+            elif id:
+                return x['internalId'] == id
+            else:
+                return False
+            
+        payload = {
+            'displayName': record.get('name'),
+            'createdAt': record.get('createdAt'),
+            'reorderPoint': record.get('reorderPoint'), 
+            'upcCode':record.get('sku'),
+            'quantityOnHand': record.get('quantityOnHand'), 
+            'isInactive': not record.get('active'), 
+            'itemId': record.get('code'),
+        }
+        
+
+        if record.get('isBillItem'):
+            cogsAccount = json.loads(record.get('billItem'))
+            cost = cogsAccount.get('unitPrice')
+            accountName = cogsAccount.get('accountName')
+            id = cogsAccount.get('accountId')
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            payload['cogsAccount'] = {'id': account['internalId']}
+            payload['cost'] = cost
+        
+        if record.get('isInvoiceItem'):
+            invoiceAccount = json.loads(record.get('invoiceItem'))
+            price = invoiceAccount['unitPrice']
+            accountName = invoiceAccount['accountName']
+            id = invoiceAccount.get('accountId')
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            payload['incomeAccount'] = {'id': account['internalId']}
+        
+
+        return payload
+
+
+
