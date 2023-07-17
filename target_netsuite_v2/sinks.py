@@ -43,7 +43,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name=="SalesOrder":
             sale_order = self.process_order(context, record)
             context["SalesOrder"].append(sale_order)
-        elif self.stream_name=="Invoice":
+        elif self.stream_name.lower() in ["invoice", "invoices"]:
             invoice = self.process_invoice(context, record)
             context["Invoice"].append(invoice)
         elif self.stream_name == "CreditMemo":
@@ -88,12 +88,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 else:
                     self.logger.info(f"Updating Order: {record.get('order_number')}")
                     response = self.rest_patch(url=f"{url}/{record.pop('order_number')}", json=record)
-        elif self.stream_name in ["Invoice"]:
-            endpoint = list(self.stream_name)
-            endpoint[0] = endpoint[0].lower()
-            endpoint = "".join(endpoint)
-            url = f"{self.url_base}{endpoint}"
-            for record in context.get(self.stream_name, []):
+        elif self.stream_name.lower() in ["invoice", "invoices"]:
+            url = f"{self.url_base}invoice"
+            for record in context.get("Invoice", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name in ["CreditMemo"]:   
             endpoint = self.stream_name.lower()

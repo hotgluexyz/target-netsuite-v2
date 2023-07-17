@@ -703,10 +703,11 @@ class netsuiteRestV2Sink(BatchSink):
         if record.get('isInvoiceItem'):
             invoiceAccount = json.loads(record.get('invoiceItem'))
             price = invoiceAccount['unitPrice']
-            accountName = invoiceAccount['accountName']
+            accountName = invoiceAccount.get('accountName')
             id = invoiceAccount.get('accountId')
-            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
-            payload['incomeAccount'] = {'id': account['internalId']}
+            if accountName or id:
+                account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+                payload['incomeAccount'] = {'id': account['internalId']}
         
 
         return payload
