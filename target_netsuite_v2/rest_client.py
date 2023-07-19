@@ -684,10 +684,10 @@ class netsuiteRestV2Sink(BatchSink):
             'displayName': record.get('name'),
             'createdAt': record.get('createdAt'),
             'reorderPoint': record.get('reorderPoint'), 
-            'upcCode':record.get('sku'),
+            'upcCode':record.get('code'),
             'quantityOnHand': record.get('quantityOnHand'), 
             'isInactive': not record.get('active'), 
-            'itemId': record.get('code'),
+            'itemId': record.get('name'),
         }
         
 
