@@ -302,6 +302,8 @@ class netsuiteRestV2Sink(BatchSink):
     def process_invoice(self, context, record):
         invoice = {}
         items = []
+        if record.get('invoiceNumber'):
+            invoice['tranId'] = record['invoiceNumber']
 
         # Get the NetSuite Customer Ref
         if context["reference_data"].get("Customer") and record.get("customerName"):
