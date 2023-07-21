@@ -2,6 +2,7 @@
 
 from singer_sdk.sinks import BatchSink
 from target_netsuite_v2.netsuite import NetSuite
+from zeep_soap_client import NetsuiteSoapClient
 
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 import json
@@ -292,3 +293,56 @@ class netsuiteSoapV2Sink(BatchSink):
         inbound_shipment["internalId"] = record["id"]
 
         return inbound_shipment
+
+    def process_item(self,context,record):
+        ns = NetsuiteSoapClient(self.config)
+        RecordRef = ns.search_type('RecordRef')
+        if record['type'] == 'Non-Inventory':
+            InventoryType = ns.search_type('NonInventorySaleItem')
+            RecordRefList = ns.search_type('RecordRefList')
+            RecordRef = ns.search_type('RecordRef')
+
+        else: 
+            InventoryType = ns.search_type('InventoryItem')
+         
+
+
+        def get_account_by_name_or_id(x,accountName, id):
+            if accountName:
+                return x['acctName'] == accountName
+            elif id:
+                return x['internalId'] == id
+            else:
+                return False
+        
+        item = InventoryType(
+                displayName = record.get('name'),
+                createdDate = record.get('createdDate'),
+                itemId= record.get('name'),
+                isInactive = not record.get('active'),
+                taxSchedule=RecordRef(internalId=1),
+                subsidiaryList=RecordRefList([RecordRef(internalId=1)])
+            )
+        
+        
+
+        if record.get('isBillItem'):
+            cogsAccount = json.loads(record.get('billItem'))
+            cost = cogsAccount.get('unitPrice')
+            accountName = cogsAccount.get('accountName')
+            id = cogsAccount.get('accountId')
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            item.costEstimate = cost
+            item.cogsAccount = RecordRef(id = account['internalId'])
+        
+        if record.get('isInvoiceItem'):
+            invoiceAccount = json.loads(record.get('invoiceItem'))
+            price = invoiceAccount['unitPrice']
+            accountName = invoiceAccount.get('accountName')
+            id = invoiceAccount.get('accountId')
+            if accountName or id:
+                account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+                item.incomeAccount = RecordRef(id=account['internalId'])
+        
+
+        return item
