@@ -71,18 +71,18 @@ class netsuiteSoapV2Sink(BatchSink):
 
         self.logger.info(f"Readding data from API...")
         reference_data = {}
-        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
-        reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
-        reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
-        try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
-        except NetSuiteRequestError as e:
-            message = e.message.replace("error", "failure").replace("Error", "")
-            self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
+        # reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
+        # reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
+        # reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
+        # reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
+        # reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
+        # reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+        # reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
+        # try:
+        #     reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
+        # except NetSuiteRequestError as e:
+        #     message = e.message.replace("error", "failure").replace("Error", "")
+        #     self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
         reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
 
         if self.config.get("snapshot_hours"):
@@ -296,14 +296,14 @@ class netsuiteSoapV2Sink(BatchSink):
 
     def process_item(self,context,record):
         ns = NetsuiteSoapClient(self.config)
-        RecordRef = ns.search_type('RecordRef')
+        RecordRef = ns.search_client('RecordRef')
         if record['type'] == 'Non-Inventory':
-            InventoryType = ns.search_type('NonInventorySaleItem')
-            RecordRefList = ns.search_type('RecordRefList')
-            RecordRef = ns.search_type('RecordRef')
+            InventoryType = ns.search_client('NonInventorySaleItem')
+            RecordRefList = ns.search_client('RecordRefList')
+            RecordRef = ns.search_client('RecordRef')
 
         else: 
-            InventoryType = ns.search_type('InventoryItem')
+            InventoryType = ns.search_client('InventoryItem')
          
 
 
@@ -318,22 +318,26 @@ class netsuiteSoapV2Sink(BatchSink):
         item = InventoryType(
                 displayName = record.get('name'),
                 createdDate = record.get('createdDate'),
-                itemId= record.get('name'),
+                itemId = record.get('name'),
+                upcCode = record.get('code'),
                 isInactive = not record.get('active'),
-                taxSchedule=RecordRef(internalId=1),
                 subsidiaryList=RecordRefList([RecordRef(internalId=1)])
             )
-        
-        
+    
+
+        if record['type'] == 'Inventory':
+            item.quantityOnHand = record.get('quantityOnHand')
+        elif record['type'] == 'Non-Inventory':
+            item.taxSchedule = RecordRef(internalId = record.get('taxSchedule'))
 
         if record.get('isBillItem'):
-            cogsAccount = json.loads(record.get('billItem'))
+            cogsAccount = record.get('billItem')
             cost = cogsAccount.get('unitPrice')
             accountName = cogsAccount.get('accountName')
             id = cogsAccount.get('accountId')
             account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
             item.costEstimate = cost
-            item.cogsAccount = RecordRef(id = account['internalId'])
+            item.cogsAccount = RecordRef(internalId = account['internalId'])
         
         if record.get('isInvoiceItem'):
             invoiceAccount = json.loads(record.get('invoiceItem'))
@@ -342,7 +346,7 @@ class netsuiteSoapV2Sink(BatchSink):
             id = invoiceAccount.get('accountId')
             if accountName or id:
                 account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
-                item.incomeAccount = RecordRef(id=account['internalId'])
+                item.incomeAccount = RecordRef(internalId=account['internalId'])
         
 
         return item

@@ -58,15 +58,6 @@ class NetsuiteSoapClient:
             if ns_type.name and ns_type.name == type_name:
                 return ns_type
 
-    @cached_property
-    def ns_type(self):
-        return self.search_client(self.name)
-
-    @cached_property
-    def search_type(self):
-        search_type_name = self.search_type_name or self.name + "SearchBasic"
-        return self.search_client(search_type_name)
-
     def generate_token_passport(self):
         consumer_key = self.config["ns_consumer_key"]
         consumer_secret = self.config["ns_consumer_secret"]
@@ -110,71 +101,3 @@ class NetsuiteSoapClient:
             }
             soapheaders["searchPreferences"] = search_preferences(**preferences)
         return soapheaders
-
-    @backoff.on_exception(backoff.expo, RetriableAPIError, max_tries=5, factor=2)
-    def request(self, name, *args, **kwargs):
-        method = getattr(self.service_proxy, name)
-        # call the service:
-        is_search = name == "search"
-        headers = self.build_headers(include_search_preferences=is_search)
-
-        request_start_time = time()
-        response = method(*args, _soapheaders=headers, **kwargs)
-        request_duration = time() - request_start_time
-
-        response_body_attrs = list(vars(response.body)["__values__"].keys())
-        request_type = next(k for k in response_body_attrs if k in self.valid_requests)
-
-        result = getattr(response.body, request_type)
-
-        if hasattr(result, "totalRecords"):
-            page_size = result.totalRecords
-        elif result.totalPages == result.pageIndex:
-            page_size = result.totalRecords - (result.pageIndex - 1) * result.pageSize
-        else:
-            page_size = result.pageSize
-
-        request_status = "SUCCESS" if result.status.isSuccess else "ERROR"
-        extra_tags = dict(page_size=page_size)
-        metric = {
-            "type": "timer",
-            "metric": "request_duration",
-            "value": round(request_duration, 4),
-            "tags": {
-                "object": self.name,
-                "status": request_status,
-            },
-        }
-        self._write_metric_log(metric=metric, extra_tags=extra_tags)
-
-        self.validate_response(result)
-        return result
-
-    
-    def validate_response(self, result) -> None:
-        """Validate zeep response."""
-        if not result.status.isSuccess:
-            status = result.status.statusDetail[0]
-            if status.code in RETRYABLE_ERRORS:
-                msg = self.response_error_message(status)
-                raise RetriableAPIError(msg, status)
-            else:
-                msg = self.response_error_message(status)
-                raise FatalAPIError(msg)
-
-    def response_error_message(self, status) -> str:
-        """Build error message for invalid http statuses."""
-        return f'{status.code} error for {self.name}: "{status.message}"'
-
-
-
-def main():
-    ns = NetsuiteStream()
-    soap_client = ns.client
-        
-    passport = ns.generate_token_passport()        
-    app_info = AppInfo(applicationId=ns.config.get('account'))             
-    login = soap_client.service.login(passport=passport, _soapheaders={'applicationInfo': app_info}) 
-
-if __name__ == '__main__':
-    main()

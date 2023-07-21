@@ -2,6 +2,7 @@
 
 from target_netsuite_v2.soap_client import netsuiteSoapV2Sink
 from target_netsuite_v2.rest_client import netsuiteRestV2Sink
+from zeep_soap_client import NetsuiteSoapClient
 
 
 class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
@@ -133,9 +134,16 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             for record in context.get("Customer", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ['item','items']:
-            url = f"{self.url_base}inventoryItem"
+            ns = NetsuiteSoapClient(self.config)
+            service = ns.service_proxy
+            soap_headers = ns.build_headers()
             for record in context.get("Items",[]):
-                response = self.rest_post(url=url,json=record)
+                response = service.add(record,_soapheaders=soap_headers)
+                if not response['body']['writeResponse']['status']['isSuccess']:
+                    raise Exception(response['body']['writeResponse']['status']['statusDetail'][0]['message'])
+                else: 
+                    self.logger.info(f"Item with itemId {record.itemId} posted successfully")
+                
             
 
 
