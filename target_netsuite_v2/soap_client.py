@@ -297,9 +297,10 @@ class netsuiteSoapV2Sink(BatchSink):
     def process_item(self,context,record):
         ns = NetsuiteSoapClient(self.config)
         RecordRef = ns.search_client('RecordRef')
+        RecordRefList = ns.search_client('RecordRefList')
         if record['type'] == 'Non-Inventory':
             InventoryType = ns.search_client('NonInventorySaleItem')
-            RecordRefList = ns.search_client('RecordRefList')
+            
             RecordRef = ns.search_client('RecordRef')
 
         else: 
@@ -340,7 +341,7 @@ class netsuiteSoapV2Sink(BatchSink):
             item.cogsAccount = RecordRef(internalId = account['internalId'])
         
         if record.get('isInvoiceItem'):
-            invoiceAccount = json.loads(record.get('invoiceItem'))
+            invoiceAccount = record.get('invoiceItem')
             price = invoiceAccount['unitPrice']
             accountName = invoiceAccount.get('accountName')
             id = invoiceAccount.get('accountId')
