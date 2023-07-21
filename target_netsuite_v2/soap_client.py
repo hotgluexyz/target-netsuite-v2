@@ -71,18 +71,18 @@ class netsuiteSoapV2Sink(BatchSink):
 
         self.logger.info(f"Readding data from API...")
         reference_data = {}
-        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
-        reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
-        reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
-        try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
-        except NetSuiteRequestError as e:
-            message = e.message.replace("error", "failure").replace("Error", "")
-            self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
+        # reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
+        # reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
+        # reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
+        # reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
+        # reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
+        # reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+        # reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
+        # try:
+        #     reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
+        # except NetSuiteRequestError as e:
+        #     message = e.message.replace("error", "failure").replace("Error", "")
+        #     self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
         reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
 
         if self.config.get("snapshot_hours"):
@@ -322,7 +322,7 @@ class netsuiteSoapV2Sink(BatchSink):
                 itemId = record.get('name'),
                 upcCode = record.get('code'),
                 isInactive = not record.get('active'),
-                subsidiaryList=RecordRefList([RecordRef(internalId=1)])
+                subsidiaryList=RecordRefList([RecordRef(internalId=record.get("subsidiary","1"))])
             )
     
 
