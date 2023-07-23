@@ -72,6 +72,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
         self.logger.info(f"Posting data for entity {self.stream_name}")
+
         if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment"]:
             if self.stream_name.lower() in ["journalentries", "journalentry"]:
                 name = "JournalEntry"

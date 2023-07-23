@@ -16,16 +16,43 @@ class netsuiteRestV2Sink(BatchSink):
     def url_base(self) -> str:
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
-        return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
-    
+        return (
+            f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
+        )
 
-    
     @property
     def url_suiteql(self) -> str:
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
-    
+
+    def rest_search(self, object, search, expand=False):
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+
+        headers = {"Content-Type": "application/json"}
+        url = f"{self.url_base}{object}?q={search}"
+        response = requests.get(url, headers=headers, auth=oauth)
+        search_response = response.json()
+
+        if expand:
+            results = []
+
+            for i in search_response.get("items", []):
+                r = requests.get(i["links"][0]["href"], headers=headers, auth=oauth)
+                results.append(r.json())
+
+            return results
+
+        return [r["id"] for r in search_response.get("items", [])]
+
+
     def rest_post(self, **kwarg):
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
@@ -38,7 +65,7 @@ class netsuiteRestV2Sink(BatchSink):
 
         headers = {"Content-Type": "application/json"}
         response = requests.post(**kwarg, headers=headers, auth=oauth)
-        if response.status_code>=400:
+        if response.status_code >= 400:
             try:
                 self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
@@ -60,7 +87,7 @@ class netsuiteRestV2Sink(BatchSink):
         headers = {"Content-Type": "application/json"}
         response = requests.patch(**kwarg, headers=headers, auth=oauth)
         self.logger.info(response.text)
-        if response.status_code>=400:
+        if response.status_code >= 400:
             try:
                 self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
@@ -74,29 +101,17 @@ class netsuiteRestV2Sink(BatchSink):
         items = []
 
         # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Customer") and record.get("customer_name"):
-            customer_names = []
-            for c in context["reference_data"]["Customer"]:
-                if "name" in c.keys():
-                    if c["name"]:
-                        customer_names.append(c["name"])
-                else:
-                    if c["companyName"]:
-                        customer_names.append(c["companyName"])
-            customer_name = self.get_close_matches(record["customer_name"], customer_names, n=2, cutoff=0.95)
-            if customer_name:
-                customer_name = max(customer_name, key=customer_name.get)
-                customer_data = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"] == customer_name:
-                            customer_data.append(c)
-                    else:
-                        if c["companyName"] == customer_name:
-                            customer_data.append(c)
-                if customer_data:
-                    customer_data = customer_data[0]
-                    sale_order["entity"] = {"id": customer_data.get("internalId")}
+        if record.get("customer_name"):
+            customer_name = record['customer_name']
+            matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"')
+
+            if len(matching_customers) == 0:
+                first_name = customer_name.split(" ")[0]
+                last_name = customer_name.split(" ")[-1]
+                matching_customers = self.rest_search("customer", f'firstName CONTAIN "{first_name}" AND lastName CONTAIN "{last_name}"')
+
+            if len(matching_customers) > 0:
+                sale_order["entity"] = {"id": matching_customers[0]}
 
         trandate = record.get("transaction_date")
         if isinstance(trandate, str):
@@ -106,15 +121,15 @@ class netsuiteRestV2Sink(BatchSink):
             order_item = {}
 
             # Get the product Id
-            if context["reference_data"].get("Items") and line.get("product_name"):
-                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
-                product_name = self.get_close_matches(line["product_name"], product_names, n=2, cutoff=0.95)
-                if product_name:
-                    product_name = max(product_name, key=product_name.get)
-                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
-                    if product_data:
-                        product_data = product_data[0]
-                        order_item["item"] = {"id": product_data.get("internalId")}
+            if line.get("product_name"):
+                product_name = line.get("product_name")
+                matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) > 0:
+                    order_item["item"] = {"id": matching_items[0]}
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = line.get("unit_price")
@@ -122,9 +137,8 @@ class netsuiteRestV2Sink(BatchSink):
         sale_order["item"] = {"items": items}
         # Get order number
         if record.get("order_number") is not None:
-            sale_order['order_number'] = record.get("order_number")
+            sale_order["order_number"] = record.get("order_number")
         return sale_order
-
 
     def process_vendor_bill(self, context, record):
         vendor_bill = {}
@@ -135,7 +149,7 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_bill["externalId"] = record["invoiceNumber"]
         elif record.get("externalId"):
             vendor_bill["externalId"] = record["externalId"].get("value")
-        
+
         vendor_bill["memo"] = record.get("description")
 
         if record.get("customFormId"):
@@ -143,42 +157,40 @@ class netsuiteRestV2Sink(BatchSink):
 
         # Get the NetSuite Vendor Ref
         if record.get("vendorId") or record.get("vendorNum"):
-            vendor_bill["entity"] = {"id": record.get("vendorId", record.get("vendorNum"))}
-        elif context["reference_data"].get("Vendors") and record.get("vendorName"):
-            vendor_names = []
-            for c in context["reference_data"]["Vendors"]:
-                if "entityId" in c.keys():
-                    vendor_names.append(c["entityId"])
-            vendor_name = self.get_close_matches(record["vendorName"], vendor_names, n=2, cutoff=0.9)
-            if vendor_name:
-                vendor_name = max(vendor_name, key=vendor_name.get)
-                vendor_data = []
-                for c in context["reference_data"]["Vendors"]:
-                    if c["entityId"] == vendor_name:
-                        vendor_data.append(c)
-                if vendor_data:
-                    vendor_data = vendor_data[0]
-                    vendor_bill["entity"] = {"id": vendor_data.get("internalId")}
-        #Prevent parse function from failing on empty date
+            vendor_bill["entity"] = {
+                "id": record.get("vendorId", record.get("vendorNum"))
+            }
+        elif record.get("vendorName"):
+            vendor_name = record.get("vendorName")
+            matching_vendors = self.rest_search("vendor", f'entityId IS "{vendor_name}"')
+
+            if len(matching_vendors) > 0:
+                vendor_bill["entity"] = {"id": matching_vendors[0]}
+
+        # Prevent parse function from failing on empty date
         duedate = record.get("dueDate")
         if duedate:
             if isinstance(duedate, str):
                 duedate = parse(duedate)
                 vendor_bill["duedate"] = duedate.strftime("%Y-%m-%d")
-        
+
         enddate = record.get("paidDate")
         if enddate:
             if isinstance(enddate, str):
                 enddate = parse(enddate)
             if enddate:
                 vendor_bill["enddate"] = enddate.strftime("%Y-%m-%d")
-        
+
         # Get the NetSuite Location Ref
         location = None
         if record.get("locationId"):
             location = {"id": record["locationId"]}
         elif context["reference_data"].get("Locations") and record.get("location"):
-            loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
+            loc_data = [
+                l
+                for l in context["reference_data"]["Locations"]
+                if l["name"] == record["location"]
+            ]
             if loc_data:
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
@@ -187,11 +199,15 @@ class netsuiteRestV2Sink(BatchSink):
         if record.get("departmentId"):
             department = {"id": record["departmentId"]}
         elif context["reference_data"].get("Departments") and record.get("department"):
-            dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == record["department"]]
+            dep_data = [
+                d
+                for d in context["reference_data"]["Departments"]
+                if d["name"] == record["department"]
+            ]
             if dep_data:
                 dep_data = dep_data[0]
                 department = {"id": dep_data.get("internalId")}
-        
+
         if location:
             vendor_bill["Location"] = location
         if department:
@@ -207,11 +223,12 @@ class netsuiteRestV2Sink(BatchSink):
         # Get the NetSuite Subsidiary Ref
         if record.get("subsidiaryId"):
             vendor_bill["subsidiary"] = {"id": record.get("subsidiaryId")}
-        if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
-            sub_data = [s for s in context["reference_data"]["Subsidiaries"] if s["name"] == record["subsidiary"]]
-            if sub_data:
-                sub_data = sub_data[0]
-                vendor_bill["subsidiary"] = {"id": sub_data.get("internalId")}
+        if record.get("subsidiary"):
+            subsidiary_name = record.get("subsidiary")
+            matching_subs = self.rest_search("subsidiary", f'name IS "{subsidiary_name}"')
+
+            if len(matching_subs) > 0:
+                vendor_bill["subsidiary"] = {"id": matching_subs[0]}
 
         items = []
         for line in record.get("lineItems", []):
@@ -221,28 +238,37 @@ class netsuiteRestV2Sink(BatchSink):
                 order_item["orderDoc"] = {"id": record["purchaseOrderNumber"]}
 
             order_item["description"] = line.get("description")
-            
+
             # Get the product Id
             if line.get("productId"):
                 order_item["item"] = {"id": line.get("productId")}
-            elif context["reference_data"].get("Items") and line.get("productName"):
-                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
-                product_name = self.get_close_matches(line["productName"], product_names, n=2, cutoff=0.95)
-                if product_name:
-                    product_name = max(product_name, key=product_name.get)
-                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
-                    if product_data:
-                        product_data = product_data[0]
-                        order_item["item"] = {"id": product_data.get("internalId")}
+            elif line.get("productName"):
+                product_name = line.get("productName")
+                matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("nonInventoryPurchaseItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) > 0:
+                    order_item["item"] = {"id": matching_items[0]}
+
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = round(line.get("quantity") * line.get("unitPrice"), 3)
+            order_item["amount"] = round(
+                line.get("quantity") * line.get("unitPrice"), 3
+            )
             if department:
                 order_item["Department"] = department
             elif line.get("departmentId"):
                 department = {"id": line["departmentId"]}
                 order_item["Department"] = department
-            elif context["reference_data"].get("Departments") and line.get("department"):
-                dep_data = [d for d in context["reference_data"]["Departments"] if d["name"] == line["department"]]
+            elif context["reference_data"].get("Departments") and line.get(
+                "department"
+            ):
+                dep_data = [
+                    d
+                    for d in context["reference_data"]["Departments"]
+                    if d["name"] == line["department"]
+                ]
                 if dep_data:
                     dep_data = dep_data[0]
                     department = {"id": dep_data.get("internalId")}
@@ -251,11 +277,11 @@ class netsuiteRestV2Sink(BatchSink):
             if line.get("classId"):
                 class_data = {"id": line["classId"]}
                 order_item["Class"] = class_data
-             
+
             items.append(order_item)
         if items:
             vendor_bill["item"] = {"items": items}
-        
+
         expenses = []
         for line in record.get("expenses", []):
             expense = {}
@@ -265,24 +291,34 @@ class netsuiteRestV2Sink(BatchSink):
             # Get the account Id
             if line.get("accountId"):
                 expense["account"] = {"id": line.get("accountId")}
-            elif context["reference_data"].get("Accounts") and line.get("accountNumber"):
+            elif context["reference_data"].get("Accounts") and line.get(
+                "accountNumber"
+            ):
                 acct_num = str(line["accountNumber"])
-                acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["acctNumber"] == acct_num
+                ]
                 if acct_data:
                     acct_data = acct_data[0]
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
 
-            if line.get('customFields'):
-                for field in line.get('customFields'):
-                        expense[field['name']] = field['value']
+            if line.get("customFields"):
+                for field in line.get("customFields"):
+                    expense[field["name"]] = field["value"]
 
             # Get the NetSuite Location Ref
             location = None
             if line.get("locationId"):
                 location = {"id": line["locationId"]}
             elif context["reference_data"].get("Locations") and line.get("location"):
-                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
+                loc_data = [
+                    l
+                    for l in context["reference_data"]["Locations"]
+                    if l["name"] == line["location"]
+                ]
                 if loc_data:
                     loc_data = loc_data[0]
                     location = {"id": loc_data.get("internalId")}
@@ -295,64 +331,56 @@ class netsuiteRestV2Sink(BatchSink):
             expenses.append(expense)
         if expenses:
             vendor_bill["expense"] = {"items": expenses}
-            
-        return vendor_bill
 
+        return vendor_bill
 
     def process_invoice(self, context, record):
         invoice = {}
         items = []
-        if record.get('invoiceNumber'):
-            invoice['tranId'] = record['invoiceNumber']
+        if record.get("invoiceNumber"):
+            invoice["tranId"] = record["invoiceNumber"]
 
         # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Customer") and record.get("customerName"):
-            customer_names = []
-            for c in context["reference_data"]["Customer"]:
-                if "name" in c.keys():
-                    if c["name"]:
-                        customer_names.append(c["name"])
-                else:
-                    if c["companyName"]:
-                        customer_names.append(c["companyName"])
-            customer_name = self.get_close_matches(record["customerName"], customer_names, n=2, cutoff=0.5)
-            if customer_name:
-                customer_name = max(customer_name, key=customer_name.get)
-                customer_data = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"] == customer_name:
-                            customer_data.append(c)
-                    else:
-                        if c["companyName"] == customer_name:
-                            customer_data.append(c)
-                if customer_data:
-                    customer_data = customer_data[0]
-                    invoice["entity"] = {"id": customer_data.get("internalId")}
-        
+        if record.get("customerName"):
+            customer_name = record['customerName']
+            matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"')
+
+            if len(matching_customers) == 0:
+                first_name = customer_name.split(" ")[0]
+                last_name = customer_name.split(" ")[-1]
+                matching_customers = self.rest_search("customer", f'firstName CONTAIN "{first_name}" AND lastName CONTAIN "{last_name}"')
+
+            if len(matching_customers) > 0:
+                invoice["entity"] = {"id": matching_customers[0]}
+
         # Get the NetSuite Location Ref
         if context["reference_data"].get("Locations") and record.get("location"):
-            loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
+            loc_data = [
+                l
+                for l in context["reference_data"]["Locations"]
+                if l["name"] == record["location"]
+            ]
             if loc_data:
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
             location = {"id": record.get("locationId", "2")}
-        
+
         invoice["Location"] = location
 
         # Get the NetSuite Subsidiary Ref
-        if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
-            sub_data = [s for s in context["reference_data"]["Subsidiaries"] if s["name"] == record["subsidiary"]]
-            if sub_data:
-                sub_data = sub_data[0]
-                invoice["Subsidiary"] = {"id": sub_data.get("internalId")}
+        if record.get("subsidiary"):
+            subsidiary_name = record.get("subsidiary")
+            matching_subs = self.rest_search("subsidiary", f'name IS "{subsidiary_name}"')
+
+            if len(matching_subs) > 0:
+                invoice["Subsidiary"] = {"id": matching_subs[0]}
 
         duedate = record.get("dueDate")
         if isinstance(duedate, str):
             duedate = parse(duedate)
             invoice["duedate"] = duedate.strftime("%Y-%m-%d")
-        
+
         enddate = record.get("paidDate")
         if isinstance(enddate, str):
             enddate = parse(enddate)
@@ -369,15 +397,15 @@ class netsuiteRestV2Sink(BatchSink):
             # Get the product Id
             if "productId" in line:
                 order_item["item"] = {"id": line["productId"]}
-            elif context["reference_data"].get("Items") and line.get("productName"):
-                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
-                product_name = self.get_close_matches(line["productName"], product_names, n=2, cutoff=0.95)
-                if product_name:
-                    product_name = max(product_name, key=product_name.get)
-                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
-                    if product_data:
-                        product_data = product_data[0]
-                        order_item["item"] = {"id": product_data.get("internalId")}
+            elif line.get("productName"):
+                product_name = line.get("productName")
+                matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) > 0:
+                    order_item["item"] = {"id": matching_items[0]}
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = line.get("quantity") * line.get("unitPrice")
@@ -387,7 +415,6 @@ class netsuiteRestV2Sink(BatchSink):
         return invoice
 
     def invoice_payment(self, context, record):
-
         invoice_id = record.get("invoice_id")
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
 
@@ -416,9 +443,9 @@ class netsuiteRestV2Sink(BatchSink):
     </soap:Body>
 </soap:Envelope>"""
 
-        headers = {"SOAPAction":"initialize", "Content-Type": "text/xml"}
+        headers = {"SOAPAction": "initialize", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code>=400:
+        if res.status_code >= 400:
             raise ConnectionError(res.text)
         res_xml = etree.fromstring(res.text.encode())
         record = res_xml[1][0][0][-1]
@@ -430,7 +457,6 @@ class netsuiteRestV2Sink(BatchSink):
         return etree.tostring(record, pretty_print=True)
 
     def vendor_payment(self, context, record):
-        
         vendor_bill_id = record.get("id")
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
 
@@ -459,9 +485,9 @@ class netsuiteRestV2Sink(BatchSink):
     </soap:Body>
 </soap:Envelope>"""
 
-        headers = {"SOAPAction":"initialize", "Content-Type": "text/xml"}
+        headers = {"SOAPAction": "initialize", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code>=400:
+        if res.status_code >= 400:
             raise ConnectionError(res.text)
         res_xml = etree.fromstring(res.text.encode())
         record = res_xml[1][0][0][-1]
@@ -499,10 +525,10 @@ class netsuiteRestV2Sink(BatchSink):
                 </platformMsgs:add>
             </soap:Body>
         </soap:Envelope>"""
-    
-        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+
+        headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code>=400:
+        if res.status_code >= 400:
             raise ConnectionError(res.text)
         return res
 
@@ -533,13 +559,12 @@ class netsuiteRestV2Sink(BatchSink):
                 </platformMsgs:add>
             </soap:Body>
         </soap:Envelope>"""
-    
-        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+
+        headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code>=400:
+        if res.status_code >= 400:
             raise ConnectionError(res.text)
         return res
-
 
     def po_to_vb(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
@@ -557,7 +582,9 @@ class netsuiteRestV2Sink(BatchSink):
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
-        response = self.ns_client.entities["PurchaseOrder"].get_all(["entity", "location"], tran_id=po_number)[0]
+        response = self.ns_client.entities["PurchaseOrder"].get_all(
+            ["entity", "location"], tran_id=po_number
+        )[0]
         po_id = response.get("internalId")
 
         entity_id = response["entity"]["internalId"]
@@ -587,132 +614,145 @@ class netsuiteRestV2Sink(BatchSink):
             </soap:Body> 
         </soap:Envelope>"""
 
-        headers = {"SOAPAction":"add", "Content-Type": "text/xml"}
+        headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code>=400:
+        if res.status_code >= 400:
             raise ConnectionError(res.text)
         return res
 
-    def process_customer(self,context,record):
+    def process_customer(self, context, record):
         subsidiary = record.get("subsidiary")
         names = record.get("contactName").split(" ")
         if len(names) > 0:
             first_name = names[0]
             last_name = " ".join(names[1:])
-        else: 
+        else:
             first_name = names[0]
-            last_name = " ",
-    
-        address_book = [ {
-            "addressBookAddress": {
-                "addr1": address.get("line1") ,
-                "addr2": address.get("line2") ,
-                "addr3": address.get("line3"),
-                "city": address.get("city"),
-                "state": address.get("state"),
-                "zip": address.get("postalCode"),
-                "country": address.get("country"),
-        }
+            last_name = (" ",)
 
-        } for address in record.get("addresses")]
-        
+        address_book = [
+            {
+                "addressBookAddress": {
+                    "addr1": address.get("line1"),
+                    "addr2": address.get("line2"),
+                    "addr3": address.get("line3"),
+                    "city": address.get("city"),
+                    "state": address.get("state"),
+                    "zip": address.get("postalCode"),
+                    "country": address.get("country"),
+                }
+            }
+            for address in record.get("addresses")
+        ]
+
         address = record.get("addresses")
-        customer =  {
+        customer = {
             "companyName": record.get("customerName"),
             "firstName": first_name,
             "lastName": last_name,
             "email": record.get("emailAddress"),
-            "phone": record.get("phoneNumbers")[0].get("number") if record.get("phoneNumbers") else None,
+            "phone": record.get("phoneNumbers")[0].get("number")
+            if record.get("phoneNumbers")
+            else None,
             "comments": record.get("notes"),
             "balance": record.get("balance"),
             "datecreated": record.get("createdAt"),
             "taxable": record.get("taxable"),
             "isInactive": not record.get("active"),
-            "addressbook": {
-                "items": address_book
-            },
-            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}" if address else None
-
+            "addressbook": {"items": address_book},
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}"
+            if address
+            else None,
         }
 
-        if subsidiary: 
-            customer['subsidiary'] = { "id": subsidiary }
-        
+        if subsidiary:
+            customer["subsidiary"] = {"id": subsidiary}
+
         return customer
 
     def process_credit_memo(self, context, record):
-
         return record
-    
+
     def process_vendors(self, context, record):
-        vendors = context['reference_data']['Vendors']
         vendor = None
         if record.get("id"):
-            vendor = list(filter(lambda x: x["internalId"] == record.get("id") or x['externalId'] == record.get("id"), vendors))
-        
+            vendor_id = record.get("id")
+            matching_vendors = self.rest_search("vendor", f'externalId IS "{vendor_id}"', expand=True)
+
+            if len(matching_vendors) == 0:
+                matching_vendors = self.rest_search("vendor", f'id EQUAL "{vendor_id}"', expand=True)
+
+            if len(matching_vendors) > 0:
+                vendor = matching_vendors[0]
+
         address = record.get("addresses")
         phoneNumber = record.get("phoneNumbers")
-        vendor_mapping = { 
-            "email" : record.get("emailAddress"),
-            "companyName" : record.get("vendorName") ,
-            "dateCreated" : record.get("createdAt"),
-            "entityId": record.get("vendorName"),      
-            "firstName" : record.get("contactName"),
-            "subsidiary": {'id': record.get("subsidiary")},
-            "lastModifiedDate" : record.get("updatedAt"),
-            "currency" : {'refName': record.get("currency") },
-            "homePhone": phoneNumber[0]['number'] if phoneNumber else None,
-            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']}, {address[0]['state'], address[0]['country'], address[0]['postalCode']}" if address else None
+        vendor_mapping = {
+            "email": record.get("emailAddress"),
+            "companyName": record.get("vendorName"),
+            "dateCreated": record.get("createdAt"),
+            "entityId": record.get("vendorName"),
+            "firstName": record.get("contactName"),
+            "subsidiary": {"id": record.get("subsidiary")},
+            "lastModifiedDate": record.get("updatedAt"),
+            "currency": {"refName": record.get("currency")},
+            "homePhone": phoneNumber[0]["number"] if phoneNumber else None,
+            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']}, {address[0]['state'], address[0]['country'], address[0]['postalCode']}"
+            if address
+            else None,
         }
 
-        if vendor: 
-            vendor_mapping['internalId'] = vendor.get("internalId")
-            vendor_mapping['accountNumber'] = vendor.get("accountNumber")
+        if vendor:
+            vendor_mapping["internalId"] = vendor.get("internalId")
+            vendor_mapping["accountNumber"] = vendor.get("accountNumber")
 
         return vendor_mapping
 
-
-    def process_item(self,context,record):
-
-        def get_account_by_name_or_id(x,accountName, id):
+    def process_item(self, context, record):
+        def get_account_by_name_or_id(x, accountName, id):
             if accountName:
-                return x['acctName'] == accountName
+                return x["acctName"] == accountName
             elif id:
-                return x['internalId'] == id
+                return x["internalId"] == id
             else:
                 return False
-            
-        payload = {
-            'displayName': record.get('name'),
-            'createdAt': record.get('createdAt'),
-            'reorderPoint': record.get('reorderPoint'), 
-            'upcCode':record.get('code'),
-            'quantityOnHand': record.get('quantityOnHand'), 
-            'isInactive': not record.get('active'), 
-            'itemId': record.get('name'),
-        }
-        
 
-        if record.get('isBillItem'):
-            cogsAccount = json.loads(record.get('billItem'))
-            cost = cogsAccount.get('unitPrice')
-            accountName = cogsAccount.get('accountName')
-            id = cogsAccount.get('accountId')
-            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
-            payload['cogsAccount'] = {'id': account['internalId']}
-            payload['cost'] = cost
-        
-        if record.get('isInvoiceItem'):
-            invoiceAccount = json.loads(record.get('invoiceItem'))
-            price = invoiceAccount['unitPrice']
-            accountName = invoiceAccount.get('accountName')
-            id = invoiceAccount.get('accountId')
+        payload = {
+            "displayName": record.get("name"),
+            "createdAt": record.get("createdAt"),
+            "reorderPoint": record.get("reorderPoint"),
+            "upcCode": record.get("code"),
+            "quantityOnHand": record.get("quantityOnHand"),
+            "isInactive": not record.get("active"),
+            "itemId": record.get("name"),
+        }
+
+        if record.get("isBillItem"):
+            cogsAccount = json.loads(record.get("billItem"))
+            cost = cogsAccount.get("unitPrice")
+            accountName = cogsAccount.get("accountName")
+            id = cogsAccount.get("accountId")
+            account = list(
+                filter(
+                    lambda x: get_account_by_name_or_id(x, accountName, id),
+                    context["reference_data"]["Accounts"],
+                )
+            )[0]
+            payload["cogsAccount"] = {"id": account["internalId"]}
+            payload["cost"] = cost
+
+        if record.get("isInvoiceItem"):
+            invoiceAccount = json.loads(record.get("invoiceItem"))
+            price = invoiceAccount["unitPrice"]
+            accountName = invoiceAccount.get("accountName")
+            id = invoiceAccount.get("accountId")
             if accountName or id:
-                account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
-                payload['incomeAccount'] = {'id': account['internalId']}
-        
+                account = list(
+                    filter(
+                        lambda x: get_account_by_name_or_id(x, accountName, id),
+                        context["reference_data"]["Accounts"],
+                    )
+                )[0]
+                payload["incomeAccount"] = {"id": account["internalId"]}
 
         return payload
-
-
-
