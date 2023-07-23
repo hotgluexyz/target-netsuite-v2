@@ -126,6 +126,9 @@ class netsuiteRestV2Sink(BatchSink):
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
 
                 if len(matching_items) == 0:
+                    matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
+
+                if len(matching_items) == 0:
                     matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
 
                 if len(matching_items) > 0:
@@ -245,6 +248,9 @@ class netsuiteRestV2Sink(BatchSink):
             elif line.get("productName"):
                 product_name = line.get("productName")
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
 
                 if len(matching_items) == 0:
                     matching_items = self.rest_search("nonInventoryPurchaseItem", f'itemId IS "{product_name}"')
@@ -400,6 +406,9 @@ class netsuiteRestV2Sink(BatchSink):
             elif line.get("productName"):
                 product_name = line.get("productName")
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
 
                 if len(matching_items) == 0:
                     matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
