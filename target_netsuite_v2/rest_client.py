@@ -671,7 +671,6 @@ class netsuiteRestV2Sink(BatchSink):
 
         return vendor_mapping
 
-
     def process_item(self,context,record):
 
         def get_account_by_name_or_id(x,accountName, id):
@@ -713,6 +712,97 @@ class netsuiteRestV2Sink(BatchSink):
         
 
         return payload
+
+    def process_purchase_order(self, context, record):
+        purchase_order = {}
+        if record.get("order_number"):
+            purchase_order['externalId'] = record['order_number']
+        elif record.get("invoiceNumber"):
+            purchase_order["externalId"] = record["invoiceNumber"]
+        elif record.get("externalId"):
+            purchase_order["externalId"] = record["externalId"].get("value")
+        
+        purchase_order["memo"] = record.get("description")
+
+        if record.get("customFormId"):
+            purchase_order["customForm"] = {"id": record["customFormId"]}
+
+        # Get the NetSuite Vendor Ref
+        if record.get("vendorId"):
+            purchase_order["entity"] = {"id": record.get("vendorId")}
+        elif context["reference_data"].get("Vendors") and record.get("vendorName"):
+            vendor_names = []
+            for c in context["reference_data"]["Vendors"]:
+                if "entityId" in c.keys():
+                    vendor_names.append(c["entityId"])
+            vendor_name = self.get_close_matches(record["vendorName"], vendor_names, n=2, cutoff=0.9)
+            if vendor_name:
+                vendor_name = max(vendor_name, key=vendor_name.get)
+                vendor_data = []
+                for c in context["reference_data"]["Vendors"]:
+                    if c["entityId"] == vendor_name:
+                        vendor_data.append(c)
+                if vendor_data:
+                    vendor_data = vendor_data[0]
+                    purchase_order["entity"] = {"id": vendor_data.get("internalId")}
+        #Prevent parse function from failing on empty date
+        duedate = record.get("dueDate")
+        if duedate:
+            if isinstance(duedate, str):
+                duedate = parse(duedate)
+                purchase_order["duedate"] = duedate.strftime("%Y-%m-%d")
+        
+        enddate = record.get("paidDate")
+        if enddate:
+            if isinstance(enddate, str):
+                enddate = parse(enddate)
+            if enddate:
+                purchase_order["endDate"] = enddate.strftime("%Y-%m-%d")
+        
+        # Get the NetSuite Location Ref
+        location = None
+        if record.get("locationId"):
+            location = {"id": record["locationId"]}
+        elif context["reference_data"].get("Locations") and record.get("location"):
+            loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
+            if loc_data:
+                loc_data = loc_data[0]
+                location = {"id": loc_data.get("internalId")}
+
+        if location:
+            purchase_order["Location"] = location
+        purchase_order["tranid"] = record.get("order_number")
+
+        items = []
+        for line in record.get("line_items", []):
+            order_item = {}
+
+            if record.get("order_number"):
+                order_item["orderDoc"] = {"id": record["order_number"]}
+
+            order_item["description"] = line.get("description")
+            
+            # Get the product Id
+            if line.get("product_id"):
+                order_item["item"] = {"id": line.get("product_id")}
+            elif context["reference_data"].get("Items") and line.get("product_name"):
+                product_names = [c["itemId"] for c in context["reference_data"]["Items"]]
+                product_name = self.get_close_matches(line["product_name"], product_names, n=2, cutoff=0.95)
+                if product_name:
+                    product_name = max(product_name, key=product_name.get)
+                    product_data = [c for c in context["reference_data"]["Items"] if c["itemId"]==product_name]
+                    if product_data:
+                        product_data = product_data[0]
+                        order_item["item"] = {"id": product_data.get("internalId")}
+            order_item["quantity"] = line.get("quantity")
+            order_item["amount"] = round(line.get("quantity") * line.get("unit_price"), 3)
+             
+            items.append(order_item)
+        if items:
+            purchase_order["item"] = {"items": items}
+            
+        return purchase_order
+
 
 
 
