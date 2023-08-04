@@ -40,8 +40,8 @@ class netsuiteRestV2Sink(BatchSink):
         response = requests.post(**kwarg, headers=headers, auth=oauth)
         if response.status_code>=400:
             try:
-                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
+                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 response.raise_for_status()
             except:
                 response.raise_for_status()
