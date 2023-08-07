@@ -25,6 +25,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context['CreditMemo'] = []
         context['Customer'] = []
         context['Items'] = []
+        context['PurchaseOrder'] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -67,7 +68,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ['item','items']:
             item = self.process_item(context,record)
             context["Items"].append(item)
-
+        elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
+            order = self.process_purchase_order(context,record)
+            context['PurchaseOrder'].append(order)
+ 
 
 
     def process_batch(self, context: dict) -> None:
@@ -144,10 +148,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 else: 
                     self.logger.info(f"Item with itemId {record.itemId} posted successfully")
                 
-            
-
-
-
-
-
+                response = self.rest_post(url=url,json=record)
+        elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
+            url = f"{self.url_base}purchaseOrder"
+            for record in context.get("PurchaseOrder",[]):
+                response = self.rest_post(url=url,json=record)
 
