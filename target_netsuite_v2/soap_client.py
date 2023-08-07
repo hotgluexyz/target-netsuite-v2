@@ -69,21 +69,17 @@ class netsuiteSoapV2Sink(BatchSink):
             except:
                 self.logger.info(f"Snapshot not found or not readable.")
 
-        self.logger.info(f"Readding data from API...")
+        self.logger.info(f"Reading data from API...")
         reference_data = {}
-        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
-        reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
         reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
         reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
         reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
+        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
         except NetSuiteRequestError as e:
             message = e.message.replace("error", "failure").replace("Error", "")
             self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
 
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
@@ -170,32 +166,21 @@ class netsuiteSoapV2Sink(BatchSink):
                     }
 
             # Get the NetSuite Customer Ref
-            if context["reference_data"].get("Customer") and line.get("customerName"):
-                customer_names = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"]:
-                            customer_names.append(c["name"])
-                    else:
-                        if c["companyName"]:
-                            customer_names.append(c["companyName"])
-                customer_name = self.get_close_matches(line["customerName"], customer_names, n=2, cutoff=0.95)
-                if customer_name:
-                    customer_name = max(customer_name, key=customer_name.get)
-                    customer_data = []
-                    for c in context["reference_data"]["Customer"]:
-                        if "name" in c.keys():
-                            if c["name"] == customer_name:
-                                customer_data.append(c)
-                        else:
-                            if c["companyName"] == customer_name:
-                                customer_data.append(c)
-                    if customer_data:
-                        customer_data = customer_data[0]
-                        journal_entry_line["entity"] = {
-                            "externalId": customer_data.get("externalId"),
-                            "internalId": customer_data.get("internalId"),
-                        }
+            if line.get("customerName"):
+                customer_name = record['customerName']
+                matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"', expand=True)
+
+                if len(matching_customers) == 0:
+                    first_name = customer_name.split(" ")[0]
+                    last_name = customer_name.split(" ")[-1]
+                    matching_customers = self.rest_search("customer", f'firstName CONTAIN "{first_name}" AND lastName CONTAIN "{last_name}"', expand=True)
+
+                if len(matching_customers) > 0:
+                    customer_data = matching_customers[0]
+                    journal_entry_line["entity"] = {
+                        "externalId": customer_data.get("externalId"),
+                        "internalId": customer_data.get("internalId"),
+                    }
 
             # Check the Posting Type and insert the Amount
             amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
