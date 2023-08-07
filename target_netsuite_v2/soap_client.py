@@ -298,7 +298,9 @@ class netsuiteSoapV2Sink(BatchSink):
         ns = NetsuiteSoapClient(self.config)
         RecordRef = ns.search_client('RecordRef')
         RecordRefList = ns.search_client('RecordRefList')
-        if record['type'] == 'Non-Inventory':
+        item_type = record.get('type', "").replace("-", "").lower()
+
+        if item_type == 'noninventory':
             InventoryType = ns.search_client('NonInventorySaleItem')
             
             RecordRef = ns.search_client('RecordRef')
