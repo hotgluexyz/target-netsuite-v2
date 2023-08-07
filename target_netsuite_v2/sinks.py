@@ -147,8 +147,6 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     raise Exception(response['body']['writeResponse']['status']['statusDetail'][0]['message'])
                 else: 
                     self.logger.info(f"Item with itemId {record.itemId} posted successfully")
-                
-                response = self.rest_post(url=url,json=record)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
             for record in context.get("PurchaseOrder",[]):
