@@ -2,7 +2,7 @@
 
 from singer_sdk.sinks import BatchSink
 from target_netsuite_v2.netsuite import NetSuite
-from zeep_soap_client import NetsuiteSoapClient
+from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
 
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 import json
