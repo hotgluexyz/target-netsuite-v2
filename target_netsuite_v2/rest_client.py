@@ -122,25 +122,46 @@ class netsuiteRestV2Sink(BatchSink):
 
             # Get the product Id
             if line.get("product_name"):
-                product_name = line.get("product_name")
+                product_name = line.get("product_name").trim()
+                
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
+            
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search("nonInventorySaleItem", f'displayName IS "{product_name}"')
 
                 if len(matching_items) == 0:
                     matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
 
-                if len(matching_items) == 0:
-                    matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
-
                 if len(matching_items) > 0:
                     order_item["item"] = {"id": matching_items[0]}
+                
+                elif len(matching_items) == 0 and product_name.isdigit():
+                    order_item["item"] = {"id": product_name}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = line.get("unit_price")
+            order_item["amount"] = line.get("amount", 1) * line.get("unit_price", 0)
             items.append(order_item)
         sale_order["item"] = {"items": items}
         # Get order number
         if record.get("order_number") is not None:
             sale_order["order_number"] = record.get("order_number")
+        
+        sale_order["taxSchedule"] = record.get("tax_schedule", "1")
+        
+        if record.get("ship_date"):
+            sale_order["shipDate"] = record.get("ship_date")
+        
+        if record.get("due_date"):
+            sale_order["dueDate"] = record.get("due_date")
+        
+        if record.get('custom_fields'):
+            record["custom_fields"] = json.loads(record["custom_fields"])
+            for field in record["custom_fields"]:
+                sale_order[field['name']] = field['value']
+
         return sale_order
 
     def process_vendor_bill(self, context, record):
@@ -669,13 +690,15 @@ class netsuiteRestV2Sink(BatchSink):
             "taxable": record.get("taxable"),
             "isInactive": not record.get("active"),
             "addressbook": {"items": address_book},
-            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}"
+            "defaultAddress": f"{address[0].get('line1')} {address[0].get('line2')} {address[0].get('line3')}, {address[0].get('city')} {address[0].get('postalCode')}, {address[0].get('state')}, {address[0].get('country')}"
             if address
             else None,
         }
 
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
+        else:
+            customer["subsidiary"] = {"id": 1}
 
         return customer
 

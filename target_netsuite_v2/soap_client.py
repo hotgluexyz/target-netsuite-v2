@@ -287,14 +287,11 @@ class netsuiteSoapV2Sink(BatchSink):
 
         if item_type == 'noninventory':
             InventoryType = ns.search_client('NonInventorySaleItem')
-            
             RecordRef = ns.search_client('RecordRef')
 
         else: 
             InventoryType = ns.search_client('InventoryItem')
          
-
-
         def get_account_by_name_or_id(x,accountName, id):
             if accountName:
                 return x['acctName'] == accountName
@@ -304,15 +301,14 @@ class netsuiteSoapV2Sink(BatchSink):
                 return False
         
         item = InventoryType(
-                displayName = record.get('name'),
-                createdDate = record.get('createdDate'),
-                itemId = record.get('name'),
-                upcCode = record.get('code'),
-                isInactive = not record.get('active'),
-                subsidiaryList=RecordRefList([RecordRef(internalId=record.get("subsidiary","1"))])
-            )
+            displayName = record.get('name'),
+            createdDate = record.get('createdDate'),
+            itemId = record.get('name'),
+            upcCode = record.get('code'),
+            isInactive = not record.get('active'),
+            subsidiaryList=RecordRefList([RecordRef(internalId=record.get("subsidiary","1"))])
+        )
     
-
         if record['type'] == 'Inventory':
             item.quantityOnHand = record.get('quantityOnHand')
         elif record['type'] == 'Non-Inventory':
@@ -329,12 +325,21 @@ class netsuiteSoapV2Sink(BatchSink):
         
         if record.get('isInvoiceItem'):
             invoiceAccount = record.get('invoiceItem')
-            price = invoiceAccount['unitPrice']
+
+            try:
+                price = invoiceAccount.get('unitPrice')
+            except AttributeError:
+                invoiceAccount = json.loads(invoiceAccount)
+                price = invoiceAccount.get('unitPrice', None)
+            
+            item.taxSchedule = RecordRef(internalId=record.get('taxSchedule', 1))
+
             accountName = invoiceAccount.get('accountName')
             id = invoiceAccount.get('accountId')
             if accountName or id:
-                account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
-                item.incomeAccount = RecordRef(internalId=account['internalId'])
-        
-
+                try:
+                    account = list(filter(lambda x: get_account_by_name_or_id(x, accountName, id), context['reference_data']['Accounts']))[0]
+                    item.incomeAccount = RecordRef(internalId=account['internalId'])
+                except IndexError:
+                    self.logger.error(f"Account not found for {accountName} or {id}")
         return item

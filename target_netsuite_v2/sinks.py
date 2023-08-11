@@ -26,6 +26,22 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context['Customer'] = []
         context['Items'] = []
         context['PurchaseOrder'] = []
+    
+    def post_item(self, record):
+        ns = NetsuiteSoapClient(self.config)
+        service = ns.service_proxy
+        soap_headers = ns.build_headers()
+        response = service.add(record, _soapheaders=soap_headers)
+        try:
+            is_duplicated = response['body']['writeResponse']['status']['statusDetail'][0]['code'] == 'DUP_ITEM'
+        except:
+            is_duplicated = False
+        if not response['body']['writeResponse']['status']['isSuccess'] and not is_duplicated:
+            raise Exception(response['body']['writeResponse']['status']['statusDetail'][0]['message'])
+        elif is_duplicated:
+            self.logger.info(f"This item has already been posted: {record.itemId}")
+        else:
+            self.logger.info(f"Item with itemId {record.itemId} posted successfully")
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -33,18 +49,19 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
         
-        if self.stream_name.lower() in ["customer"]:
+        if self.stream_name.lower() in ["customer", "customers"]:
             customer = self.process_customer(context,record)
-            context["Customer"].append(customer)
+            # context["Customer"].append(customer)
+            # Fix: Create a function to Post customers
+            url = f"{self.url_base}customer"
+            self.rest_post(url=url, json=customer)
+
         if self.stream_name.lower() in ["inboundshipment","inboundshipments"]:
             inbound_shipment = self.process_inbound_shipment(context, record)
             context["InboundShipment"].append(inbound_shipment)
         elif self.stream_name.lower() in ["customerpayment","customerpayments"]:
             customer_payment = self.process_customer_payment(context, record)
             context["CustomerPayment"].append(customer_payment)
-        elif self.stream_name.lower() in ["salesorder","salesorders"]:
-            sale_order = self.process_order(context, record)
-            context["SalesOrder"].append(sale_order)
         elif self.stream_name.lower() in ["invoice", "invoices"]:
             invoice = self.process_invoice(context, record)
             context["Invoice"].append(invoice)
@@ -67,11 +84,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             context["PurchaseOrderToVendorBill"].append(record)
         elif self.stream_name.lower() in ['item','items']:
             item = self.process_item(context,record)
-            context["Items"].append(item)
+            self.post_item(item)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             order = self.process_purchase_order(context,record)
             context['PurchaseOrder'].append(order)
- 
+        elif self.stream_name.lower() in ["salesorder","salesorders"]:
+            sale_order = self.process_order(context, record)
+            context["SalesOrder"].append(sale_order)
 
 
     def process_batch(self, context: dict) -> None:
@@ -133,21 +152,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     response = self.ns_client.entities["InboundShipment"].post(record)
                 
                 self.logger.info(response)
-    
-        elif self.stream_name.lower() in ['customers','customer']:
-            url = f"{self.url_base}{self.stream_name.lower()}"
-            for record in context.get("Customer", []):
-                response = self.rest_post(url=url, json=record)
-        elif self.stream_name.lower() in ['item','items']:
-            ns = NetsuiteSoapClient(self.config)
-            service = ns.service_proxy
-            soap_headers = ns.build_headers()
-            for record in context.get("Items",[]):
-                response = service.add(record,_soapheaders=soap_headers)
-                if not response['body']['writeResponse']['status']['isSuccess']:
-                    raise Exception(response['body']['writeResponse']['status']['statusDetail'][0]['message'])
-                else: 
-                    self.logger.info(f"Item with itemId {record.itemId} posted successfully")
+        
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
             for record in context.get("PurchaseOrder",[]):
