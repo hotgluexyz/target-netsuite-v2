@@ -122,7 +122,7 @@ class netsuiteRestV2Sink(BatchSink):
 
             # Get the product Id
             if line.get("product_name"):
-                product_name = line.get("product_name").trim()
+                product_name = line.get("product_name").strip()
                 
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
 
