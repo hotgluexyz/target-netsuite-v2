@@ -146,8 +146,11 @@ class netsuiteRestV2Sink(BatchSink):
             items.append(order_item)
         sale_order["item"] = {"items": items}
         # Get order number
+        if record.get("id") is not None:
+            sale_order["id"] = record.get("id")
+
         if record.get("order_number") is not None:
-            sale_order["order_number"] = record.get("order_number")
+            sale_order["ref"] = record.get("order_number")
         
         sale_order["taxSchedule"] = record.get("tax_schedule", "1")
         
