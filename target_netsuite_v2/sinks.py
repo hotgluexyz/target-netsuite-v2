@@ -108,11 +108,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
             url = f"{self.url_base}salesOrder"
             for record in context.get("SalesOrder", []):
-                if record.get("order_number") is None:
+                if record.get("id") is None:
                     response = self.rest_post(url=url, json=record)
                 else:
-                    self.logger.info(f"Updating Order: {record.get('order_number')}")
-                    response = self.rest_patch(url=f"{url}/{record.pop('order_number')}", json=record)
+                    self.logger.info(f"Updating Order: {record.get('id')}")
+                    response = self.rest_patch(url=f"{url}/{record.pop('id')}", json=record)
         elif self.stream_name.lower() in ["invoice", "invoices"]:
             url = f"{self.url_base}invoice"
             for record in context.get("Invoice", []):
