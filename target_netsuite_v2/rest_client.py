@@ -99,9 +99,12 @@ class netsuiteRestV2Sink(BatchSink):
     def process_order(self, context, record):
         sale_order = {}
         items = []
+        matching_customers = []
 
         # Get the NetSuite Customer Ref
-        if record.get("customer_name"):
+        if record.get("customer_id"):
+            sale_order["entity"] = {"id": record.get("customer_id")}
+        elif record.get("customer_name"):
             customer_name = record['customer_name']
             matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"')
 
@@ -117,11 +120,15 @@ class netsuiteRestV2Sink(BatchSink):
         if isinstance(trandate, str):
             trandate = parse(trandate)
         sale_order["tranDate"] = trandate.strftime("%Y-%m-%d")
+
         for line in record.get("line_items", []):
             order_item = {}
 
             # Get the product Id
-            if line.get("product_name"):
+            if line.get("product_id"):
+                order_item["item"] = {"id": line.get("product_id")}
+
+            elif line.get("product_name"):
                 product_name = line.get("product_name").strip()
                 
                 matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
@@ -143,6 +150,7 @@ class netsuiteRestV2Sink(BatchSink):
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = line.get("amount", 1) * line.get("unit_price", 0)
+            order_item["expected_ship_date"] = line.get("expectedShipDate")
             items.append(order_item)
         sale_order["item"] = {"items": items}
         # Get order number
@@ -164,6 +172,24 @@ class netsuiteRestV2Sink(BatchSink):
             record["custom_fields"] = json.loads(record["custom_fields"])
             for field in record["custom_fields"]:
                 sale_order[field['name']] = field['value']
+        
+        if record.get('location_id'):
+            sale_order["location"] = {"id": str(record.get('location_id'))}
+        
+        if not sale_order.get("location") and record.get('subsidiary_id') and context["reference_data"].get("Locations"):
+            for location in context["reference_data"]["Locations"]:
+                for subsidiary in location.get("subsidiaryList", []):
+                    if str(record.get('subsidiary_id')) == subsidiary["internalId"]:
+                        sale_order["location"] = {"id": location["internalId"]}
+        
+        if record.get('subsidiary_id'):
+            sale_order["subsidiary"] = {"id": str(record.get('subsidiary_id'))}
+    
+        if record.get('tax_schedule_id'):
+            sale_order["taxSchedule"] = str(record.get('tax_schedule_id'))
+        
+        if record.get("custom_form_id"):
+            sale_order["customForm"] = {"id": str(record["custom_form_id"])}
 
         return sale_order
 
@@ -655,13 +681,22 @@ class netsuiteRestV2Sink(BatchSink):
 
     def process_customer(self, context, record):
         subsidiary = record.get("subsidiary")
-        names = record.get("contactName").split(" ")
-        if len(names) > 0:
-            first_name = names[0]
-            last_name = " ".join(names[1:])
-        else:
-            first_name = names[0]
-            last_name = (" ",)
+        contact_name = record.get("contactName", None)
+
+        if contact_name is None and record.get("companyName"):
+            contact_name = record.get("companyName")
+        
+        if contact_name is None and record.get("firstName"):
+            contact_name = f'{record.get("firstName")} {record.get("lastName")}'
+
+        if contact_name:
+            names = contact_name.split(" ")
+            if len(names) > 0:
+                first_name = names[0]
+                last_name = " ".join(names[1:])
+            else:
+                first_name = names[0]
+                last_name = (" ",)
 
         address_book = [
             {
@@ -675,7 +710,7 @@ class netsuiteRestV2Sink(BatchSink):
                     "country": address.get("country"),
                 }
             }
-            for address in record.get("addresses")
+            for address in record.get("addresses", [])
         ]
 
         address = record.get("addresses")

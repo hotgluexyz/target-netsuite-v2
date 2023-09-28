@@ -23,7 +23,7 @@ class ExtendedNetSuiteConnection:
         )
 
         self.entities = {
-            'Customer': Customers(self.ns_client),
+            'Customer': Customers,
             'Accounts': Accounts,
             'JournalEntry': JournalEntries(self.ns_client),
             'InboundShipment': InboundShipment(self.ns_client),
