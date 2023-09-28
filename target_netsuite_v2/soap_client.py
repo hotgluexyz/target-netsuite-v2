@@ -55,6 +55,15 @@ class netsuiteSoapV2Sink(BatchSink):
         ns.connect_tba(caching=False)
         self.ns_client = ns.ns_client
         self.logger.info(f"Successfully created netsuite connection..")
+    
+    def _check_exception(self, exception, stream_name):
+        exception_string = exception.__str__()
+
+        if "INSUFFICIENT_PERMISSION" in exception_string:
+            self.logger.warning(f"Insufficient permissions to access content for {stream_name}. Skipping...")
+            return
+
+        raise exception
 
     def get_reference_data(self):
         if self.config.get("snapshot_hours"):
@@ -71,15 +80,34 @@ class netsuiteSoapV2Sink(BatchSink):
 
         self.logger.info(f"Reading data from API...")
         reference_data = {}
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
+
         try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
+            reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
+        except Exception as e:
+            self._check_exception(e, "Classifications")
+
+        try:
+            reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
+        except Exception as e:
+            self._check_exception(e, "Currencies")
+        
+        try:
+            reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+        except Exception as e:
+            self._check_exception(e, "Departments")
+
+        try:
+            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
+        except Exception as e:
+            self._check_exception(e, "Accounts")
+        
+        try:
+            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList"])
         except NetSuiteRequestError as e:
             message = e.message.replace("error", "failure").replace("Error", "")
             self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
+        except Exception as e:
+            self._check_exception(e, "Locations")
 
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
