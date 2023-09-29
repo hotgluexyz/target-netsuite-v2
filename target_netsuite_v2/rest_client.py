@@ -26,6 +26,36 @@ class netsuiteRestV2Sink(BatchSink):
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
 
+    def rest_search_suiteql(self, query, expand=False):
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+
+        headers = {"Content-Type": "application/json", "Prefer": "transient"}
+        response = requests.post(self.url_suiteql, headers=headers, json={"q": query}, auth=oauth)
+        search_status_code = response.status_code
+        search_response = response.json()
+
+        if search_status_code >= 400:
+            self.logger.error(f"Failed to find a result for the query: {query} \n\n {search_response.json()}")
+
+        if expand:
+            results = []
+
+            for i in search_response.get("items", []):
+                r = requests.get(i["links"][0]["href"], headers=headers, auth=oauth)
+                results.append(r.json())
+
+            return results
+
+        return [r["id"] for r in search_response.get("items", [])]
+
+
     def rest_search(self, object, search, expand=False):
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
@@ -51,7 +81,6 @@ class netsuiteRestV2Sink(BatchSink):
             return results
 
         return [r["id"] for r in search_response.get("items", [])]
-
 
     def rest_post(self, **kwarg):
         oauth = OAuth1(
@@ -124,23 +153,39 @@ class netsuiteRestV2Sink(BatchSink):
         for line in record.get("line_items", []):
             order_item = {}
 
+            fetch_by_name = True
+            search_for_id = True
             # Get the product Id
             if line.get("product_id"):
-                order_item["item"] = {"id": line.get("product_id")}
+                if line.get("product_id").isdigit():
+                    order_item["item"] = {"id": line.get("product_id")}
+                    fetch_by_name = False
+                    search_for_id = False
 
-            elif line.get("product_name"):
-                product_name = line.get("product_name").strip()
+            if line.get("product_name") or fetch_by_name:
+                product_name = line.get("product_name")
+
+                matching_items = self.rest_search_suiteql("SELECT * FROM item where itemId = '{}'".format(product_name))
+
+                if len(matching_items) == 0:
+                    matching_items = self.rest_search_suiteql("SELECT * FROM item where displayName = '{}' or itemId = '{}'".format(
+                        product_name,
+                        product_name
+                    ))
                 
-                matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
-
                 if len(matching_items) == 0:
-                    matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
-            
-                if len(matching_items) == 0:
-                    matching_items = self.rest_search("nonInventorySaleItem", f'displayName IS "{product_name}"')
-
-                if len(matching_items) == 0:
-                    matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
+                    product_name = product_name.strip()
+                    matching_items = self.rest_search_suiteql("SELECT * FROM item where displayName = '{}' or itemId = '{}'".format(
+                        product_name,
+                        product_name
+                    ))
+                
+                elif len(matching_items) == 0 and search_for_id:
+                    product_id = line.get("product_id")
+                    matching_items = self.rest_search_suiteql("SELECT * FROM item where displayName = '{}' or itemId = '{}'".format(
+                        product_id,
+                        product_id
+                    ))
 
                 if len(matching_items) > 0:
                     order_item["item"] = {"id": matching_items[0]}
@@ -175,7 +220,44 @@ class netsuiteRestV2Sink(BatchSink):
         
         if record.get('location_id'):
             sale_order["location"] = {"id": str(record.get('location_id'))}
+    
+        if record.get('total_discount'):
+            if isinstance(record.get('total_discount'), str):
+                record['total_discount'] = float(record['total_discount'])
+            sale_order["discounttotal"] = record.get('total_discount')
         
+        if record.get('billing_address'):
+            bill_addr = record.get('billing_address')
+            if bill_addr.get("line1"):
+                sale_order["billaddr1"] = bill_addr.get("line1")
+            if bill_addr.get("line2"):
+                sale_order["billaddr2"] = bill_addr.get("line2")
+            if bill_addr.get("line3"):
+                sale_order["billaddr3"] = bill_addr.get("line3")
+            if bill_addr.get("city"):
+                sale_order["billcity"] = bill_addr.get("city")
+            if bill_addr.get("country"):
+                sale_order["billcountry"] = bill_addr.get("country")
+        
+        if record.get("billEmail"):
+            sale_order["email"] = record.get("billEmail")
+
+        if record.get("total_tax"):
+            sale_order["taxtotal"] = record.get("total_tax")
+        
+        if record.get('shipping_address'):
+            ship_addr = record.get('shipping_address')
+            if ship_addr.get("line1"):
+                sale_order["shipaddr1"] = ship_addr.get("line1")
+            if ship_addr.get("line2"):
+                sale_order["shipaddr2"] = ship_addr.get("line2")
+            if ship_addr.get("line3"):
+                sale_order["shipaddr3"] = ship_addr.get("line3")
+            if ship_addr.get("city"):
+                sale_order["shipcity"] = ship_addr.get("city")
+            if ship_addr.get("country"):
+                sale_order["shipcountry"] = ship_addr.get("country")
+
         if not sale_order.get("location") and record.get('subsidiary_id') and context["reference_data"].get("Locations"):
             for location in context["reference_data"]["Locations"]:
                 for subsidiary in location.get("subsidiaryList", []):

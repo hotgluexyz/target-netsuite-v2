@@ -86,13 +86,23 @@ class netsuiteSoapV2Sink(BatchSink):
         except Exception as e:
             self._check_exception(e, "Classifications")
 
+        # try:
+        #     reference_data["Items"] = self.ns_client.entities["Items"].get_all(["name", "subsidiaryList", "isInactive", "name", "itemId", "displayName"])
+        # except Exception as e:
+        #     self._check_exception(e, "Items")
+
+        # try:
+        #     reference_data["Customer"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "firstName", "lastName", "subsidiary"])
+        # except Exception as e:
+        #     self._check_exception(e, "Customer")
+
         try:
             reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
         except Exception as e:
             self._check_exception(e, "Currencies")
         
         try:
-            reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+            reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name", "subsidiary"])
         except Exception as e:
             self._check_exception(e, "Departments")
 

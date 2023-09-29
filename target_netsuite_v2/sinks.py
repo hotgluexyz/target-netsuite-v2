@@ -158,3 +158,6 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             for record in context.get("PurchaseOrder",[]):
                 response = self.rest_post(url=url,json=record)
 
+        else:
+            self.logger.info(f"Unsupported stream {self.stream_name}")
+
