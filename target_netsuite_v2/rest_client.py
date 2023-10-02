@@ -239,8 +239,8 @@ class netsuiteRestV2Sink(BatchSink):
             if bill_addr.get("country"):
                 sale_order["billcountry"] = bill_addr.get("country")
         
-        if record.get("billEmail"):
-            sale_order["email"] = record.get("billEmail")
+        if record.get("billing_email"):
+            sale_order["email"] = record.get("billing_email")
 
         if record.get("total_tax"):
             sale_order["taxtotal"] = record.get("total_tax")
