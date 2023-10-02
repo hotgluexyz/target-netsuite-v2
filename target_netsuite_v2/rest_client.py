@@ -224,6 +224,10 @@ class netsuiteRestV2Sink(BatchSink):
         if record.get('total_discount'):
             if isinstance(record.get('total_discount'), str):
                 record['total_discount'] = float(record['total_discount'])
+            
+            if record['total_discount'] > 0:
+                record['total_discount'] = record['total_discount'] * -1
+
             sale_order["discounttotal"] = record.get('total_discount')
         
         if record.get('billing_address'):
