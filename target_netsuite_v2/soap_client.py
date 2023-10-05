@@ -205,7 +205,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
             # Get the NetSuite Customer Ref
             if line.get("customerName"):
-                customer_name = record['customerName']
+                customer_name = line['customerName']
                 matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"', expand=True)
 
                 if len(matching_customers) == 0:

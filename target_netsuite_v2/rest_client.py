@@ -42,7 +42,7 @@ class netsuiteRestV2Sink(BatchSink):
         search_response = response.json()
 
         if search_status_code >= 400:
-            self.logger.error(f"Failed to find a result for the query: {query} \n\n {search_response.json()}")
+            self.logger.error(f"Failed to find a result for the query: {query} \n\n {search_response}")
 
         if expand:
             results = []
@@ -302,6 +302,17 @@ class netsuiteRestV2Sink(BatchSink):
         elif record.get("vendorName"):
             vendor_name = record.get("vendorName")
             matching_vendors = self.rest_search("vendor", f'entityId IS "{vendor_name}"')
+
+            if len(matching_vendors) == 0:
+                matching_vendors = self.rest_search("vendor", f'companyName IS "{vendor_name}"')
+            
+            if len(matching_vendors) == 0:
+                matching_vendors = self.rest_search("vendor", f'altName IS "{vendor_name}"')
+
+            if len(matching_vendors) == 0:
+                first_name = vendor_name.split(" ")[0]
+                last_name = vendor_name.split(" ")[-1]
+                matching_vendors = self.rest_search("vendor", f'firstName IS "{first_name}" AND lastName IS "{last_name}"')            
 
             if len(matching_vendors) > 0:
                 vendor_bill["entity"] = {"id": matching_vendors[0]}
