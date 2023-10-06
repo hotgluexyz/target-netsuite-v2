@@ -312,7 +312,22 @@ class netsuiteRestV2Sink(BatchSink):
             if len(matching_vendors) == 0:
                 first_name = vendor_name.split(" ")[0]
                 last_name = vendor_name.split(" ")[-1]
-                matching_vendors = self.rest_search("vendor", f'firstName IS "{first_name}" AND lastName IS "{last_name}"')            
+                matching_vendors = self.rest_search(
+                    "vendor",
+                    f'firstName IS "{first_name}" AND lastName IS "{last_name}"'
+                )
+            
+            if len(matching_vendors) == 0:
+                # Fallback to reference data if available and fetches
+                # the first match for the vendor name based on companyName,
+                # firstName, lastName or altName
+                
+                matching_vendors = [
+                    v for v in context["reference_data"]["Vendors"]
+                    if (v["companyName"] == vendor_name)
+                    or (v["firstName"] == first_name and v["lastName"] == last_name)
+                    or (v["altName"] == vendor_name)
+                ]
 
             if len(matching_vendors) > 0:
                 vendor_bill["entity"] = {"id": matching_vendors[0]}

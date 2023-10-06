@@ -92,9 +92,20 @@ class netsuiteSoapV2Sink(BatchSink):
         #     self._check_exception(e, "Items")
 
         # try:
-        #     reference_data["Customer"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "firstName", "lastName", "subsidiary"])
+        #     reference_data["Customer"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "firstName", "lastName", "subsidiary", "email"])
         # except Exception as e:
         #     self._check_exception(e, "Customer")
+
+        # try:
+        #     reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["email", "name", "isInactive", "internalId", "externalId"])
+        # except Exception as e:
+        #     self._check_exception(e, "Subsidiaries")
+
+        try:
+            reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["companyName", "firstName", "lastName", "altName", "isInactive", "externalId"])
+        except Exception as e:
+            self._check_exception(e, "Vendors")
+
 
         try:
             reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
