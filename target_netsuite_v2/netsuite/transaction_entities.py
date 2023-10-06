@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from netsuitesdk.internal.utils import PaginatedSearch
+from netsuitesdk.internal.exceptions import NetSuiteError
 import backoff
 
 from netsuitesdk.api.base import ApiBase
@@ -238,7 +239,20 @@ class JournalEntries(ApiBase):
 
         logger.info(
             f"Posting JournalEntries now with {len(je['lineList']['line'])} entries. ExternalId {je['externalId']} tranDate {je['tranDate']}")
-        res = self.ns_client.upsert(je)
+        try:
+            res = self.ns_client.upsert(je)
+            exc = None
+        except NetSuiteError as e:
+            logger.error(f"Error posting JournalEntries {e}")
+            exc = e
+        
+        if exc is not None:
+            if "INVALID_RECIPIENT" == exc.code:
+                logger.error(f"Got INVALID_RECIPIENT for Journal Entry, probably there is an Approval Flow on the Journal Entries that might require an update")
+                return None
+            else:
+                raise exc
+
         return self._serialize(res)
 
 
