@@ -323,7 +323,7 @@ class netsuiteRestV2Sink(BatchSink):
                 # firstName, lastName or altName
                 
                 matching_vendors = [
-                    v for v in context["reference_data"]["Vendors"]
+                    v["internalId"] for v in context["reference_data"]["Vendors"]
                     if (v["companyName"] == vendor_name)
                     or (v["firstName"] == first_name and v["lastName"] == last_name)
                     or (v["altName"] == vendor_name)
