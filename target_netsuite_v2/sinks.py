@@ -17,6 +17,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context["Invoice"] = []
         context["InvoicePayment"] = []
         context["vendorBill"] = []
+        context["vendorCredit"] = []
         context["VendorPayment"] = []
         context["Vendor"] = []
         context["PurchaseOrderToVendorBill"] = []
@@ -31,7 +32,6 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
-        
         if self.stream_name.lower() in ["customer"]:
             customer = self.process_customer(context,record)
             context["Customer"].append(customer)
@@ -56,6 +56,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["vendorbill", "vendorbills", "purchaseinvoices","purchaseinvoice", "bill", "bills"]:
             vendor_bill = self.process_vendor_bill(context, record)
             context["vendorBill"].append(vendor_bill)
+        elif self.stream_name.lower() in ["vendorcredit", "vendorcredits", "apadjustment", "apadjustments"]:
+            vendor_credit = self.process_vendor_credit(context, record)
+            context["vendorCredit"].append(vendor_credit)
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
             invoice_payment = self.invoice_payment(context, record)
             context["InvoicePayment"].append(invoice_payment)
@@ -70,8 +73,6 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             order = self.process_purchase_order(context,record)
             context['PurchaseOrder'].append(order)
- 
-
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written."""
@@ -96,12 +97,12 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}invoice"
             for record in context.get("Invoice", []):
                 response = self.rest_post(url=url, json=record)
-        elif self.stream_name.lower() in ["creditmemo","creditmemos"]:   
+        elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
             endpoint = self.stream_name.lower()
             url = f"{self.url_base}{endpoint}"
             for record in context.get("CreditMemo", []):
                 response = self.rest_post(url=url, json=record)
-        elif self.stream_name.lower() in ["vendor","vendors"]:   
+        elif self.stream_name.lower() in ["vendor","vendors"]:
             endpoint = self.stream_name.lower()
             url = f"{self.url_base}{endpoint}"
             for record in context.get("Vendor", []):
@@ -109,6 +110,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["vendorbill","vendorbills","bill","bills","purchaseinvoices","purchaseinvoice"]:
             url = f"{self.url_base}vendorbill"
             for record in context.get("vendorBill", []):
+                response = self.rest_post(url=url, json=record)
+        elif self.stream_name.lower() in ["vendorcredit","vendorcredits","apadjustment","apadjustments"]:
+            url = f"{self.url_base}vendorCredit"
+            for record in context.get("vendorCredit", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
             for record in context.get("InvoicePayment", []):
@@ -127,11 +132,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     endpoint = endpoint.format(id=record.pop("id"))
                     url = f"{self.url_base}{endpoint}"
                     response = self.rest_patch(url=url, json=record)
-                else: 
+                else:
                     response = self.ns_client.entities["InboundShipment"].post(record)
-                
+
                 self.logger.info(response)
-    
+
         elif self.stream_name.lower() in ['customers','customer']:
             url = f"{self.url_base}{self.stream_name.lower()}"
             for record in context.get("Customer", []):
@@ -144,7 +149,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}purchaseOrder"
             for record in context.get("PurchaseOrder",[]):
                 response = self.rest_post(url=url,json=record)
-            
+
 
 
 
