@@ -207,9 +207,24 @@ class netsuiteSoapV2Sink(BatchSink):
             if "description" in line.keys():
                 journal_entry_line["memo"] = line["description"]
 
-            if line.get("asset"):
-                journal_entry_line["customFieldList"] = [{"type": "Select", "scriptId": "custcol_far_trn_relatedasset", "value": line["asset"]}]
+            # Add support for custom values
+            custom_field_values = []
 
+            if line.get("asset"):
+                custom_field_values.append({"type": "Select", "scriptId": "custcol_far_trn_relatedasset", "value": line["asset"]})
+
+            # Support dynamic custom fields
+            custom_fields = line.get("customFields") or []
+
+            for entry in custom_fields:
+                value = entry.get("value")
+                ns_id = entry.get("name")
+                if value:
+                    custom_field_values.append({"type": "Select", "scriptId": ns_id, "value": value})
+
+            if custom_field_values:
+                journal_entry_line["customFieldList"] = custom_field_values
+            
             line_items.append(journal_entry_line)
 
         # Get the currency ID
