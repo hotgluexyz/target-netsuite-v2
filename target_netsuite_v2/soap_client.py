@@ -97,7 +97,7 @@ class netsuiteSoapV2Sink(BatchSink):
             self._check_exception(e, "Departments")
 
         try:
-            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
+            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"])
         except Exception as e:
             self._check_exception(e, "Accounts")
         

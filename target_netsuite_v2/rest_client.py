@@ -71,7 +71,7 @@ class netsuiteRestV2Sink(BatchSink):
                 self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 response.raise_for_status()
             except:
-                response.raise_for_status()
+                raise Exception(f"Request to url {kwarg['url']} failed with response: {response.text}")
         return response
 
     def rest_patch(self, **kwarg):
@@ -357,6 +357,7 @@ class netsuiteRestV2Sink(BatchSink):
                     if a["acctNumber"] == acct_num
                 ]
                 if acct_data:
+                    self.logger.info(f"Account found for acctNumber {acct_num} -> {acct_data}")
                     acct_data = acct_data[0]
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
