@@ -364,7 +364,7 @@ class netsuiteRestV2Sink(BatchSink):
             # Get the project id
             # project should be linked through customer HGI-6300
             if line.get("projectId"):
-                expense["customer"] = {"id": line.get("customer")}
+                expense["customer"] = {"id": line.get("projectId")}
 
 
             if line.get("customFields"):
