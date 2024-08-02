@@ -266,7 +266,7 @@ class netsuiteRestV2Sink(BatchSink):
         if department:
             vendor_bill["Department"] = department
 
-        vendor_bill["tranid"] = record.get("invoiceNumber", record.get("number"))
+        vendor_bill["tranid"] = record.get("invoiceNumber", record.get("number", record.get("vendorBillNumber")))
 
         startdate = record.get("issueDate", record.get("createdAt"))
         if isinstance(startdate, str):
@@ -361,6 +361,11 @@ class netsuiteRestV2Sink(BatchSink):
                     acct_data = acct_data[0]
                     expense["account"] = {"id": acct_data.get("internalId")}
             expense["amount"] = round(line.get("amount"), 3)
+            # Get the project id
+            # project should be linked through customer HGI-6300
+            if line.get("projectId"):
+                expense["customer"] = {"id": line.get("customer")}
+
 
             if line.get("customFields"):
                 for field in line.get("customFields"):
