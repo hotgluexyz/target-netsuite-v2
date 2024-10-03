@@ -241,9 +241,10 @@ class netsuiteRestV2Sink(BatchSink):
         vendor_bill["tranid"] = record.get("invoiceNumber", record.get("number"))
 
         startdate = record.get("issueDate", record.get("createdAt"))
-        if isinstance(startdate, str):
-            startdate = parse(startdate)
-        vendor_bill["tranDate"] = startdate.strftime("%Y-%m-%d")
+        if startdate:
+            if isinstance(startdate, str):
+                startdate = parse(startdate)
+            vendor_bill["tranDate"] = startdate.strftime("%Y-%m-%d")
 
         # Get the NetSuite Subsidiary Ref
         if record.get("subsidiaryId"):
