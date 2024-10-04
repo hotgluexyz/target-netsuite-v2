@@ -29,6 +29,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
+        if not record:
+            self.logger.info(f"Record is empty for {self.stream_name}")
+            return
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
             context["JournalEntry"].append(journal_entry)
