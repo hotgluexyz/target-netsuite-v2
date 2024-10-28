@@ -9,6 +9,13 @@ import json
 from lxml import etree
 
 
+def validate_response(response: requests.models.Response) -> None:
+    try:
+        response.raise_for_status()
+    except Exception as exc:
+        raise Exception(f"Error {response.status_code} for url={response.url}. Error={response.json()}") from exc
+
+
 class netsuiteRestV2Sink(BatchSink):
     """netsuite-v2 target sink class."""
 
@@ -69,7 +76,7 @@ class netsuiteRestV2Sink(BatchSink):
             try:
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
                 self.logger.error(json.dumps(response.json().get("o:errorDetails")))
-                response.raise_for_status()
+                validate_response(response)
             except:
                 raise Exception(f"Request to url {kwarg['url']} failed with response: {response.text}")
         return response
@@ -91,9 +98,9 @@ class netsuiteRestV2Sink(BatchSink):
             try:
                 self.logger.error(json.dumps(response.json().get("o:errorDetails")))
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                response.raise_for_status()
+                validate_response(response)
             except:
-                response.raise_for_status()
+                validate_response(response)
         return response
 
     def process_order(self, context, record):
