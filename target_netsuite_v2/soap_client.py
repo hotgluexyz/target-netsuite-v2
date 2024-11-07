@@ -96,6 +96,8 @@ class netsuiteSoapV2Sink(BatchSink):
         subsidiaries = {}
         line_items = []
         for line in record.get("lines"):
+            journal_entry_line = dict()
+
             if context["reference_data"].get("Accounts") and line.get("accountNumber"):
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
