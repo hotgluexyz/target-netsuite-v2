@@ -771,7 +771,7 @@ class netsuiteRestV2Sink(BatchSink):
 
     def process_customer(self, context, record):
         subsidiary = record.get("subsidiary")
-        sales_rep = record.get("salesRepId")
+        sales_rep = record.get("ownerId")
         names = record.get("contactName").split(" ")
         if len(names) > 0:
             first_name = names[0]
