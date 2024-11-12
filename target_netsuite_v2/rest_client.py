@@ -771,6 +771,7 @@ class netsuiteRestV2Sink(BatchSink):
 
     def process_customer(self, context, record):
         subsidiary = record.get("subsidiary")
+        sales_rep = record.get("salesRepId")
         names = record.get("contactName").split(" ")
         if len(names) > 0:
             first_name = names[0]
@@ -807,7 +808,7 @@ class netsuiteRestV2Sink(BatchSink):
             "balance": record.get("balance"),
             "datecreated": record.get("createdAt"),
             "taxable": record.get("taxable"),
-            "isInactive": not record.get("active"),
+            "isInactive": not record.get("active", True),
             "addressbook": {"items": address_book},
             "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}"
             if address
@@ -816,6 +817,17 @@ class netsuiteRestV2Sink(BatchSink):
 
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
+        if sales_rep:
+            customer["salesRep"] = {"id": sales_rep}
+        if record.get("currency"):
+            customer["currency"] = {"refName": record["currency"]}
+
+        if record.get("customFields"):
+            for field in record.get("customFields"):
+                if field.get("name"):
+                    customer[field["name"]] = field["value"]
+                else:
+                    self.logger.info(f"Skipping custom field {field} because name is empty")
 
         return customer
 
