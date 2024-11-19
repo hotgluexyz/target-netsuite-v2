@@ -812,7 +812,7 @@ class netsuiteRestV2Sink(BatchSink):
             "taxable": record.get("taxable"),
             "isInactive": not record.get("active", True),
             "addressbook": {"items": address_book},
-            "defaultAddress": f"{address[0]['line1']} {address[0]['line2']} {address[0]['line3']}, {address[0]['city']} {address[0]['postalCode']}, {address[0]['state'], address[0]['country']}"
+            "defaultAddress": f"{address[0].get('line1')} {address[0].get('line2', '')} {address[0].get('line3', '')}, {address[0].get('city', '')} {address[0].get('postalCode', '')}, {address[0].get('state', ''), address[0].get('country', '')}"
             if address
             else None,
         }
