@@ -772,13 +772,17 @@ class netsuiteRestV2Sink(BatchSink):
     def process_customer(self, context, record):
         subsidiary = record.get("subsidiary")
         sales_rep = record.get("ownerId")
-        names = record.get("contactName").split(" ")
-        if len(names) > 0:
-            first_name = names[0]
-            last_name = " ".join(names[1:])
-        else:
-            first_name = names[0]
-            last_name = (" ",)
+        first_name = None
+        last_name = None
+
+        if record.get("contactName"):
+            names = record.get("contactName").split(" ")
+            if len(names) > 0:
+                first_name = names[0]
+                last_name = " ".join(names[1:])
+            else:
+                first_name = names[0]
+                last_name = ""
 
         address_book = [
             {
@@ -798,8 +802,6 @@ class netsuiteRestV2Sink(BatchSink):
         address = record.get("addresses")
         customer = {
             "companyName": record.get("customerName"),
-            "firstName": first_name,
-            "lastName": last_name,
             "email": record.get("emailAddress"),
             "phone": record.get("phoneNumbers")[0].get("number")
             if record.get("phoneNumbers")
@@ -814,6 +816,10 @@ class netsuiteRestV2Sink(BatchSink):
             if address
             else None,
         }
+
+        if first_name:
+            customer["firstName"] = first_name
+            customer["lastName"] = last_name
 
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
