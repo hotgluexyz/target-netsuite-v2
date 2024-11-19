@@ -796,7 +796,7 @@ class netsuiteRestV2Sink(BatchSink):
                     "country": address.get("country"),
                 }
             }
-            for address in record.get("addresses")
+            for address in record.get("addresses", [])
         ]
 
         address = record.get("addresses")
