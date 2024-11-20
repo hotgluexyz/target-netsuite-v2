@@ -68,7 +68,7 @@ class netsuiteSoapV2Sink(BatchSink):
             except:
                 self.logger.info(f"Snapshot not found or not readable.")
 
-        self.logger.info(f"Readding data from API...")
+        self.logger.info(f"Reading data from API...")
         reference_data = {}
         reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
         reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])

@@ -143,7 +143,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ['customers','customer']:
             url = f"{self.url_base}{self.stream_name.lower()}"
             for record in context.get("Customer", []):
-                response = self.rest_post(url=url, json=record)
+                if record.get("id"):
+                    response = self.rest_patch(url=f"{url}/{record.pop('id')}", json=record)
+                else:
+                    response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ['item','items']:
             url = f"{self.url_base}inventoryItem"
             for record in context.get("Items",[]):

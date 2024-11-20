@@ -770,6 +770,7 @@ class netsuiteRestV2Sink(BatchSink):
         return res
 
     def process_customer(self, context, record):
+        customers = context["reference_data"]["Customer"]
         subsidiary = record.get("subsidiary")
         sales_rep = record.get("ownerId")
         first_name = None
@@ -815,7 +816,13 @@ class netsuiteRestV2Sink(BatchSink):
             "defaultAddress": f"{address[0].get('line1')} {address[0].get('line2', '')} {address[0].get('line3', '')}, {address[0].get('city', '')} {address[0].get('postalCode', '')}, {address[0].get('state', ''), address[0].get('country', '')}"
             if address
             else None,
+            "externalId": record.get("id"),
         }
+
+        # If this companyName already exists, we should do a PATCH instead, just need to set id
+        existing_customer = [c for c in customers if c.get("companyName") == customer.get("companyName") or c.get("externalId") == customer.get("externalId")]
+        if existing_customer:
+            customer["id"] = existing_customer[0]["internalId"]
 
         if first_name:
             customer["firstName"] = first_name
