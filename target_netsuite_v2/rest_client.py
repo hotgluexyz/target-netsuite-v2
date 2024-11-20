@@ -785,6 +785,13 @@ class netsuiteRestV2Sink(BatchSink):
                 first_name = names[0]
                 last_name = ""
 
+        # Handle if the input data is str
+        if record.get("addresses") and isinstance(record["addresses"], str):
+            record["addresses"] = json.loads(record["addresses"])
+
+        if record.get("phoneNumbers") and isinstance(record["phoneNumbers"], str):
+            record["phoneNumbers"] = json.loads(record["phoneNumbers"])
+
         address_book = [
             {
                 "addressBookAddress": {
