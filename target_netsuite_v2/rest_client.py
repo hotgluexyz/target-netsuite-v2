@@ -843,6 +843,9 @@ class netsuiteRestV2Sink(BatchSink):
             customer["currency"] = {"refName": record["currency"]}
 
         if record.get("customFields"):
+            if isinstance(record["customFields"], str):
+                record["customFields"] = json.loads(record["customFields"])
+
             for field in record.get("customFields"):
                 if field.get("name"):
                     customer[field["name"]] = field["value"]
