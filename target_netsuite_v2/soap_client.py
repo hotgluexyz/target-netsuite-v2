@@ -261,11 +261,13 @@ class netsuiteSoapV2Sink(BatchSink):
         journal_entry = {
             "createdDate": created_date,
             "tranDate": created_date,
-            "externalId": record["id"],
             "lineList": line_items,
             "currency": currency_ref,
             "subsidiary": subsidiary
         }
+
+        if record.get("id"):
+            journal_entry["externalId"] = record["id"]
 
         if "journalDesc" in record.keys():
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
@@ -297,9 +299,11 @@ class netsuiteSoapV2Sink(BatchSink):
         journal_entry = {
             "createdDate": created_date,
             "tranDate": created_date,
-            "externalId": record["id"],
             "currency": currency_ref
         }
+
+        if record.get("id"):
+            journal_entry["externalId"] = record["id"]
 
         return journal_entry
 
