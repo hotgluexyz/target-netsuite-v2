@@ -98,12 +98,19 @@ class netsuiteSoapV2Sink(BatchSink):
         for line in record.get("journalLines", record.get("lines", [])):
             journal_entry_line = dict()
 
-            if context["reference_data"].get("Accounts") and line.get("accountNumber"):
-                acct_num = str(line["accountNumber"])
-                acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
+            if context["reference_data"].get("Accounts"):
+                acct_data = None
+                if line.get("accountId"):
+                    acct_data = [a for a in context["reference_data"]["Accounts"] if a["internalId"] == line["accountId"]]
+                
+                elif line.get("accountNumber") and not line.get("accountId"):
+                    acct_num = str(line["accountNumber"])
+                    acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
+                
                 if not acct_data:
                     self.logger.warning(f"{acct_num} is not valid for this netsuite account, skipping line")
                     continue
+
                 acct_data = acct_data[0]
                 ref_acct = {
                     "name": acct_data.get("acctName"),
