@@ -268,6 +268,8 @@ class netsuiteSoapV2Sink(BatchSink):
 
         if record.get("id"):
             journal_entry["externalId"] = record["id"]
+        else:
+            raise Exception(f"Invalid Journal Entry: id is a required field. {record}")
 
         if "journalDesc" in record.keys():
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
