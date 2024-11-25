@@ -108,8 +108,7 @@ class netsuiteSoapV2Sink(BatchSink):
                     acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
                 
                 if not acct_data:
-                    self.logger.warning(f"{acct_num} is not valid for this netsuite account, skipping line")
-                    continue
+                    raise Exception(f"AccountId '{line.get('accountId')}' and/or accountNumber {line.get('accountNumber')} were not provided or not valid.")
 
                 acct_data = acct_data[0]
                 ref_acct = {
