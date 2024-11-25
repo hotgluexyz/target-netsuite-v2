@@ -13,18 +13,20 @@ class netsuiteRestV2Sink(BatchSink):
     """netsuite-v2 target sink class."""
 
     @property
+    def url_account(self) -> str:
+        return self.config["ns_account"].replace("_", "-").replace("SB", "sb")
+
+    @property
     def url_base(self) -> str:
         """Return the API URL root, configurable via tap settings."""
-        url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return (
-            f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
+            f"https://{self.url_account}.suitetalk.api.netsuite.com/services/rest/record/v1/"
         )
 
     @property
     def url_suiteql(self) -> str:
         """Return the API URL root, configurable via tap settings."""
-        url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
-        return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
+        return f"https://{self.url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
 
     def rest_post(self, **kwarg):
         oauth = OAuth1(
@@ -477,12 +479,12 @@ class netsuiteRestV2Sink(BatchSink):
 
     def invoice_payment(self, context, record):
         invoice_id = record.get("invoice_id")
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <soap:Header>
         <tokenPassport>
             <account>{oauth_creds["account"]}</account>
@@ -494,7 +496,7 @@ class netsuiteRestV2Sink(BatchSink):
         </tokenPassport>
     </soap:Header>
     <soap:Body>
-        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2017_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com">
+        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
             <platformMsgs:initializeRecord>
                 <platformCore:type>customerPayment</platformCore:type>
                 <platformCore:reference internalId="{invoice_id}" type="invoice">
@@ -518,13 +520,18 @@ class netsuiteRestV2Sink(BatchSink):
         return etree.tostring(record, pretty_print=True)
 
     def vendor_payment(self, context, record):
+        """
+        Initialize a Vendor Payment:
+        The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
+        that is prepopulated with data from an existing record (in this case, a vendorBill).
+        """
         vendor_bill_id = record.get("id")
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <soap:Header>
         <tokenPassport>
             <account>{oauth_creds["account"]}</account>
@@ -536,7 +543,7 @@ class netsuiteRestV2Sink(BatchSink):
         </tokenPassport>
     </soap:Header>
     <soap:Body>
-        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2017_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com">
+        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
             <platformMsgs:initializeRecord>
                 <platformCore:type>vendorPayment</platformCore:type>
                 <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
@@ -557,7 +564,10 @@ class netsuiteRestV2Sink(BatchSink):
             if isinstance(r.text, str):
                 r.getparent().remove(r)
 
-        return etree.tostring(record, pretty_print=True)
+        return {
+            "payload": etree.tostring(record, pretty_print=True),
+            "bill_id": vendor_bill_id
+        }
 
     def process_vendor_credit(self, context, record):
         # Get the NetSuite Vendor Ref
@@ -647,15 +657,30 @@ class netsuiteRestV2Sink(BatchSink):
 
         return vendor_credit
 
-    def push_vendor_payments(self, payload):
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+    def push_vendor_payments(self, record):
+        """
+        pushes a new VendorPayment record to NetSuite.
+        """
+        payload = record['payload']
+        bill_id = record['bill_id']
+        bill_obj = self.rest_get(url=f"{self.url_base}vendorBill/{bill_id}").json()
+        if bill_obj.get("balance") == 0:
+            raise Exception(f"Bill with id={bill_id} has already been paid in full!")
+        url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
         payload = payload.decode()
         payload = "\n".join(payload.split("\n")[1:-2])
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        # TODO: we might not need the applyList part if the balance is >0
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com"
+               xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com"
+               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:tns="urn:platform_2024_2.webservices.netsuite.com"
+               xmlns:tranPurch="urn:purchases_2024_2.transactions.webservices.netsuite.com"
+               xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
                 <tokenPassport>
                     <account>{oauth_creds["account"]}</account>
@@ -668,28 +693,37 @@ class netsuiteRestV2Sink(BatchSink):
             </soap:Header>
             <soap:Body>
                 <platformMsgs:add>
-                <platformMsgs:record xsi:type="tranCust:VendorPayment" xmlns:tranCust="urn:vendors_2017_2.transactions.webservices.netsuite.com">
+                <platformMsgs:record xsi:type="tranPurch:VendorPayment">
                     {payload}
+                    <tranPurch:applyList>
+                        <tranPurch:apply>
+                            <tranPurch:doc internalId="{bill_id}"/>
+                            <tranPurch:apply>true</tranPurch:apply>
+                            <tranPurch:amount>{bill_obj.get("balance")}</tranPurch:amount>
+                        </tranPurch:apply>
+                    </tranPurch:applyList>
                 </platformMsgs:record>
                 </platformMsgs:add>
             </soap:Body>
         </soap:Envelope>"""
 
         headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
+        self.logger.info(f"Making request = {base_request}")
         res = requests.post(url, headers=headers, data=base_request)
+        self.logger.info(f"Got response = {res.text}")
         if res.status_code >= 400:
             raise ConnectionError(res.text)
         return res
 
     def push_payments(self, payload):
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
         payload = payload.decode()
         payload = "\n".join(payload.split("\n")[1:-2])
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
                 <tokenPassport>
                     <account>{oauth_creds["account"]}</account>
@@ -702,7 +736,7 @@ class netsuiteRestV2Sink(BatchSink):
             </soap:Header>
             <soap:Body>
                 <platformMsgs:add>
-                <platformMsgs:record xsi:type="tranCust:CustomerPayment" xmlns:tranCust="urn:customers_2017_2.transactions.webservices.netsuite.com">
+                <platformMsgs:record xsi:type="tranCust:CustomerPayment" xmlns:tranCust="urn:customers_2024_2.transactions.webservices.netsuite.com">
                     {payload}
                 </platformMsgs:record>
                 </platformMsgs:add>
@@ -716,7 +750,7 @@ class netsuiteRestV2Sink(BatchSink):
         return res
 
     def po_to_vb(self, payload):
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2017_2"
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
@@ -739,7 +773,7 @@ class netsuiteRestV2Sink(BatchSink):
         entity_id = response["entity"]["internalId"]
         location_id = response["location"]["internalId"]
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2017_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2017_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2017_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
                 <tokenPassport>
                     <account>{oauth_creds["account"]}</account>
@@ -751,11 +785,11 @@ class netsuiteRestV2Sink(BatchSink):
                 </tokenPassport>
             </soap:Header>
             <soap:Body>
-               <add xmlns="urn:messages_2017_2.platform.webservices.netsuite.com">
-                  <record xsi:type="ns6:VendorBill" xmlns:ns6="urn:purchases_2017_2.transactions.webservices.netsuite.com">
-                     <ns6:entity internalId="{entity_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2017_2.platform.webservices.netsuite.com"/>
-                     <ns6:location internalId="{location_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2017_2.platform.webservices.netsuite.com"/>
-                     <ns6:purchaseOrderList xsi:type="ns8:RecordRefList" xmlns:ns8="urn:core_2017_2.platform.webservices.netsuite.com">
+               <add xmlns="urn:messages_2024_2.platform.webservices.netsuite.com">
+                  <record xsi:type="ns6:VendorBill" xmlns:ns6="urn:purchases_2024_2.transactions.webservices.netsuite.com">
+                     <ns6:entity internalId="{entity_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2024_2.platform.webservices.netsuite.com"/>
+                     <ns6:location internalId="{location_id}" xsi:type="ns7:RecordRef" xmlns:ns7="urn:core_2024_2.platform.webservices.netsuite.com"/>
+                     <ns6:purchaseOrderList xsi:type="ns8:RecordRefList" xmlns:ns8="urn:core_2024_2.platform.webservices.netsuite.com">
                         <ns8:recordRef internalId="{po_id}" type="purchaseOrder" xsi:type="ns8:RecordRef"/>
                      </ns6:purchaseOrderList>
                   </record>
@@ -877,7 +911,6 @@ class netsuiteRestV2Sink(BatchSink):
             "dateCreated": record.get("createdAt"),
             "entityId": record.get("vendorName"),
             "firstName": record.get("contactName"),
-            "subsidiary": {"id": record.get("subsidiary")},
             "lastModifiedDate": record.get("updatedAt"),
             "currency": {"refName": record.get("currency")},
             "homePhone": phoneNumber[0]["number"] if phoneNumber else None,
@@ -885,6 +918,9 @@ class netsuiteRestV2Sink(BatchSink):
             if address
             else None,
         }
+
+        if record.get("subsidiary"):
+            vendor_mapping["subsidiary"] = {"id": record.get("subsidiary")}
 
         if vendor:
             vendor_mapping["internalId"] = vendor[0].get("internalId")
