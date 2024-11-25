@@ -101,13 +101,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             for record in context.get("Invoice", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
-            endpoint = self.stream_name.lower()
-            url = f"{self.url_base}{endpoint}"
+            url = f"{self.url_base}creditmemo"
             for record in context.get("CreditMemo", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["vendor","vendors"]:
-            endpoint = self.stream_name.lower()
-            url = f"{self.url_base}{endpoint}"
+            url = f"{self.url_base}vendor"
             for record in context.get("Vendor", []):
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["vendorbill","vendorbills","bill","bills","purchaseinvoices","purchaseinvoice"]:
