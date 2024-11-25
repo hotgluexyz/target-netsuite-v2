@@ -525,7 +525,7 @@ class netsuiteRestV2Sink(BatchSink):
         The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
         that is prepopulated with data from an existing record (in this case, a vendorBill).
         """
-        vendor_bill_id = record.get("id")
+        vendor_bill_id = record.get("bill_id", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
