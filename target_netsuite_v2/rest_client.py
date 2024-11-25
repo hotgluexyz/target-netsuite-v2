@@ -887,8 +887,8 @@ class netsuiteRestV2Sink(BatchSink):
         }
 
         if vendor:
-            vendor_mapping["internalId"] = vendor.get("internalId")
-            vendor_mapping["accountNumber"] = vendor.get("accountNumber")
+            vendor_mapping["internalId"] = vendor[0].get("internalId")
+            vendor_mapping["accountNumber"] = vendor[0].get("accountNumber")
 
         return vendor_mapping
 
