@@ -95,7 +95,7 @@ class netsuiteSoapV2Sink(BatchSink):
     def process_journal_entry(self, context, record):
         subsidiaries = {}
         line_items = []
-        for line in record.get("lines"):
+        for line in record.get("journalLines", record.get("lines", [])):
             journal_entry_line = dict()
 
             if context["reference_data"].get("Accounts") and line.get("accountNumber"):
