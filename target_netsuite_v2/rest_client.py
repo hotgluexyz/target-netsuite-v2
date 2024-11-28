@@ -835,7 +835,7 @@ class netsuiteRestV2Sink(BatchSink):
                     "city": address.get("city"),
                     "state": address.get("state"),
                     "zip": address.get("postalCode"),
-                    "country": address.get("country"),
+                    "country": {"refName": address.get("country").strip()},
                 }
             }
             for address in record.get("addresses", [])
@@ -850,10 +850,9 @@ class netsuiteRestV2Sink(BatchSink):
             else None,
             "comments": record.get("notes"),
             "balance": record.get("balance"),
-            "datecreated": record.get("createdAt"),
-            "taxable": record.get("taxable"),
+            "dateCreated": record.get("createdAt"),
             "isInactive": not record.get("active", True),
-            "addressbook": {"items": address_book},
+            "addressBook": {"items": address_book},
             "defaultAddress": f"{address[0].get('line1')} {address[0].get('line2', '')} {address[0].get('line3', '')}, {address[0].get('city', '')} {address[0].get('postalCode', '')}, {address[0].get('state', ''), address[0].get('country', '')}"
             if address
             else None,
