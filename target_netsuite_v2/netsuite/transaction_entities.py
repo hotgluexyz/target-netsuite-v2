@@ -214,6 +214,7 @@ class JournalEntries(ApiBase):
 
         je['lineList'] = self.ns_client.JournalEntryLineList(line=line_list)
         je['currency'] = self.ns_client.RecordRef(**(data['currency']))
+        je['customFieldList'] = self.prepare_custom_fields(data)
 
         if 'memo' in data:
             je['memo'] = data['memo']
