@@ -76,7 +76,7 @@ class netsuiteSoapV2Sink(BatchSink):
         reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
         reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
         reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName"])
+        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName", "entityId"])
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
         except NetSuiteRequestError as e:
@@ -177,32 +177,41 @@ class netsuiteSoapV2Sink(BatchSink):
                     }
 
             # Get the NetSuite Customer Ref
-            if context["reference_data"].get("Customer") and line.get("customerName"):
-                customer_names = []
-                for c in context["reference_data"]["Customer"]:
-                    if "name" in c.keys():
-                        if c["name"]:
-                            customer_names.append(c["name"])
-                    else:
-                        if c["companyName"]:
-                            customer_names.append(c["companyName"])
-                customer_name = self.get_close_matches(line["customerName"], customer_names, n=2, cutoff=0.95)
-                if customer_name:
-                    customer_name = max(customer_name, key=customer_name.get)
-                    customer_data = []
-                    for c in context["reference_data"]["Customer"]:
-                        if "name" in c.keys():
-                            if c["name"] == customer_name:
-                                customer_data.append(c)
-                        else:
-                            if c["companyName"] == customer_name:
-                                customer_data.append(c)
-                    if customer_data:
-                        customer_data = customer_data[0]
-                        journal_entry_line["entity"] = {
-                            "externalId": customer_data.get("externalId"),
-                            "internalId": customer_data.get("internalId"),
-                        }
+            if context["reference_data"].get("Customer"):
+                customer_data = []
+                if line.get("customerId"):
+                    customer_data = [c for c in context["reference_data"]["Customer"] if c["internalId"] == line["customerId"]]
+                if line.get("customerName") and not customer_data:
+                    # look customer by entityId
+                    customer_data = [c for c in context["reference_data"]["Customer"] if c["entityId"] == line["customerName"]]
+                    # look for equal or similar customer name
+                    if not customer_data:
+                        customer_names = []
+                        for c in context["reference_data"]["Customer"]:
+                            if "name" in c.keys():
+                                if c["name"]:
+                                    customer_names.append(c["name"])
+                            else:
+                                if c["companyName"]:
+                                    customer_names.append(c["companyName"])
+                        customer_name = self.get_close_matches(line["customerName"], customer_names, n=2, cutoff=0.95)
+                        if customer_name:
+                            customer_name = max(customer_name, key=customer_name.get)
+                            customer_data = []
+                            for c in context["reference_data"]["Customer"]:
+                                if "name" in c.keys():
+                                    if c["name"] == customer_name:
+                                        customer_data.append(c)
+                                else:
+                                    if c["companyName"] == customer_name:
+                                        customer_data.append(c)
+                    
+                if customer_data:
+                    customer_data = customer_data[0]
+                    journal_entry_line["entity"] = {
+                        "externalId": customer_data.get("externalId"),
+                        "internalId": customer_data.get("internalId"),
+                    }
 
             # Check the Posting Type and insert the Amount
             amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
@@ -279,6 +288,19 @@ class netsuiteSoapV2Sink(BatchSink):
 
         if "journalDesc" in record.keys():
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
+        
+        # Support dynamic custom fields
+        record_custom_fields = []
+        custom_fields = record.get("customFields") or []
+
+        for entry in custom_fields:
+            value = entry.get("value")
+            ns_id = entry.get("name")
+            if value:
+                record_custom_fields.append({"type": "Select", "scriptId": ns_id, "value": value})
+
+        if record_custom_fields:
+            journal_entry["customFieldList"] = record_custom_fields
 
         return journal_entry
 
