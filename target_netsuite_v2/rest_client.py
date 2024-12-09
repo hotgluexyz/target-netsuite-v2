@@ -379,31 +379,35 @@ class netsuiteRestV2Sink(BatchSink):
             invoice["tranId"] = record["invoiceNumber"]
 
         # Get the NetSuite Customer Ref
-        if context["reference_data"].get("Customer") and record.get("customerName"):
-            customer_names = []
-            for c in context["reference_data"]["Customer"]:
-                if "name" in c.keys():
-                    if c["name"]:
-                        customer_names.append(c["name"])
-                else:
-                    if c["companyName"]:
-                        customer_names.append(c["companyName"])
-            customer_name = self.get_close_matches(
-                record["customerName"], customer_names, n=2, cutoff=0.5
-            )
-            if customer_name:
-                customer_name = max(customer_name, key=customer_name.get)
-                customer_data = []
+        if context["reference_data"].get("Customer"):
+            customer_data = []
+            if record.get("customerId"):
+                customer_data = [c for c in context["reference_data"]["Customer"] if c["internalId"] == record["customerId"]]
+            if record.get("customerName") and not customer_data:
+                customer_names = []
                 for c in context["reference_data"]["Customer"]:
                     if "name" in c.keys():
-                        if c["name"] == customer_name:
-                            customer_data.append(c)
+                        if c["name"]:
+                            customer_names.append(c["name"])
                     else:
-                        if c["companyName"] == customer_name:
-                            customer_data.append(c)
-                if customer_data:
-                    customer_data = customer_data[0]
-                    invoice["entity"] = {"id": customer_data.get("internalId")}
+                        if c["companyName"]:
+                            customer_names.append(c["companyName"])
+                customer_name = self.get_close_matches(
+                    record["customerName"], customer_names, n=2, cutoff=0.5
+                )
+                if customer_name:
+                    customer_name = max(customer_name, key=customer_name.get)
+                    customer_data = []
+                    for c in context["reference_data"]["Customer"]:
+                        if "name" in c.keys():
+                            if c["name"] == customer_name:
+                                customer_data.append(c)
+                        else:
+                            if c["companyName"] == customer_name:
+                                customer_data.append(c)
+            if customer_data:
+                customer_data = customer_data[0]
+                invoice["entity"] = {"id": customer_data.get("internalId")}
 
         # Get the NetSuite Location Ref
         if context["reference_data"].get("Locations") and record.get("location"):
@@ -416,17 +420,25 @@ class netsuiteRestV2Sink(BatchSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": record.get("locationId", "2")}
-
-        invoice["Location"] = location
+            location = {"id": record["locationId"]} if record.get("locationId") else None
+        if location:
+            invoice["Location"] = location
 
         # Get the NetSuite Subsidiary Ref
         if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
+            # look for subsidiary id match 
             sub_data = [
                 s
                 for s in context["reference_data"]["Subsidiaries"]
-                if s["name"] == record["subsidiary"]
+                if s["internalId"] == record["subsidiary"]
             ]
+            # look for subsidiary name
+            if not sub_data:
+                sub_data = [
+                    s
+                    for s in context["reference_data"]["Subsidiaries"]
+                    if s["name"] == record["subsidiary"]
+                ]
             if sub_data:
                 sub_data = sub_data[0]
                 invoice["Subsidiary"] = {"id": sub_data.get("internalId")}
@@ -472,7 +484,8 @@ class netsuiteRestV2Sink(BatchSink):
 
             order_item["quantity"] = line.get("quantity")
             order_item["amount"] = line.get("quantity") * line.get("unitPrice")
-            order_item["Location"] = location
+            if location:
+                order_item["Location"] = location
             items.append(order_item)
         invoice["item"] = {"items": items}
         return invoice
