@@ -153,8 +153,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 else:
                     response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ['item','items']:
-            url = f"{self.url_base}inventoryItem"
+            url = f"{self.url_base}"
             for record in context.get("Items",[]):
+                item_type = record.pop("type", None)
+                if item_type == "service for sale":
+                    url = f"{url}serviceSaleItem"
+                else:
+                    url = f"{url}inventoryItem"
                 response = self.rest_post(url=url,json=record)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
