@@ -101,14 +101,14 @@ class netsuiteRestV2Sink(BatchSink):
                     return ast.literal_eval(record)
                 except:
                     return record
+        return record
     
-    def get_account_by_name_or_id(self, x, accountName, id):
-        if accountName:
-            return x["acctName"] == accountName
-        elif id:
-            return x["internalId"] == id
-        else:
-            return False
+    def get_account_by_name_id_number(self, x, accountName, id, number=None):
+        return (
+            (id is not None and x["internalId"] == id) or
+            (number is not None and x["acctNumber"] == number) or
+            (accountName is not None and x["acctName"] == accountName)
+        )
 
     def process_order(self, context, record):
         sale_order = {}
@@ -975,33 +975,47 @@ class netsuiteRestV2Sink(BatchSink):
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
         if context["reference_data"].get("Subsidiaries"):
-            subsidiary_obj = [sub for sub in context["reference_data"].get("Subsidiaries") if sub.get("name") == subsidiary or sub.get("internalId") == subsidiary]
+            subsidiary_obj = [
+                sub
+                for sub in context["reference_data"].get("Subsidiaries")
+                if sub.get("name") == subsidiary or sub.get("internalId") == subsidiary
+            ]
             if subsidiary_obj:
-                payload["subsidiary"] = {"items": [{"id": subsidiary_obj[0]["internalId"]}]}
+                payload["subsidiary"] = {
+                    "items": [{"id": subsidiary_obj[0]["internalId"]}]
+                }
+
+        # for incomeAccount field find a match by id or name if the right payload ({"id": "sale account id"}) is not passed
+        accounts = self.parse_objs(record.get("accounts", "{}"))
+        if accounts.get("income"):
+            income_account = accounts.get("income")
+
+            account = list(
+                filter(
+                    lambda x: self.get_account_by_name_id_number(
+                        x,
+                        income_account.get("accountName"),
+                        income_account.get("accountId"),
+                        income_account.get("accountNumber"),
+                    ),
+                    context["reference_data"]["Accounts"],
+                )
+            )
+            if account:
+                payload["incomeAccount"] = {"id": account[0]["internalId"]}
+
+        if not payload.get("incomeAccount"):
+            raise Exception(
+                f"Service sale item can't be created without an incomeAccount, please provide an incomeAccount"
+            )
 
         custom_fields = self.parse_objs(record.get("customFields", "[]"))
         for cf in custom_fields:
-            # for incomeAccount field find a match by id or name if the right payload ({"id": "sale account id"}) is not passed 
-            if cf.get("name") == "incomeAccount":
-                if isinstance(cf.get("value"), str):
-                    account = list(
-                        filter(
-                            lambda x: self.get_account_by_name_or_id(x, cf["value"], cf["value"]),
-                            context["reference_data"]["Accounts"],
-                        )
-                    )
-                    if account:
-                        payload["incomeAccount"] = {"id": account[0]["internalId"]}
-                if isinstance(cf.get("value"), dict) and cf.get("value").get("id"):
-                    payload["incomeAccount"] = {"id": cf.get("value")}
-                if not payload.get("incomeAccount"):
-                    raise Exception(f"Service sale item can't be created without an incomeAccount, please provide an incomeAccount")
-                continue
             # add custom fields to payload
             if cf.get("name"):
                 payload[cf.get("name")] = cf.get("value")
-            
-            return payload
+
+        return payload
 
     def process_item(self, context, record):
 
@@ -1025,7 +1039,7 @@ class netsuiteRestV2Sink(BatchSink):
             id = cogsAccount.get("accountId")
             account = list(
                 filter(
-                    lambda x: self.get_account_by_name_or_id(x, accountName, id),
+                    lambda x: self.get_account_by_name_id_number(x, accountName, id),
                     context["reference_data"]["Accounts"],
                 )
             )[0]
@@ -1040,7 +1054,7 @@ class netsuiteRestV2Sink(BatchSink):
             if accountName or id:
                 account = list(
                     filter(
-                        lambda x: self.get_account_by_name_or_id(x, accountName, id),
+                        lambda x: self.get_account_by_name_id_number(x, accountName, id),
                         context["reference_data"]["Accounts"],
                     )
                 )[0]
