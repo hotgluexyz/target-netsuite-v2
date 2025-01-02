@@ -3,6 +3,8 @@ from netsuitesdk.internal.utils import PaginatedSearch
 import backoff
 
 from netsuitesdk.api.base import ApiBase
+from netsuitesdk.internal.exceptions import NetSuiteRequestError
+from netsuitesdk.api.currencies import Currencies
 
 from zeep.exceptions import Fault
 
@@ -37,7 +39,13 @@ class BaseFilter(ApiBase):
     
     @backoff.on_exception(backoff.expo, (Fault, Exception), max_tries=5, factor=3)
     def get_page(self, **kwargs):
-        for page in self.get_all_generator(**kwargs):
+        try:
+            records = self.get_all_generator(**kwargs)
+        except NetSuiteRequestError as e:
+            logger.warning(f"It was not possible to retrieve {self.type_name} data: {e.message}")
+            return []
+        
+        for page in records:
             yield page
 
 
@@ -57,6 +65,17 @@ class Customers(BaseFilter):
     def post(self, data) -> OrderedDict:
         return None
 
+class Currencies(Currencies):
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='Currency')
+
+    def get_all(self):
+        try:
+            records = super().get_all()
+            return  [dict(od) for od in records]
+        except NetSuiteRequestError as e:
+            logger.warning(f"It was not possible to retrieve {self.type_name} data: {e.message}")
+            return []
 
 class Locations(BaseFilter):
     def __init__(self, ns_client):
