@@ -1,9 +1,7 @@
-from netsuitesdk.api.currencies import Currencies
-
 import time
 import json
 import singer
-from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices
+from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices, Currencies
 from .netsuite_client import ExtendedNetSuiteClient
 
 LOGGER = singer.get_logger()
