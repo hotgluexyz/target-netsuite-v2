@@ -477,6 +477,7 @@ class netsuiteRestV2Sink(BatchSink):
         if isinstance(startdate, str):
             startdate = parse(startdate)
             invoice["startdate"] = startdate.strftime("%Y-%m-%d")
+            invoice["tranDate"] = startdate.strftime("%Y-%m-%d")
         for line in record.get("lineItems", []):
             order_item = {}
 

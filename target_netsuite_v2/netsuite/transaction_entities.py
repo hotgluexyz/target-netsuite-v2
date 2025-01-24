@@ -158,7 +158,21 @@ class Invoices(BaseFilter):
 
     def get_all_generator(self, page_size=200, id=None):
         record_type_search_field = self.ns_client.SearchStringField(searchValue='Invoice', operator='contains')
-        id_search_field = self.ns_client.SearchMultiSelectField(searchValue=[id], operator='anyOf')
+        search_values = []
+        for _id in id:
+            search_values.append(
+                {
+                    'internalId': str(_id),
+                    'externalId': None,
+                }
+            )
+
+        id_search_field = self.ns_client.SearchMultiSelectField(
+            searchValue=search_values,
+            operator='anyOf'
+        )
+
+        # id_search_field = self.ns_client.SearchMultiSelectField(searchValue=[id], operator='anyOf')
         basic_search = self.ns_client.basic_search_factory('Transaction',
                                                            internalId=id_search_field,
                                                            recordType=record_type_search_field)

@@ -99,6 +99,15 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["invoice", "invoices"]:
             url = f"{self.url_base}invoice"
             for record in context.get("Invoice", []):
+                # If there's a tranid, we want to check if the invoice already exists, and if so upsert
+                if record.get("tranId"):
+                    existing = self.rest_get(url=f"{url}?q=tranid IS {record['tranId']}").json()
+                    if existing.get("count") > 0:
+                        # we need to use the real netsuite id to do the upsert
+                        inv_id = existing["items"][0]["id"]
+                        response = self.rest_patch(url=f"{url}/{inv_id}", json=record)
+                        continue
+
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
             url = f"{self.url_base}creditmemo"
