@@ -1,15 +1,24 @@
-"""netsuite-v2 target class."""
-
-from singer_sdk.target_base import Target
+from target_hotglue.target import TargetHotglue
 from singer_sdk import typing as th
+from typing import List, Optional, Union
+from pathlib import PurePath
 
 from target_netsuite_v2.sinks import (
     netsuiteV2Sink,
 )
 
 
-class TargetNetsuiteV2(Target):
-    """Sample target for netsuite-v2."""
+class TargetNetsuiteV2(TargetHotglue):
+    """netsuite-v2 target class."""
+    def __init__(
+        self,
+        config: Optional[Union[dict, PurePath, str, List[Union[PurePath, str]]]] = None,
+        parse_env_config: bool = False,
+        validate_config: bool = True,
+        state: str = None
+    ) -> None:
+        self.config_file = config[0]
+        super().__init__(config, parse_env_config, validate_config)
 
     name = "target-netsuite-v2"
     config_jsonschema = th.PropertiesList(
