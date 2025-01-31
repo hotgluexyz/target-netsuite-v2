@@ -91,7 +91,7 @@ class netsuiteRestV2Sink(BatchSink):
             except:
                 response.raise_for_status()
         return response
-    
+
     def parse_objs(self, record):
         if isinstance(record, str):
             try:
@@ -102,7 +102,7 @@ class netsuiteRestV2Sink(BatchSink):
                 except:
                     return record
         return record
-    
+
     def get_account_by_name_id_number(self, x, accountName, id, number=None):
         return (
             (id is not None and x["internalId"] == id) or
@@ -445,7 +445,7 @@ class netsuiteRestV2Sink(BatchSink):
 
         # Get the NetSuite Subsidiary Ref
         if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
-            # look for subsidiary id match 
+            # look for subsidiary id match
             sub_data = [
                 s
                 for s in context["reference_data"]["Subsidiaries"]
@@ -961,7 +961,7 @@ class netsuiteRestV2Sink(BatchSink):
             vendor_mapping["accountNumber"] = vendor[0].get("accountNumber")
 
         return vendor_mapping
-    
+
     def process_service_sale_item(self, context, record):
 
         payload = {
@@ -971,9 +971,9 @@ class netsuiteRestV2Sink(BatchSink):
             "createdAt": record.get("createdAt"),
             "isInactive": not record.get("active", True),
             "itemType": {"refName": "Service"},
-            "type": "service for sale" # value not sent to netsuite, only used locally 
+            "type": "service for sale" # value not sent to netsuite, only used locally
         }
-        
+
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
         if context["reference_data"].get("Subsidiaries"):
             subsidiary_obj = [
