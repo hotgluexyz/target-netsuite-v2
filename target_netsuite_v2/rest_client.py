@@ -928,7 +928,7 @@ class netsuiteRestV2Sink(BatchSink):
     def process_vendors(self, context, record):
         vendors = context["reference_data"]["Vendors"]
         vendor = None
-        if record.get("id"):
+        if record.get("id"): # update path
             vendor = list(
                 filter(
                     lambda x: x["internalId"] == record.get("id")

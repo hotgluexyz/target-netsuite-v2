@@ -102,11 +102,11 @@ class netsuiteSoapV2Sink(BatchSink):
                 acct_data = None
                 if line.get("accountId"):
                     acct_data = [a for a in context["reference_data"]["Accounts"] if a["internalId"] == line["accountId"]]
-                
+
                 elif line.get("accountNumber") and not line.get("accountId"):
                     acct_num = str(line["accountNumber"])
                     acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
-                
+
                 if not acct_data:
                     raise Exception(f"AccountId '{line.get('accountId')}' and/or accountNumber {line.get('accountNumber')} were not provided or not valid.")
 
@@ -205,7 +205,7 @@ class netsuiteSoapV2Sink(BatchSink):
                                 else:
                                     if c["companyName"] == customer_name:
                                         customer_data.append(c)
-                    
+
                 if customer_data:
                     customer_data = customer_data[0]
                     journal_entry_line["entity"] = {
@@ -241,7 +241,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
             if custom_field_values:
                 journal_entry_line["customFieldList"] = custom_field_values
-            
+
             line_items.append(journal_entry_line)
 
         # Get the currency ID
@@ -288,7 +288,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
         if "journalDesc" in record.keys():
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
-        
+
         # Support dynamic custom fields
         record_custom_fields = []
         custom_fields = record.get("customFields") or []
