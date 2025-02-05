@@ -132,6 +132,8 @@ class netsuiteSoapV2Sink(BatchSink):
                         subsidiaries["subsidiary"] = subsidiary
                     else:
                         raise('Posting Type must be "credit" or "debit"')
+            else:
+                raise Exception("We failed to fetch Accounts from NetSuite. Please validate permissions.")
 
             # Get the NetSuite Class Ref
             if context["reference_data"].get("Classifications") and line.get("className"):
@@ -245,6 +247,9 @@ class netsuiteSoapV2Sink(BatchSink):
             line_items.append(journal_entry_line)
 
         # Get the currency ID
+        if record.get("currency") and not context["reference_data"].get("Currencies"):
+            raise Exception("A currency was provided in the payload, but we failed to fetch Currencies from NetSuite. Please validate permissions.")
+
         if context["reference_data"].get("Currencies") and record.get("currency"):
             currency_data = [
                 c for c in context["reference_data"]["Currencies"] if c["symbol"] == record["currency"]
