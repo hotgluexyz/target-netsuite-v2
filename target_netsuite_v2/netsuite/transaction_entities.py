@@ -246,7 +246,9 @@ class JournalEntries(ApiBase):
             line_list.append(jee)
 
         je['lineList'] = self.ns_client.JournalEntryLineList(line=line_list)
-        je['currency'] = self.ns_client.RecordRef(**(data['currency']))
+        # NOTE: if we did not have permissions to lookup currency, this will be None
+        if data.get("currency"):
+            je['currency'] = self.ns_client.RecordRef(**(data['currency']))
         je['customFieldList'] = self.prepare_custom_fields(data)
 
         if 'memo' in data:
