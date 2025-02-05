@@ -8,7 +8,7 @@ from pendulum import parse
 from singer_sdk import typing as th
 from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.netsuite import NetSuite
-from target_netsuite_v2.sinks.vendor_sink import VendorSink
+from target_netsuite_v2.sink.vendor_sink import VendorSink
 from typing import List, Optional, Union
 
 class TargetNetsuiteV2(TargetHotglue):
@@ -74,13 +74,13 @@ class TargetNetsuiteV2(TargetHotglue):
 
         self.logger.info(f"Reading data from API...")
         reference_data = {}
-        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
+        # reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
         reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
+        # reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
+        # reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
         reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName", "entityId"])
+        # reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+        # reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName", "entityId"])
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
         except NetSuiteRequestError as e:
