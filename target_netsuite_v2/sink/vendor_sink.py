@@ -7,7 +7,7 @@ class VendorSink(NetSuiteSink):
     endpoint = "/vendor"
 
     def record_exists(self, record: dict, context: dict) -> bool:
-        return bool(record.get("id"))
+        return bool(record.get("internalId"))
 
     def preprocess_record(self, record: dict, context: dict) -> dict:
         return VendorSchemaMapper(record, context).to_netsuite()
