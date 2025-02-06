@@ -12,6 +12,18 @@ class VendorSchemaMapper:
         self.record = record
         self.context = context
 
+    def _map_subsidiary(self):
+        """Extracts a subsidiary object in NetSuite format"""
+        subsidiary_id = self.record.get("subsidiary", {}).get("id")
+        subsidiary = next(
+            (item for item in self.context["Subsidiaries"] if item["internalId"] == subsidiary_id),
+            None
+        )
+        if subsidiary:
+            return { "subsidiary": { "id": subsidiary["internalId"] } }
+        else:
+            return {}
+
     def _map_currency(self):
         """Extracts a currency object in NetSuite format"""
         currency_symbol = self.record.get("currency")
@@ -67,5 +79,6 @@ class VendorSchemaMapper:
             "dateCreated": self.record.get("createdAt"),
             **self._map_phone_numbers(),
             **self._map_addresses(),
-            **self._map_currency()
+            **self._map_currency(),
+            **self._map_subsidiary()
         }
