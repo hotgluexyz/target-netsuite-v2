@@ -235,6 +235,12 @@ class netsuiteSoapV2Sink(BatchSink):
             # Support dynamic custom fields
             custom_fields = line.get("customFields") or []
 
+            if type(custom_fields) == str:
+                custom_fields = json.loads(custom_fields)
+
+            if type(custom_fields) != list:
+                raise Exception(f"Invalid customFields. Expecting a list of name/value pairs. Received: {custom_fields}")
+
             for entry in custom_fields:
                 value = entry.get("value")
                 ns_id = entry.get("name")
@@ -297,6 +303,12 @@ class netsuiteSoapV2Sink(BatchSink):
         # Support dynamic custom fields
         record_custom_fields = []
         custom_fields = record.get("customFields") or []
+
+        if type(custom_fields) == str:
+            custom_fields = json.loads(custom_fields)
+
+        if type(custom_fields) != list:
+            raise Exception(f"Invalid customFields. Expecting a list of name/value pairs. Received: {custom_fields}")
 
         for entry in custom_fields:
             value = entry.get("value")
