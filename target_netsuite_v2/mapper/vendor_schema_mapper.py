@@ -12,6 +12,19 @@ class VendorSchemaMapper:
         self.record = record
         self.context = context
 
+    def _find_existing_vendor(self):
+        vendor = None
+        if self.record.get("id"):
+            vendor = list(
+                filter(
+                    lambda x: x["internalId"] == self.record.get("id")
+                    or x["externalId"] == self.record.get("id"),
+                    self.context["Vendors"],
+                )
+            )
+        return vendor
+
+
     def _map_subsidiary(self):
         """Extracts a subsidiary object in NetSuite format"""
         subsidiary_id = self.record.get("subsidiary", {}).get("id")
