@@ -81,7 +81,7 @@ class NetSuiteSink(HotglueSink):
 
     def upsert_record(self, record: dict, context: dict):
         if self.record_exists(record, context):
-            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{record['id']}")
+            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{record['internalId']}")
         else:
             response = self.request_api("POST", request_data=record)
 
