@@ -13,17 +13,16 @@ class VendorSchemaMapper:
         self.context = context
 
     def _find_existing_vendor(self):
-        vendor = None
-        if self.record.get("id"):
-            vendor = list(
-                filter(
-                    lambda x: x["internalId"] == self.record.get("id")
-                    or x["externalId"] == self.record.get("id"),
-                    self.context["Vendors"],
-                )
-            )
-        return vendor
+        """Finds an existing vendor by matching internal or external ID."""
+        if not self.record.get("id"):
+            return None
 
+        return next(
+            (vendor for vendor in self.context["Vendors"]
+             if vendor["internalId"] == self.record["id"]
+             or vendor["externalId"] == self.record["id"]),
+            None
+        )
 
     def _map_subsidiary(self):
         """Extracts a subsidiary object in NetSuite format"""
@@ -72,6 +71,13 @@ class VendorSchemaMapper:
 
         return addresses
 
+    def _map_internal_id(self):
+        vendor = self._find_existing_vendor()
+        if vendor:
+            return { "internalId": vendor["internalId"]}
+        else:
+            return {}
+
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         return {
@@ -93,5 +99,6 @@ class VendorSchemaMapper:
             **self._map_phone_numbers(),
             **self._map_addresses(),
             **self._map_currency(),
-            **self._map_subsidiary()
+            **self._map_subsidiary(),
+            **self._map_internal_id()
         }
