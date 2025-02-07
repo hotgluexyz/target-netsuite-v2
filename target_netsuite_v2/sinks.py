@@ -105,6 +105,12 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     if existing.get("count") > 0:
                         # we need to use the real netsuite id to do the upsert
                         inv_id = existing["items"][0]["id"]
+                        
+                        # Since this is an eisting invoice, we delete the item from the invoice.
+                        # This is done to work around the where items in netsuite are getting duplicated on update.
+                        if 'item' in record:
+                            del record['item']
+
                         response = self.rest_patch(url=f"{url}/{inv_id}", json=record)
                         continue
 
