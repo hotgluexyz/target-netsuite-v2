@@ -51,15 +51,8 @@ class NetSuiteBaseSink(HotglueBaseSink):
             verify=verify,
             auth=oauth
         )
-        self.validate_response(response)
 
         return response
-
-    def validate_response(self, response: requests.Response) -> None:
-        """Validate HTTP response."""
-        if response.status_code >= 400:
-            msg = self.response_error_message(response)
-            raise FatalAPIError(msg)
 
     def response_error_message(self, response: requests.Response) -> str:
         """Build error message for invalid http statuses."""
@@ -68,15 +61,18 @@ class NetSuiteBaseSink(HotglueBaseSink):
     def record_exists(self, record: dict) -> bool:
         False
 
+class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
+    def validate_response(self, response: requests.Response) -> None:
+        """Validate HTTP response."""
+        if response.status_code >= 400:
+            msg = self.response_error_message(response)
+            raise FatalAPIError(msg)
+
     def upsert_record(self, record: dict, context: dict):
         if self.record_exists(record, context):
             response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{record['internalId']}")
         else:
             response = self.request_api("POST", request_data=record)
-
+        self.validate_response(response)
         id = self._extract_id_from_response_header(response.headers)
         return id, response.ok, dict()
-
-
-class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
-    pass
