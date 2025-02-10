@@ -478,6 +478,10 @@ class netsuiteRestV2Sink(BatchSink):
             startdate = parse(startdate)
             invoice["startdate"] = startdate.strftime("%Y-%m-%d")
             invoice["tranDate"] = startdate.strftime("%Y-%m-%d")
+        
+        if record.get("currency"):
+            invoice["currency"] = {"refName": record["currency"]}
+
         for line in record.get("lineItems", []):
             order_item = {}
 
@@ -503,7 +507,7 @@ class netsuiteRestV2Sink(BatchSink):
                         order_item["item"] = {"id": product_data.get("internalId")}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = line.get("quantity") * line.get("unitPrice")
+            order_item["amount"] = line.get("totalPrice", line.get("quantity") * line.get("unitPrice"))
             if location:
                 order_item["Location"] = location
             items.append(order_item)
