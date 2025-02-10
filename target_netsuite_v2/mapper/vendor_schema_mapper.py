@@ -7,10 +7,10 @@ class VendorSchemaMapper:
     def __init__(
             self,
             record,
-            context
+            reference_data
     ) -> None:
         self.record = record
-        self.context = context
+        self.reference_data = reference_data
 
     def _find_existing_vendor(self):
         """Finds an existing vendor by matching internal or external ID."""
@@ -18,7 +18,7 @@ class VendorSchemaMapper:
             return None
 
         return next(
-            (vendor for vendor in self.context["Vendors"]
+            (vendor for vendor in self.reference_data["Vendors"]
              if vendor["internalId"] == self.record["id"]
              or vendor["externalId"] == self.record["id"]),
             None
@@ -28,7 +28,7 @@ class VendorSchemaMapper:
         """Extracts a subsidiary object in NetSuite format"""
         subsidiary_id = self.record.get("subsidiary", {}).get("id")
         subsidiary = next(
-            (item for item in self.context["Subsidiaries"] if item["internalId"] == subsidiary_id),
+            (item for item in self.reference_data["Subsidiaries"] if item["internalId"] == subsidiary_id),
             None
         )
         if subsidiary:
@@ -40,7 +40,7 @@ class VendorSchemaMapper:
         """Extracts a currency object in NetSuite format"""
         currency_symbol = self.record.get("currency")
         currency = next(
-            (item for item in self.context["Currencies"] if item["symbol"] == currency_symbol),
+            (item for item in self.reference_data["Currencies"] if item["symbol"] == currency_symbol),
             None
         )
         if currency:

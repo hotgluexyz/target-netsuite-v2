@@ -4,22 +4,11 @@ import requests
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1
 from singer_sdk.exceptions import FatalAPIError
-from singer_sdk.plugin_base import PluginBase
-from target_hotglue.client import HotglueSink
+from target_hotglue.client import HotglueBaseSink, HotglueBatchSink, HotglueSink
 from target_hotglue.common import HGJSONEncoder
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-class NetSuiteSink(HotglueSink):
-    def __init__(
-        self,
-        target: PluginBase,
-        stream_name: str,
-        schema: Dict,
-        key_properties: Optional[List[str]],
-    ) -> None:
-        """Initialize target sink."""
-        super().__init__(target, stream_name, schema, key_properties)
-
+class NetSuiteBaseSink(HotglueBaseSink):
     @property
     def url_account(self) -> str:
         return self.config["ns_account"].replace("_", "-").replace("SB", "sb")
@@ -88,5 +77,6 @@ class NetSuiteSink(HotglueSink):
         id = self._extract_id_from_response_header(response.headers)
         return id, response.ok, dict()
 
-    def _get_context(self, record):
-        return self._target.reference_data
+
+class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
+    pass

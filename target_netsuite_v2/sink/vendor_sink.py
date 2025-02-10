@@ -10,4 +10,4 @@ class VendorSink(NetSuiteSink):
         return bool(record.get("internalId"))
 
     def preprocess_record(self, record: dict, context: dict) -> dict:
-        return VendorSchemaMapper(record, context).to_netsuite()
+        return VendorSchemaMapper(record, self._target.reference_data).to_netsuite()
