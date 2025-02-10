@@ -61,11 +61,10 @@ class VendorSchemaMapper:
 
     def _map_addresses(self):
         """Extracts addresses in NetSuite format."""
-        address_map = {"shipping": "defaultShippingAddress", "billing": "defaultBillingAddress"}
         addresses = {}
 
         for addr in self.record.get("addresses", []):
-            ns_key = address_map.get(addr.get("addressType"))
+            ns_key = self.ADDRESS_TYPE_MAP.get(addr.get("addressType"))
             if ns_key:
                 addresses[ns_key] = f"{addr.get('line1', '')} {addr.get('line2', '')} {addr.get('line3', '')}, {addr.get('city', '')}, {addr.get('state', '')}, {addr.get('country', '')}, {addr.get('postalCode', '')}".replace("  ", " ").strip()
 
