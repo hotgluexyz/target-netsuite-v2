@@ -26,6 +26,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         context['Customer'] = []
         context['Items'] = []
         context['PurchaseOrder'] = []
+        context['Refund'] = []
 
     def process_record(self, record: dict, context: dict) -> None:
         """Process the record."""
@@ -53,6 +54,9 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
             credit_memo = self.process_credit_memo(context, record)
             context["CreditMemo"].append(credit_memo)
+        elif self.stream_name.lower() in ["refund","refunds"]:
+            refund = self.process_refund(context, record)
+            context["Refund"].append(refund)
         elif self.stream_name.lower() in ["vendor","vendors"]:
             vendor = self.process_vendors(context, record)
             context["Vendor"].append(vendor)
@@ -116,9 +120,23 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
                 response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
-            url = f"{self.url_base}creditmemo"
+            url = f"{self.url_base}creditMemo"
             for record in context.get("CreditMemo", []):
-                response = self.rest_post(url=url, json=record)
+                id = record.pop("id", None)
+                if id:
+                    self.logger.info(f"Updating credit memo: {id}")
+                    response = self.rest_patch(url=f"{url}/{id}", json=record)
+                else:
+                    response = self.rest_post(url=url, json=record)
+        elif self.stream_name.lower() in ["refund","refunds"]:
+            url = f"{self.url_base}cashRefund"
+            for record in context.get("Refund", []):
+                id = record.pop("id", None)
+                if id:
+                    self.logger.info(f"Updating refund: {id}")
+                    response = self.rest_patch(url=f"{url}/{id}", json=record)
+                else:
+                    response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["vendor","vendors"]:
             url = f"{self.url_base}vendor"
             for record in context.get("Vendor", []):
