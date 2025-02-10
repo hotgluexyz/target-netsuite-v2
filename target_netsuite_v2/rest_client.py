@@ -511,8 +511,8 @@ class netsuiteRestV2Sink(BatchSink):
         return invoice
 
     def invoice_payment(self, context, record):
-        invoice_id = record.get("invoice_id")
-        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
+        invoice_id = record.get("transaction_id", record.get("id"))
+        url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
@@ -558,7 +558,7 @@ class netsuiteRestV2Sink(BatchSink):
         The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
         that is prepopulated with data from an existing record (in this case, a vendorBill).
         """
-        vendor_bill_id = record.get("bill_id", record.get("id"))
+        vendor_bill_id = record.get("transaction_id", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -923,7 +923,148 @@ class netsuiteRestV2Sink(BatchSink):
         return customer
 
     def process_credit_memo(self, context, record):
-        return record
+        
+        # validate required field currency
+        if not record.get("currency"):
+            raise Exception(f"Currency was not provided and it's a required field for credit memo.")
+        
+        # validate required field customer
+        customer = record.get("customerRef", {}).get("id")
+        if not customer and record.get("customerRef", {}).get("customerName"):
+            customer = list(
+                filter(
+                    lambda x: x["internalId"] == record.get("customerRef", {})
+                    or x["externalId"] == record.get("id"),
+                    context["reference_data"]["Customer"],
+                )
+            )
+            customer = customer[0].get("internalId") if customer else None
+        if not customer:
+            raise Exception(f"Customer was not provided and it's a required field for credit memo.")
+
+        # validate required field location
+        location = record.get("locationId")
+        if not location and record.get("location"):
+            location = list(
+                filter(
+                    lambda x: x["name"] == record.get("location"),
+                    context["reference_data"]["Locations"],
+                )
+            ) 
+            location = location[0].get("internalId") if location else None
+
+        line_items = self.parse_objs(record.get("lineItems"))
+        items = []
+        for item in line_items:
+            product = item.get("productId")
+            if not product and item.get("productName"):
+                product = list(
+                    filter(
+                        lambda x: x["itemId"] == item["productName"],
+                        context["reference_data"]["Items"],
+                    )
+                )
+                product = product[0].get("internalId") if product else None
+            if not product:
+                raise Exception(f"Item with name '{record.get('productName')}' and id '{record.get('productId')} was not found for credit memo line.'")
+
+            item_mapping = {
+                "amount": item.get("totalAmount"),
+                "quantity": item.get("quantity"),
+                "item": {"id": product}
+            }
+            items.append(item_mapping)
+
+    
+        credit_memo_mapping = {
+            "id": record.get("id"),
+            "memo": record.get("note"),
+            "status": {"id": record.get("status")},
+            "currency": {"refName": record.get("currency")},
+            "subtotal": record.get("subtotal"),
+            "tranDate": record.get("issueDate"),
+            "entity": {"id": customer},
+            "total": record.get("total"),
+            "discountTotal": record.get("totalDiscount"),
+            "taxTotal": record.get("totalTaxAmount"),
+            "amountRemaining": record.get("remainingCredit"),
+            "item": {"items": items},
+            "location": {"id": location}
+        }
+
+        return credit_memo_mapping
+    
+    def process_refund(self, context, record):
+        
+        # validate required field currency
+        if not record.get("currency"):
+            raise Exception(f"Currency was not provided and it's a required field for credit memo.")
+        
+        # validate required field customer
+        customer = record.get("customerRef", {}).get("id")
+        if not customer and record.get("customerRef", {}).get("customerName"):
+            customer = list(
+                filter(
+                    lambda x: x["internalId"] == record.get("customerRef", {})
+                    or x["externalId"] == record.get("id"),
+                    context["reference_data"]["Customer"],
+                )
+            )
+            customer = customer[0].get("internalId") if customer else None
+        if not customer:
+            raise Exception(f"Customer was not provided and it's a required field for credit memo.")
+
+        # validate required field location
+        location = record.get("locationId")
+        if not location and record.get("location"):
+            location = list(
+                filter(
+                    lambda x: x["name"] == record.get("location"),
+                    context["reference_data"]["Locations"],
+                )
+            ) 
+            location = location[0].get("internalId") if location else None
+
+        line_items = self.parse_objs(record.get("lineItems"))
+        items = []
+        for item in line_items:
+            product = item.get("productId")
+            if not product and item.get("productName"):
+                product = list(
+                    filter(
+                        lambda x: x["itemId"] == item["productName"],
+                        context["reference_data"]["Items"],
+                    )
+                )
+                product = product[0].get("internalId") if product else None
+            if not product:
+                raise Exception(f"Item with name '{record.get('productName')}' and id '{record.get('productId')} was not found for credit memo line.'")
+
+            item_mapping = {
+                "amount": item.get("totalAmount"),
+                "quantity": item.get("quantity"),
+                "item": {"id": product}
+            }
+            items.append(item_mapping)
+
+    
+        refund_mapping = {
+            "id": record.get("id"),
+            "memo": record.get("note"),
+            "status": {"id": record.get("status")},
+            "currency": {"refName": record.get("currency")},
+            "subtotal": record.get("subtotal"),
+            "tranDate": record.get("issueDate"),
+            "entity": {"id": customer},
+            "total": record.get("total"),
+            "discountTotal": record.get("totalDiscount"),
+            "taxTotal": record.get("totalTaxAmount"),
+            "amountRemaining": record.get("remainingCredit"),
+            "item": {"items": items},
+            "location": {"id": location}
+        }
+
+        return refund_mapping
 
     def process_vendors(self, context, record):
         vendors = context["reference_data"]["Vendors"]
