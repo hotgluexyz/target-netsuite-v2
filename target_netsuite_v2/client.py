@@ -1,12 +1,13 @@
 import json
 import requests
+import hashlib
 
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1
 from singer_sdk.exceptions import FatalAPIError
-from target_hotglue.client import HotglueBaseSink, HotglueBatchSink, HotglueSink
+from singer_sdk.sinks import BatchSink
+from target_hotglue.client import HotglueBaseSink, HotglueSink
 from target_hotglue.common import HGJSONEncoder
-from typing import Dict, List
 
 class NetSuiteBaseSink(HotglueBaseSink):
     @property
@@ -64,10 +65,23 @@ class NetSuiteBaseSink(HotglueBaseSink):
         """Build error message for invalid http statuses."""
         return json.dumps(response.json().get("o:errorDetails"))
 
+    def build_record_hash(self, record: dict):
+        return hashlib.sha256(json.dumps(record, cls=HGJSONEncoder).encode()).hexdigest()
+
+    def get_existing_state(self, hash: str):
+        states = self.latest_state["bookmarks"][self.name]
+
+        existing_state = next((s for s in states if hash==s.get("hash") and s.get("success")), None)
+
+        if existing_state:
+            self.latest_state["summary"][self.name]["existing"] += 1
+
+        return existing_state
+
 class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
     def validate_response(self, response: requests.Response) -> None:
         """Validate HTTP response."""
-        if response.status_code >= 400:
+        if response.status_codeu >= 400:
             msg = self.response_error_message(response)
             raise FatalAPIError(msg)
 
@@ -80,37 +94,58 @@ class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
         id = self._extract_id_from_response_header(response.headers)
         return id, response.ok, dict()
 
-class NetSuiteBatchSink(NetSuiteBaseSink, HotglueBatchSink):
+class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
     def process_batch(self, context: dict) -> None:
         if not self.latest_state:
             self.init_state()
 
         raw_records = context["records"]
 
-        records = list(map(lambda e: self.process_batch_record(e[1], e[0]), enumerate(raw_records)))
+        for record in raw_records:
+            self.process_batch_record(record)
 
-        results = self.make_batch_request(records)
+    def process_batch_record(self, record):
+        preprocessed = self.preprocess_batch_record(record)
+        hash = self.build_record_hash(preprocessed)
+        existing_state = self.get_existing_state(hash)
+        external_id = preprocessed.get("externalId")
 
-        state_updates = self.handle_batch_response(results)
+        if existing_state:
+            self.update_state(existing_state, is_duplicate=True)
+            return
 
-        for state in state_updates.get("state_updates", list()):
-            self.update_state(state)
+        id, success, state = self.upsert_record(preprocessed, {})
 
-    def make_batch_request(self, records: List[Dict]):
-        results = []
-        for record in records:
-            id, success, state = self.upsert_record(record, {})
-            results.append({"id": id, "success": success, "state": state})
-        return results
+        if success:
+            self.logger.info(f"{self.name} processed id: {id}")
+
+        state["success"] = success
+
+        if id:
+            state["id"] = id
+
+        if external_id:
+            state["externalId"] = external_id
+
+        self.update_state(state)
 
     def upsert_record(self, record: dict, context: dict):
+        id = None
+        state = {}
+
         if self.record_exists(record, context):
-            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{record['internalId']}")
+            id = record['internalId']
+            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{id}")
         else:
             response = self.request_api("POST", request_data=record)
+            id = self._extract_id_from_response_header(response.headers)
+
         success, error_message = self.validate_response(response)
-        id = self._extract_id_from_response_header(response.headers)
-        return id, success, dict()
+
+        if error_message:
+            state["error"] = error_message
+
+        return id, success, state
 
     def validate_response(self, response: requests.Response) -> tuple[bool, str | None]:
         """Validate HTTP response.
