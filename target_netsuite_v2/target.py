@@ -9,6 +9,7 @@ from singer_sdk import typing as th
 from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.netsuite import NetSuite
 from target_netsuite_v2.sink.vendor_sink import VendorSink
+from target_netsuite_v2.sink.account_sink import AccountSink
 from typing import List, Optional, Union
 
 class TargetNetsuiteV2(TargetHotglue):
@@ -23,7 +24,7 @@ class TargetNetsuiteV2(TargetHotglue):
         th.Property("ns_account", th.StringType)
     ).to_dict()
 
-    SINK_TYPES = [VendorSink]
+    SINK_TYPES = [VendorSink, AccountSink]
 
     def __init__(
         self,

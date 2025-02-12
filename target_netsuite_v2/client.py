@@ -21,7 +21,10 @@ class NetSuiteBaseSink(HotglueBaseSink):
         )
 
     def _extract_id_from_response_header(self, headers):
-        return headers["Location"].split("/")[-1]
+        location = headers.get("Location")
+        if not location:
+            return None
+        return location.split("/")[-1]
 
     def request_api(self, http_method, endpoint=None, params={}, request_data=None, headers={}, verify=True):
         oauth = OAuth1(
@@ -54,12 +57,12 @@ class NetSuiteBaseSink(HotglueBaseSink):
 
         return response
 
+    def record_exists(self, record: dict, context: dict) -> bool:
+        return bool(record.get("internalId"))
+
     def response_error_message(self, response: requests.Response) -> str:
         """Build error message for invalid http statuses."""
         return json.dumps(response.json().get("o:errorDetails"))
-
-    def record_exists(self, record: dict) -> bool:
-        False
 
 class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
     def validate_response(self, response: requests.Response) -> None:
@@ -78,14 +81,6 @@ class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
         return id, response.ok, dict()
 
 class NetSuiteBatchSink(NetSuiteBaseSink, HotglueBatchSink):
-    max_size = 1
-
-    # process_batch_record is a HotglueBatchSync expected override
-    # --> this is where we do the mapping
-
-    # handle_batch_response is a HotglueBatchSync expected override
-    # --> this is where we transform results into a state_updates dictionary
-
     def process_batch(self, context: dict) -> None:
         if not self.latest_state:
             self.init_state()
@@ -101,7 +96,6 @@ class NetSuiteBatchSink(NetSuiteBaseSink, HotglueBatchSink):
         for state in state_updates.get("state_updates", list()):
             self.update_state(state)
 
-    # HotglueBatchSync expected override
     def make_batch_request(self, records: List[Dict]):
         results = []
         for record in records:
