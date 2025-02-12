@@ -1,52 +1,10 @@
-class VendorSchemaMapper:
+from target_netsuite_v2.mapper.base_mapper import BaseMapper
+
+class VendorSchemaMapper(BaseMapper):
     """A class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
     PHONE_TYPE_MAP = { "unknown": "phone", "mobile": "mobilePhone", "home": "homePhone" }
     ADDRESS_TYPE_MAP = { "shipping": "defaultShippingAddress", "billing": "defaultBillingAddress" }
-
-    def __init__(
-            self,
-            record,
-            reference_data
-    ) -> None:
-        self.record = record
-        self.reference_data = reference_data
-
-    def _find_existing_vendor(self):
-        """Finds an existing vendor by matching internal or external ID."""
-        if not self.record.get("id"):
-            return None
-
-        return next(
-            (vendor for vendor in self.reference_data["Vendors"]
-             if vendor["internalId"] == self.record["id"]
-             or vendor["externalId"] == self.record["id"]),
-            None
-        )
-
-    def _map_subsidiary(self):
-        """Extracts a subsidiary object in NetSuite format"""
-        subsidiary_id = self.record.get("subsidiary", {}).get("id")
-        subsidiary = next(
-            (item for item in self.reference_data["Subsidiaries"] if item["internalId"] == subsidiary_id),
-            None
-        )
-        if subsidiary:
-            return { "subsidiary": { "id": subsidiary["internalId"] } }
-        else:
-            return {}
-
-    def _map_currency(self):
-        """Extracts a currency object in NetSuite format"""
-        currency_symbol = self.record.get("currency")
-        currency = next(
-            (item for item in self.reference_data["Currencies"] if item["symbol"] == currency_symbol),
-            None
-        )
-        if currency:
-            return { "currency": { "refName": currency["name"] } }
-        else:
-            return {}
 
     def _map_phone_numbers(self):
         """Extracts phone numbers in NetSuite format."""
@@ -70,13 +28,6 @@ class VendorSchemaMapper:
 
         return addresses
 
-    def _map_internal_id(self):
-        vendor = self._find_existing_vendor()
-        if vendor:
-            return { "internalId": vendor["internalId"]}
-        else:
-            return {}
-
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         return {
@@ -95,9 +46,9 @@ class VendorSchemaMapper:
             "isInactive": not self.record.get("isActive", True),
             "lastModifiedDate": self.record.get("updatedAt"),
             "dateCreated": self.record.get("createdAt"),
+            **self._map_internal_id("Vendors"),
             **self._map_phone_numbers(),
             **self._map_addresses(),
             **self._map_currency(),
-            **self._map_subsidiary(),
-            **self._map_internal_id()
+            **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef")
         }
