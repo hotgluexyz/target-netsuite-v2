@@ -27,20 +27,61 @@ class SuiteTalkRestClient:
 
     def update_record(self, record_type, record_id, record):
         url = f"{self.record_url}/{record_type}/{record_id}"
-        response = self._make_request(url, "PATCH", record)
+        response = self._make_request(url, "PATCH", data=record)
         success, error_message = self._validate_response(response)
         return record_id, success, error_message
 
     def create_record(self, record_type, record):
         url = f"{self.record_url}/{record_type}"
-        response = self._make_request(url, "POST", record)
+        response = self._make_request(url, "POST", data=record)
         success, error_message = self._validate_response(response)
         record_id = self._extract_id_from_response_header(response.headers)
         return record_id, success, error_message
 
-    def _make_request(self, url, http_method, record):
-        headers = {"Content-Type": "application/json"}
-        data = json.dumps(record, cls=HGJSONEncoder)
+    def get_records(self, record_type, record_ids=None, page_size=1000):
+        suiteql_query_string = f"SELECT * FROM {record_type}"
+        if record_ids:
+            id_string = ",".join(str(id) for id in record_ids)
+            suiteql_query_string += f" WHERE ID IN ({id_string})"
+
+        all_items = []
+        offset = 0
+        limit = min(page_size, 1000)
+        has_more = True
+
+        while has_more:
+            query_data = {"q": suiteql_query_string}
+            params = {"offset": offset, "limit": limit}
+            headers = {"Prefer": "transient"}
+
+            response = self._make_request(
+                url=self.suiteql_url,
+                method="POST",
+                data=query_data,
+                params=params,
+                headers=headers
+            )
+
+            success, error_message = self._validate_response(response)
+            if not success:
+                return success, error_message, []
+
+            resp_json = response.json()
+            items = resp_json.get("items", [])
+            all_items.extend(items)
+
+            has_more = resp_json.get("hasMore", False)
+            offset += limit
+
+        return True, None, all_items
+
+    def _make_request(self, url, method, data=None, params=None, headers=None):
+        request_headers = {"Content-Type": "application/json"}
+        if headers:
+            request_headers.update(headers)
+
+        request_params = params or {}
+
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
             client_secret=self.config["ns_consumer_secret"],
@@ -50,12 +91,14 @@ class SuiteTalkRestClient:
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
+        json_data = json.dumps(data, cls=HGJSONEncoder) if data else None
+
         return requests.request(
-            method=http_method,
+            method=method,
             url=url,
-            params={},
-            headers=headers,
-            data=data,
+            params=request_params,
+            headers=request_headers,
+            data=json_data,
             verify=True,
             auth=oauth
         )

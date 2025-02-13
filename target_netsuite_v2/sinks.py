@@ -98,7 +98,7 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         state = {}
 
         if self.record_exists(record, context):
-            id, success, error_message = self.suite_talk_client.update_record(self.record_type, id, record)
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], record)
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
 
