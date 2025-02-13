@@ -933,18 +933,17 @@ class netsuiteRestV2Sink(BatchSink):
             raise Exception(f"Currency was not provided and it's a required field for credit memo.")
         
         # validate required field customer
-        customer = record.get("customerRef", {}).get("id")
-        if not customer and record.get("customerRef", {}).get("customerName"):
+        customer = record.get("customerId")
+        if not customer and record.get("customerName"):
             customer = list(
                 filter(
-                    lambda x: x["internalId"] == record.get("customerRef", {})
-                    or x["externalId"] == record.get("id"),
+                    lambda x: x["companyName"] == record.get("customerName"),
                     context["reference_data"]["Customer"],
                 )
             )
             customer = customer[0].get("internalId") if customer else None
         if not customer:
-            raise Exception(f"Customer was not provided and it's a required field for credit memo.")
+            raise Exception(f"Customer '{record.get('customerName')}' with id '{record.get('customerId')}' was not provided or it's not valid and it's a required field for credit memo.")
 
         # validate required field location
         location = record.get("locationId")
@@ -956,6 +955,17 @@ class netsuiteRestV2Sink(BatchSink):
                 )
             ) 
             location = location[0].get("internalId") if location else None
+        
+        # validate required field location
+        subsidiary = record.get("subsidiaryId")
+        if not subsidiary and record.get("subsidiary"):
+            subsidiary = list(
+                filter(
+                    lambda x: x["name"] == record.get("subsidiary"),
+                    context["reference_data"]["Subsidiaries"],
+                )
+            ) 
+            subsidiary = subsidiary[0].get("internalId") if subsidiary else None
 
         line_items = self.parse_objs(record.get("lineItems"))
         items = []
@@ -993,7 +1003,8 @@ class netsuiteRestV2Sink(BatchSink):
             "taxTotal": record.get("totalTaxAmount"),
             "amountRemaining": record.get("remainingCredit"),
             "item": {"items": items},
-            "location": {"id": location}
+            "location": {"id": location},
+            "subsidiary": {"id": subsidiary}
         }
 
         return credit_memo_mapping
@@ -1005,18 +1016,17 @@ class netsuiteRestV2Sink(BatchSink):
             raise Exception(f"Currency was not provided and it's a required field for credit memo.")
         
         # validate required field customer
-        customer = record.get("customerRef", {}).get("id")
-        if not customer and record.get("customerRef", {}).get("customerName"):
+        customer = record.get("customerId")
+        if not customer and record.get("customerName"):
             customer = list(
                 filter(
-                    lambda x: x["internalId"] == record.get("customerRef", {})
-                    or x["externalId"] == record.get("id"),
+                    lambda x: x["companyName"] == record.get("customerName"),
                     context["reference_data"]["Customer"],
                 )
             )
             customer = customer[0].get("internalId") if customer else None
         if not customer:
-            raise Exception(f"Customer was not provided and it's a required field for credit memo.")
+            raise Exception(f"Customer '{record.get('customerName')}' with id '{record.get('customerId')}' was not provided or it's not valid and it's a required field for refund.")
 
         # validate required field location
         location = record.get("locationId")
@@ -1028,6 +1038,17 @@ class netsuiteRestV2Sink(BatchSink):
                 )
             ) 
             location = location[0].get("internalId") if location else None
+        
+        # validate subsidiary
+        subsidiary = record.get("subsidiaryId")
+        if not subsidiary and record.get("subsidiary"):
+            subsidiary = list(
+                filter(
+                    lambda x: x["name"] == record.get("subsidiary"),
+                    context["reference_data"]["Subsidiaries"],
+                )
+            ) 
+            subsidiary = subsidiary[0].get("internalId") if subsidiary else None
 
         line_items = self.parse_objs(record.get("lineItems"))
         items = []
@@ -1065,7 +1086,8 @@ class netsuiteRestV2Sink(BatchSink):
             "taxTotal": record.get("totalTaxAmount"),
             "amountRemaining": record.get("remainingCredit"),
             "item": {"items": items},
-            "location": {"id": location}
+            "location": {"id": location},
+            "subsidiary": {"id": subsidiary}
         }
 
         return refund_mapping
