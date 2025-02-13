@@ -25,13 +25,22 @@ class SuiteTalkRestClient:
     def suiteql_url(self) -> str:
         return f"{self.url_prefix}/query/v1/suiteql"
 
+    def update_record(self, record_type, record_id, record):
+        url = f"{self.record_url}/{record_type}/{record_id}"
+        response = self._make_request(url, "PATCH", record)
+        success, error_message = self._validate_response(response)
+        return record_id, success, error_message
+
+    def create_record(self, record_type, record):
+        url = f"{self.record_url}/{record_type}"
+        response = self._make_request(url, "POST", record)
+        success, error_message = self._validate_response(response)
+        record_id = self._extract_id_from_response_header(response.headers)
+        return record_id, success, error_message
+
     def _make_request(self, url, http_method, record):
         headers = {"Content-Type": "application/json"}
-        data = (
-            json.dumps(record, cls=HGJSONEncoder)
-            if record
-            else None
-        )
+        data = json.dumps(record, cls=HGJSONEncoder)
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
             client_secret=self.config["ns_consumer_secret"],
@@ -51,10 +60,18 @@ class SuiteTalkRestClient:
             auth=oauth
         )
 
-    def update_record(self, endpoint, record_id, record):
-        url = f"{self.record_url}{endpoint}/{record_id}"
-        return self._make_request(url, "PATCH", record)
+    def _validate_response(self, response: requests.Response) -> tuple[bool, str | None]:
+        if response.status_code >= 400:
+            msg = self._response_error_message(response)
+            return False, msg
+        else:
+            return True, None
 
-    def create_record(self, endpoint, record):
-        url = f"{self.record_url}{endpoint}"
-        return self._make_request(url, "POST", record)
+    def _response_error_message(self, response: requests.Response) -> str:
+        return json.dumps(response.json().get("o:errorDetails"))
+
+    def _extract_id_from_response_header(self, headers):
+        location = headers.get("Location")
+        if not location:
+            return None
+        return location.split("/")[-1]

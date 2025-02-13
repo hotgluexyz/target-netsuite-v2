@@ -32,7 +32,6 @@ class NetSuiteBaseSink(HotglueBaseSink):
         return bool(record.get("internalId"))
 
     def response_error_message(self, response: requests.Response) -> str:
-        """Build error message for invalid http statuses."""
         return json.dumps(response.json().get("o:errorDetails"))
 
     def build_record_hash(self, record: dict):
@@ -48,27 +47,17 @@ class NetSuiteBaseSink(HotglueBaseSink):
 
         return existing_state
 
-    def _extract_id_from_response_header(self, headers):
-        location = headers.get("Location")
-        if not location:
-            return None
-        return location.split("/")[-1]
-
 class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
-    def validate_response(self, response: requests.Response) -> None:
-        """Validate HTTP response."""
-        if response.status_code >= 400:
-            msg = self.response_error_message(response)
-            raise FatalAPIError(msg)
-
     def upsert_record(self, record: dict, context: dict):
         if self.record_exists(record, context):
-            response = self.suite_talk_client.update_record(self.endpoint, record['internalId'], record)
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], record)
         else:
-            response = self.suite_talk_client.create_record(self.endpoint, record)
-        self.validate_response(response)
-        id = self._extract_id_from_response_header(response.headers)
-        return id, response.ok, dict()
+            id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
+
+        if not success:
+            raise FatalAPIError(error_message)
+
+        return id, success, dict()
 
 class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
     def process_batch(self, context: dict) -> None:
@@ -106,31 +95,14 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         self.update_state(state)
 
     def upsert_record(self, record: dict, context: dict):
-        id = None
         state = {}
 
         if self.record_exists(record, context):
-            id = record['internalId']
-            response = self.suite_talk_client.update_record(self.endpoint, id, record)
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, id, record)
         else:
-            response = self.suite_talk_client.create_record(self.endpoint, record)
-            id = self._extract_id_from_response_header(response.headers)
-
-        success, error_message = self.validate_response(response)
+            id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
 
         if error_message:
             state["error"] = error_message
 
         return id, success, state
-
-    def validate_response(self, response: requests.Response) -> tuple[bool, str | None]:
-        """Validate HTTP response.
-
-        Returns:
-            tuple[bool, str | None]: Returns (True, None) if successful, (False, error_message) if validation fails
-        """
-        if response.status_code >= 400:
-            msg = self.response_error_message(response)
-            return False, msg
-        else:
-            return True, None
