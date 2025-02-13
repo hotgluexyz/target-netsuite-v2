@@ -2,61 +2,31 @@ import json
 import requests
 import hashlib
 
-from oauthlib import oauth1
-from requests_oauthlib import OAuth1
 from singer_sdk.exceptions import FatalAPIError
+from singer_sdk.plugin_base import PluginBase
 from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink, HotglueSink
 from target_hotglue.common import HGJSONEncoder
+from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
+from typing import Dict, List, Optional
 
 class NetSuiteBaseSink(HotglueBaseSink):
-    @property
-    def url_account(self) -> str:
-        return self.config["ns_account"].replace("_", "-").replace("SB", "sb")
-
-    @property
-    def base_url(self) -> str:
-        """Return the API URL root, configurable via tap settings."""
-        return (
-            f"https://{self.url_account}.suitetalk.api.netsuite.com/services/rest/record/v1"
-        )
-
-    def _extract_id_from_response_header(self, headers):
-        location = headers.get("Location")
-        if not location:
-            return None
-        return location.split("/")[-1]
-
-    def request_api(self, http_method, endpoint=None, params={}, request_data=None, headers={}, verify=True):
-        oauth = OAuth1(
-            client_key=self.config["ns_consumer_key"],
-            client_secret=self.config["ns_consumer_secret"],
-            resource_owner_key=self.config["ns_token_key"],
-            resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
-            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
-        )
-        url = self.url(endpoint)
-        headers.update(self.default_headers)
-        headers.update({"Content-Type": "application/json"})
-        params.update(self.params)
-        data = (
-            json.dumps(request_data, cls=HGJSONEncoder)
-            if request_data
-            else None
-        )
-
-        response = requests.request(
-            method=http_method,
-            url=url,
-            params=params,
-            headers=headers,
-            data=data,
-            verify=verify,
-            auth=oauth
-        )
-
-        return response
+    def __init__(
+        self,
+        target: PluginBase,
+        stream_name: str,
+        schema: Dict,
+        key_properties: Optional[List[str]],
+    ) -> None:
+        super().__init__(target, stream_name, schema, key_properties)
+        netsuite_config = {
+            "ns_consumer_key": self.config["ns_consumer_key"],
+            "ns_consumer_secret": self.config["ns_consumer_secret"],
+            "ns_token_key": self.config["ns_token_key"],
+            "ns_token_secret": self.config["ns_token_secret"],
+            "ns_account": self.config["ns_account"]
+        }
+        self.suite_talk_client = SuiteTalkRestClient(netsuite_config)
 
     def record_exists(self, record: dict, context: dict) -> bool:
         return bool(record.get("internalId"))
@@ -78,18 +48,24 @@ class NetSuiteBaseSink(HotglueBaseSink):
 
         return existing_state
 
+    def _extract_id_from_response_header(self, headers):
+        location = headers.get("Location")
+        if not location:
+            return None
+        return location.split("/")[-1]
+
 class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
     def validate_response(self, response: requests.Response) -> None:
         """Validate HTTP response."""
-        if response.status_codeu >= 400:
+        if response.status_code >= 400:
             msg = self.response_error_message(response)
             raise FatalAPIError(msg)
 
     def upsert_record(self, record: dict, context: dict):
         if self.record_exists(record, context):
-            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{record['internalId']}")
+            response = self.suite_talk_client.update_record(self.endpoint, record['internalId'], record)
         else:
-            response = self.request_api("POST", request_data=record)
+            response = self.suite_talk_client.create_record(self.endpoint, record)
         self.validate_response(response)
         id = self._extract_id_from_response_header(response.headers)
         return id, response.ok, dict()
@@ -135,9 +111,9 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
 
         if self.record_exists(record, context):
             id = record['internalId']
-            response = self.request_api("PATCH", request_data=record, endpoint=f"{self.endpoint}/{id}")
+            response = self.suite_talk_client.update_record(self.endpoint, id, record)
         else:
-            response = self.request_api("POST", request_data=record)
+            response = self.suite_talk_client.create_record(self.endpoint, record)
             id = self._extract_id_from_response_header(response.headers)
 
         success, error_message = self.validate_response(response)

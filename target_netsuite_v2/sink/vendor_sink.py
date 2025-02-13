@@ -1,6 +1,5 @@
-from target_netsuite_v2.client import NetSuiteSink
+from target_netsuite_v2.sinks import NetSuiteSink
 from target_netsuite_v2.mapper.vendor_schema_mapper import VendorSchemaMapper
-
 
 class VendorSink(NetSuiteSink):
     name = "Vendors"
