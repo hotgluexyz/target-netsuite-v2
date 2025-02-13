@@ -1,11 +1,23 @@
 import json
 import requests
+from typing import List, Dict, Optional
 
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1
 from target_hotglue.common import HGJSONEncoder
 
 class SuiteTalkRestClient:
+    ref_select_clauses = {
+        "account": "account.id as internalId, account.acctName as name, account.externalId",
+        "classification": "classification.id as internalId, classification.name, classification.externalId",
+        "currency": "currency.id as internalId, currency.symbol, currency.name",
+        "customer": "customer.id as internalId, customer.companyName as name, customer.externalId",
+        "department": "department.id as internalId, department.name, department.externalId",
+        "location": "location.id as internalId, location.name as name, location.externalId",
+        "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
+        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId"
+    }
+
     def __init__(self, config):
         self.config = config
 
@@ -38,11 +50,31 @@ class SuiteTalkRestClient:
         record_id = self._extract_id_from_response_header(response.headers)
         return record_id, success, error_message
 
-    def get_records(self, record_type, record_ids=None, page_size=1000):
-        suiteql_query_string = f"SELECT * FROM {record_type}"
+    def get_reference_data(
+        self,
+        record_type,
+        record_ids: Optional[List[str]] = None,
+        external_ids: Optional[List[str]] = None,
+        page_size=1000
+    ) -> List[Dict]:
+        select_clause = self.ref_select_clauses[record_type]
+        where_clause = ""
         if record_ids:
             id_string = ",".join(str(id) for id in record_ids)
-            suiteql_query_string += f" WHERE ID IN ({id_string})"
+            where_clause = f"WHERE id IN ({id_string})"
+
+        if external_ids:
+            external_id_string = ",".join(str(id) for id in external_ids)
+
+            if where_clause:
+                id_string = ",".join(str(id) for id in record_ids)
+                where_clause = f"WHERE (id IN ({id_string}) OR external_id IN ({external_id_string}))"
+            else:
+                where_clause = f"WHERE external_id IN ({external_id_string})"
+
+        query = f"SELECT {select_clause} FROM {record_type}"
+        if where_clause:
+            query += f" {where_clause}"
 
         all_items = []
         offset = 0
@@ -50,7 +82,7 @@ class SuiteTalkRestClient:
         has_more = True
 
         while has_more:
-            query_data = {"q": suiteql_query_string}
+            query_data = {"q": query}
             params = {"offset": offset, "limit": limit}
             headers = {"Prefer": "transient"}
 
@@ -68,6 +100,14 @@ class SuiteTalkRestClient:
 
             resp_json = response.json()
             items = resp_json.get("items", [])
+
+            # SuiteQL response fields come in as lower case
+            for item in items:
+                if "internalid" in item:
+                    item["internalId"] = item.pop("internalid")
+                if "externalid" in item:
+                    item["externalId"] = item.pop("externalid")
+
             all_items.extend(items)
 
             has_more = resp_json.get("hasMore", False)

@@ -19,14 +19,7 @@ class NetSuiteBaseSink(HotglueBaseSink):
         key_properties: Optional[List[str]],
     ) -> None:
         super().__init__(target, stream_name, schema, key_properties)
-        netsuite_config = {
-            "ns_consumer_key": self.config["ns_consumer_key"],
-            "ns_consumer_secret": self.config["ns_consumer_secret"],
-            "ns_token_key": self.config["ns_token_key"],
-            "ns_token_secret": self.config["ns_token_secret"],
-            "ns_account": self.config["ns_account"]
-        }
-        self.suite_talk_client = SuiteTalkRestClient(netsuite_config)
+        self.suite_talk_client = self._target.suite_talk_client
 
     def record_exists(self, record: dict, context: dict) -> bool:
         return bool(record.get("internalId"))

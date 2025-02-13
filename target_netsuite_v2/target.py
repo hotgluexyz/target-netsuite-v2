@@ -10,6 +10,7 @@ from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.netsuite import NetSuite
 from target_netsuite_v2.sink.vendor_sink import VendorSink
 from target_netsuite_v2.sink.account_sink import AccountSink
+from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
 
 class TargetNetsuiteV2(TargetHotglue):
@@ -35,30 +36,18 @@ class TargetNetsuiteV2(TargetHotglue):
     ) -> None:
         self.config_file = config[0]
         super().__init__(config, parse_env_config, validate_config)
-        self.ns_client = self.get_ns_client()
+        self.suite_talk_client = self.get_ns_client()
         self.reference_data = self.get_reference_data()
 
     def get_ns_client(self):
-        ns_account = self.config.get("ns_account")
-        ns_consumer_key = self.config.get("ns_consumer_key")
-        ns_consumer_secret = self.config.get("ns_consumer_secret")
-        ns_token_key = self.config.get("ns_token_key")
-        ns_token_secret = self.config.get("ns_token_secret")
-        is_sandbox = self.config.get("is_sandbox")
-
-        self.logger.info(f"Starting netsuite connection")
-        ns = NetSuite(
-            ns_account=ns_account,
-            ns_consumer_key=ns_consumer_key,
-            ns_consumer_secret=ns_consumer_secret,
-            ns_token_key=ns_token_key,
-            ns_token_secret=ns_token_secret,
-            is_sandbox=is_sandbox,
-        )
-
-        ns.connect_tba(caching=False)
-        self.logger.info(f"Successfully created netsuite connection..")
-        return ns.ns_client
+        netsuite_config = {
+            "ns_consumer_key": self.config["ns_consumer_key"],
+            "ns_consumer_secret": self.config["ns_consumer_secret"],
+            "ns_token_key": self.config["ns_token_key"],
+            "ns_token_secret": self.config["ns_token_secret"],
+            "ns_account": self.config["ns_account"]
+        }
+        return SuiteTalkRestClient(netsuite_config)
 
     def get_reference_data(self):
         if self.config.get("snapshot_hours"):
@@ -75,19 +64,27 @@ class TargetNetsuiteV2(TargetHotglue):
 
         self.logger.info(f"Reading data from API...")
         reference_data = {}
-        reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName"])
-        reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
-        reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
-        reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName", "entityId"])
-        try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
-        except NetSuiteRequestError as e:
-            message = e.message.replace("error", "failure").replace("Error", "")
-            self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList"])
+
+        _, _, vendors = self.suite_talk_client.get_reference_data("vendor")
+        reference_data["Vendors"] = vendors
+
+        _, _, subsidiaries = self.suite_talk_client.get_reference_data("subsidiary")
+        reference_data["Subsidiaries"] = subsidiaries
+
+        _, _, classifications = self.suite_talk_client.get_reference_data("classification")
+        reference_data["Classifications"] = classifications
+
+        _, _, currencies = self.suite_talk_client.get_reference_data("currency")
+        reference_data["Currencies"] = currencies
+
+        _, _, departments = self.suite_talk_client.get_reference_data("department")
+        reference_data["Departments"] = departments
+
+        _, _, locations = self.suite_talk_client.get_reference_data("location")
+        reference_data["Locations"] = locations
+
+        _, _, accounts = self.suite_talk_client.get_reference_data("account")
+        reference_data["Accounts"] = accounts
 
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()

@@ -11,9 +11,9 @@ class BaseMapper:
 
     def _find_existing_record(self, reference_list):
         """Finds an existing record by matching internal or external ID.
-            1. If the ingested record has an "id" field, we first look for an account in the reference data whose "internalId" matches the record "id"
-            2. If the ingested record has an "id" field, and no account was found in the first step, we look for an account in the reference data whose "externalId" matches the record "id"
-            3. If the ingested record has an "externalId" field, and no "id" was provided, we look for an account in the reference data whose "externalId" matches the record "externalId"
+            1. If the ingested record has an "id" field, we first look for a record in the reference data whose "internalId" matches the record "id"
+            2. If the ingested record has an "id" field, and no record was found in the first step, we look for a record in the reference data whose "externalId" matches the record "id"
+            3. If the ingested record has an "externalId" field, and no "id" was provided, we look for a record in the reference data whose "externalId" matches the record "externalId"
         """
 
         if record_id := self.record.get("id"):
@@ -29,15 +29,15 @@ class BaseMapper:
             # Try matching external ID if internal ID match failed
             return next(
                 (record for record in reference_list
-                if record["externalId"] == record_id),
+                if record.get("externalId") == record_id),
                 None
             )
 
         # If no ID provided, try matching by external ID
         if external_id := self.record.get("externalId"):
             return next(
-                (account for account in reference_list
-                if account["externalId"] == external_id),
+                (record for record in reference_list
+                if record.get("externalId") == external_id),
                 None
             )
 
