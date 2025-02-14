@@ -14,7 +14,6 @@ class AccountSchemaMapper(BaseMapper):
             **self._map_subrecord_list("Subsidiaries", "subsidiary", "subsidiaryRef")
         }
 
-        # Map of record keys to NetSuite payload keys
         field_mappings = {
             "externalId": "externalId",
             "name": "acctName",
@@ -22,12 +21,11 @@ class AccountSchemaMapper(BaseMapper):
             "type": "acctType"
         }
 
-        # Only add fields that exist in the record
+        if "isActive" in self.record:
+            payload["isInactive"] = not self.record.get("isActive", True)
+
         for record_key, payload_key in field_mappings.items():
             if record_key in self.record:
                 payload[payload_key] = self.record.get(record_key)
-
-        if "isActive" in self.record:
-            payload["isInactive"] = not self.record.get("isActive", True)
 
         return payload
