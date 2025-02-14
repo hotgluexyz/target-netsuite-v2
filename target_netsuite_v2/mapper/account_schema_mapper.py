@@ -4,12 +4,7 @@ class AccountSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
-        return {
-            "externalId": self.record.get("externalId"),
-            "acctName": self.record.get("name"),
-            "description": self.record.get("description"),
-            "isInactive": not self.record.get("isActive", True),
-            "acctType": self.record.get("type"),
+        payload = {
             **self._map_internal_id("Accounts"),
             **self._map_currency(),
             **self._map_subrecord("Accounts", "parent", "parentRef"),
@@ -18,3 +13,21 @@ class AccountSchemaMapper(BaseMapper):
             **self._map_subrecord("Departments", "department", "departmentRef"),
             **self._map_subrecord_list("Subsidiaries", "subsidiary", "subsidiaryRef")
         }
+
+        # Map of record keys to NetSuite payload keys
+        field_mappings = {
+            "externalId": "externalId",
+            "name": "acctName",
+            "description": "description",
+            "type": "acctType"
+        }
+
+        # Only add fields that exist in the record
+        for record_key, payload_key in field_mappings.items():
+            if record_key in self.record:
+                payload[payload_key] = self.record.get(record_key)
+
+        if "isActive" in self.record:
+            payload["isInactive"] = not self.record.get("isActive", True)
+
+        return payload

@@ -30,25 +30,37 @@ class VendorSchemaMapper(BaseMapper):
 
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
-        return {
-            "id": self.record.get("id"),
-            "externalId": self.record.get("externalId"),
-            "companyName": self.record.get("vendorName"),
-            "salutation": self.record.get("prefix"),
-            "firstName": self.record.get("firstName"),
-            "middleName": self.record.get("middleName"),
-            "lastName": self.record.get("lastName"),
-            "title": self.record.get("title"),
-            "email": self.record.get("email"),
-            "url": self.record.get("website"),
-            "printOnCheckAs": self.record.get("checkName"),
-            "balance": self.record.get("balance"),
-            "isInactive": not self.record.get("isActive", True),
-            "lastModifiedDate": self.record.get("updatedAt"),
-            "dateCreated": self.record.get("createdAt"),
+        payload = {
             **self._map_internal_id("Vendors"),
             **self._map_phone_numbers(),
             **self._map_addresses(),
             **self._map_currency(),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef")
         }
+
+        field_mappings = {
+            "externalId": "externalId",
+            "vendorName": "companyName",
+            "prefix": "salutation",
+            "firstName": "firstName",
+            "middleName": "middleName",
+            "lastName": "lastName",
+            "title": "title",
+            "email": "email",
+            "website": "url",
+            "checkName": "printOnCheckAs",
+            "balance": "balance",
+            "updatedAt": "lastModifiedDate",
+            "createdAt": "dateCreated"
+        }
+
+        # Only add fields that exist in the record
+        for record_key, payload_key in field_mappings.items():
+            if record_key in self.record:
+                payload[payload_key] = self.record.get(record_key)
+
+        # Handle isInactive separately due to its inverse logic
+        if "isActive" in self.record:
+            payload["isInactive"] = not self.record.get("isActive", True)
+
+        return payload
