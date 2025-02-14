@@ -64,9 +64,6 @@ class TargetNetsuiteV2(TargetHotglue):
         self.logger.info(f"Reading data from API...")
         reference_data = {}
 
-        _, _, vendors = self.suite_talk_client.get_reference_data("vendor")
-        reference_data["Vendors"] = vendors
-
         _, _, subsidiaries = self.suite_talk_client.get_reference_data("subsidiary")
         reference_data["Subsidiaries"] = subsidiaries
 

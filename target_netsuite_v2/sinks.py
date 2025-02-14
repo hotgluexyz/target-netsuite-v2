@@ -1,12 +1,10 @@
 import abc
 import json
-import requests
 import hashlib
 
-from singer_sdk.exceptions import FatalAPIError
 from singer_sdk.plugin_base import PluginBase
 from singer_sdk.sinks import BatchSink
-from target_hotglue.client import HotglueBaseSink, HotglueSink
+from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
 
@@ -36,18 +34,6 @@ class NetSuiteBaseSink(HotglueBaseSink):
             self.latest_state["summary"][self.name]["existing"] += 1
 
         return existing_state
-
-class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
-    def upsert_record(self, record: dict, context: dict):
-        if self.record_exists(record, context):
-            id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], record)
-        else:
-            id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
-
-        if not success:
-            raise FatalAPIError(error_message)
-
-        return id, success, dict()
 
 class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
     def process_batch(self, context: dict) -> None:
@@ -138,3 +124,25 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             state["error"] = error_message
 
         return id, success, state
+
+    def get_primary_records_for_batch(self, context) -> dict:
+        """Get the reference records for the sinks record type for a given batch"""
+        raw_records = context["records"]
+
+        ids = []
+        external_ids = []
+
+        for record in raw_records:
+            if record.get("id"):
+                ids.append(record["id"])
+
+            if record.get("externalId"):
+                external_ids.append(record["externalId"])
+
+        _, _, items = self.suite_talk_client.get_reference_data(
+            self.record_type,
+            record_ids=ids,
+            external_ids=external_ids
+        )
+
+        return { self.name: items }

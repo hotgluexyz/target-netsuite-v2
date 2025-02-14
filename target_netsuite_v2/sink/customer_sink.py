@@ -6,29 +6,9 @@ class CustomerSink(NetSuiteBatchSink):
     record_type = "customer"
 
     def get_batch_reference_data(self, context) -> dict:
-        raw_records = context["records"]
-
-        ids = []
-        external_ids = []
-
-        for record in raw_records:
-            if record.get("id"):
-                ids.append(record["id"])
-
-            if record.get("externalId"):
-                external_ids.append(record["externalId"])
-
-        _, _, items = self.suite_talk_client.get_reference_data(
-            self.record_type,
-            record_ids=ids,
-            external_ids=external_ids
-        )
-
-        batch_specific_data = { self.name: items }
-
         return {
             **self._target.reference_data,
-            **batch_specific_data
+            **self.get_primary_records_for_batch(context)
         }
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
