@@ -64,11 +64,11 @@ class SuiteTalkRestClient:
             where_clause = f"WHERE id IN ({id_string})"
 
         if external_ids:
-            external_id_string = ",".join(str(id) for id in external_ids)
+            external_id_string = ",".join(f"'{id}'" for id in external_ids)
 
             if where_clause:
                 id_string = ",".join(str(id) for id in record_ids)
-                where_clause = f"WHERE (id IN ({id_string}) OR external_id IN ({external_id_string}))"
+                where_clause = f"WHERE (id IN ({id_string}) OR externalId IN ({external_id_string}))"
             else:
                 where_clause = f"WHERE external_id IN ({external_id_string})"
 
