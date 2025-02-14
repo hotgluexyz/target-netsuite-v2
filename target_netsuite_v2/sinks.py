@@ -1,3 +1,4 @@
+import abc
 import json
 import requests
 import hashlib
@@ -7,7 +8,6 @@ from singer_sdk.plugin_base import PluginBase
 from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink, HotglueSink
 from target_hotglue.common import HGJSONEncoder
-from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import Dict, List, Optional
 
 class NetSuiteBaseSink(HotglueBaseSink):
@@ -23,9 +23,6 @@ class NetSuiteBaseSink(HotglueBaseSink):
 
     def record_exists(self, record: dict, context: dict) -> bool:
         return bool(record.get("internalId"))
-
-    def response_error_message(self, response: requests.Response) -> str:
-        return json.dumps(response.json().get("o:errorDetails"))
 
     def build_record_hash(self, record: dict):
         return hashlib.sha256(json.dumps(record, cls=HGJSONEncoder).encode()).hexdigest()
@@ -54,16 +51,46 @@ class NetSuiteSink(NetSuiteBaseSink, HotglueSink):
 
 class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
     def process_batch(self, context: dict) -> None:
+        """Process a batch with the given batch context.
+
+        The `context["records"]` list will contain all records from the given batch
+        context.
+
+        Args:
+            context: Stream partition or context dictionary.
+        """
         if not self.latest_state:
             self.init_state()
 
-        raw_records = context["records"]
+        batch_records = context["records"]
 
-        for record in raw_records:
-            self.process_batch_record(record)
+        reference_data = self.get_batch_reference_data(context)
 
-    def process_batch_record(self, record):
-        preprocessed = self.preprocess_batch_record(record)
+        for record in batch_records:
+            self.process_batch_record(record, reference_data)
+
+    def get_batch_reference_data(self, context: dict) -> dict:
+        """Get the reference data for a batch
+
+        Args:
+            context: Stream partition or context dictionary.
+
+        Returns:
+            A dict containing batch specific reference data.
+        """
+        return self._target.reference_data
+
+    def process_batch_record(self, record: dict, reference_data: dict):
+        """Process a record in the batch
+
+        Preprocess the record to map it to the desired payload.
+        Capture state updates, and upsert the record to the target
+
+        Args:
+            record: Individual raw record in the stream.
+            reference_data: A dictionary containing all reference_data necessary for a batch.
+        """
+        preprocessed = self.preprocess_batch_record(record, reference_data)
         hash = self.build_record_hash(preprocessed)
         existing_state = self.get_existing_state(hash)
         external_id = preprocessed.get("externalId")
@@ -86,6 +113,18 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             state["externalId"] = external_id
 
         self.update_state(state)
+
+    @abc.abstractmethod
+    def preprocess_batch_record(self, record: dict) -> dict:
+        """Preprocess a batch with the given batch context.
+
+        This method must be overridden.
+        Map the raw record to a dictionary for use in the API payload.
+
+        Args:
+            record: Individual raw record in the stream.
+        """
+        pass
 
     def upsert_record(self, record: dict, context: dict):
         state = {}
