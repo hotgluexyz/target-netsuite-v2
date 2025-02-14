@@ -8,6 +8,7 @@ from singer_sdk import typing as th
 from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.sink.vendor_sink import VendorSink
 from target_netsuite_v2.sink.account_sink import AccountSink
+from target_netsuite_v2.sink.customer_sink import CustomerSink
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
 
@@ -23,7 +24,7 @@ class TargetNetsuiteV2(TargetHotglue):
         th.Property("ns_account", th.StringType)
     ).to_dict()
 
-    SINK_TYPES = [VendorSink, AccountSink]
+    SINK_TYPES = [VendorSink, AccountSink, CustomerSink]
 
     def __init__(
         self,
@@ -84,6 +85,8 @@ class TargetNetsuiteV2(TargetHotglue):
         _, _, accounts = self.suite_talk_client.get_reference_data("account")
         reference_data["Accounts"] = accounts
 
+        # Batch specific reference data is not currently being written to the snapshot since it is not fetched here
+        # But is instead lazily fetched per batch
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
             os.makedirs("snapshots", exist_ok=True)
