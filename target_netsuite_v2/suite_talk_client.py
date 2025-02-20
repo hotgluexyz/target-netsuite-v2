@@ -17,6 +17,7 @@ class SuiteTalkRestClient:
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
         "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId",
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
+        "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid"
     }
 

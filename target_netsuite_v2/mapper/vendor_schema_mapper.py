@@ -10,6 +10,7 @@ class VendorSchemaMapper(BaseMapper):
             **self._map_phone_numbers(),
             **self._map_addresses("Vendors"),
             **self._map_currency(),
+            **self._map_subrecord("VendorCategory", "category", "categoryRef"),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef")
         }
 

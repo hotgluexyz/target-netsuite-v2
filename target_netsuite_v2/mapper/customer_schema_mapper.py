@@ -8,7 +8,7 @@ class CustomerSchemaMapper(BaseMapper):
             **self._map_internal_id("Customers"),
             **self._map_subrecord("Customers", "parent", "parentRef"),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef"),
-            **self._map_subrecord("Category", "category", "categoryRef"),
+            **self._map_subrecord("CustomerCategory", "category", "categoryRef"),
             **self._map_subrecord("Employees", "salesRep", "salesRepRef"),
             **self._map_custom_fields(),
             **self._map_phone_numbers(),

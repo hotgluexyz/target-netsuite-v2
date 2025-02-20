@@ -82,8 +82,11 @@ class TargetNetsuiteV2(TargetHotglue):
         _, _, accounts = self.suite_talk_client.get_reference_data("account")
         reference_data["Accounts"] = accounts
 
-        _, _, categories = self.suite_talk_client.get_reference_data("customercategory")
-        reference_data["Category"] = categories
+        _, _, customer_categories = self.suite_talk_client.get_reference_data("customercategory")
+        reference_data["CustomerCategory"] = customer_categories
+
+        _, _, vendor_categories = self.suite_talk_client.get_reference_data("vendorcategory")
+        reference_data["VendorCategory"] = vendor_categories
 
         # Batch specific reference data is not currently being written to the snapshot since it is not fetched here
         # But is instead lazily fetched per batch
