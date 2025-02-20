@@ -15,7 +15,8 @@ class SuiteTalkRestClient:
         "department": "department.id as internalId, department.name, department.externalId",
         "location": "location.id as internalId, location.name as name, location.externalId",
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
-        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId"
+        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId",
+        "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name"
     }
 
     def __init__(self, config):
@@ -116,6 +117,9 @@ class SuiteTalkRestClient:
         return True, None, all_items
 
     def get_default_addresses(self, entity_type: str, entity_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
+        if not entity_ids:
+            return True, None, {}
+
         entity_ids_str = ",".join(map(str, entity_ids))
         entity_id_field = f"{entity_type}.id"
         addressbook_table = f"{entity_type}addressbook"
@@ -159,9 +163,6 @@ class SuiteTalkRestClient:
                     default_addresses[entity_id]["shipping"] = item
 
         return True, None, default_addresses
-
-    def get_customer_default_addresses(self, customer_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
-        return self.get_default_addresses("customer", customer_ids)
 
     def get_vendor_default_addresses(self, vendor_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
         return self.get_default_addresses("vendor", vendor_ids)

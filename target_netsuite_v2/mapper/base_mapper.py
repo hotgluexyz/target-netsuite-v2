@@ -16,7 +16,7 @@ class BaseMapper:
         self.reference_data = reference_data
 
     def _find_existing_record(self, reference_list):
-        """Finds an existing record by matching internal or external ID.
+        """Finds an existing record in the reference data by matching internal or external ID.
             1. If the ingested record has an "id" field, we first look for a record in the reference data whose "internalId" matches the record "id"
             2. If the ingested record has an "id" field, and no record was found in the first step, we look for a record in the reference data whose "externalId" matches the record "id"
             3. If the ingested record has an "externalId" field, and no "id" was provided, we look for a record in the reference data whose "externalId" matches the record "externalId"
