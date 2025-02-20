@@ -115,6 +115,57 @@ class SuiteTalkRestClient:
 
         return True, None, all_items
 
+    def get_default_addresses(self, entity_type: str, entity_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
+        entity_ids_str = ",".join(map(str, entity_ids))
+        entity_id_field = f"{entity_type}.id"
+        addressbook_table = f"{entity_type}addressbook"
+        addressbook_entity_address_table = f"{entity_type}addressbookentityaddress"
+
+        query = (
+            f"SELECT {entity_id_field} as entityid, {addressbook_entity_address_table}.*, "
+            f"{addressbook_table}.defaultshipping, {addressbook_table}.defaultbilling "
+            f"FROM {entity_type} "
+            f"JOIN {addressbook_table} ON ({entity_id_field} = {addressbook_table}.entity) "
+            f"JOIN {addressbook_entity_address_table} ON ({addressbook_table}.addressbookaddress = {addressbook_entity_address_table}.nkey) "
+            f"WHERE {entity_id_field} IN ({entity_ids_str}) AND "
+            f"({addressbook_table}.defaultbilling = 'T' OR {addressbook_table}.defaultshipping = 'T')"
+        )
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, []
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+
+        default_addresses = {entity_id: {"billing": None, "shipping": None} for entity_id in entity_ids}
+
+        for item in items:
+            entity_id = item.get("entityid")
+            if entity_id:
+                if item.get("defaultbilling") == 'T':
+                    default_addresses[entity_id]["billing"] = item
+                if item.get("defaultshipping") == 'T':
+                    default_addresses[entity_id]["shipping"] = item
+
+        return True, None, default_addresses
+
+    def get_customer_default_addresses(self, customer_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
+        return self.get_default_addresses("customer", customer_ids)
+
+    def get_vendor_default_addresses(self, vendor_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
+        return self.get_default_addresses("vendor", vendor_ids)
+
     def _make_request(self, url, method, data=None, params=None, headers=None):
         request_headers = {"Content-Type": "application/json"}
         if headers:

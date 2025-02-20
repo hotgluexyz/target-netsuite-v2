@@ -9,7 +9,7 @@ class CustomerSchemaMapper(BaseMapper):
             **self._map_subrecord("Customers", "parent", "parentRef"),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef"),
             **self._map_phone_numbers(),
-            **self._map_addresses(),
+            **self._map_addresses("Customers"),
             **self._map_currency(),
         }
 

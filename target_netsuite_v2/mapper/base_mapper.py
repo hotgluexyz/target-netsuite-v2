@@ -2,7 +2,10 @@ class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
     PHONE_TYPE_MAP = { "unknown": "phone", "mobile": "mobilePhone", "home": "homePhone" }
-    ADDRESS_TYPE_MAP = { "shipping": "defaultShippingAddress", "billing": "defaultBillingAddress" }
+    ADDRESS_TYPE_MAP = {
+        "shipping": { "defaultShipping": True, "defaultBilling": False },
+        "billing": { "defaultShipping": False, "defaultBilling": True }
+    }
 
     def __init__(
             self,
@@ -209,15 +212,62 @@ class BaseMapper:
 
         return phones
 
-    def _map_addresses(self):
-        """Extracts addresses in NetSuite format."""
-        addresses = {}
+    def _map_addressbookaddress(self, unified):
+        return {
+            **self.ADDRESS_TYPE_MAP[unified["addressType"]],
+            "addressbookaddress": {
+                "addrText": unified.get("addressText"),
+                "addr1": unified.get("line1"),
+                "addr2": unified.get("line2"),
+                "addr3": unified.get("line3"),
+                "city": unified.get("city"),
+                "state": unified.get("state"),
+                "country": unified.get("country"),
+                "zip": unified.get("postalCode")
+            }
+        }
 
-        # this is broken
+    def _check_for_existing_address(self, unified, address_type, record_id):
+        existing_address = self.reference_data["Addresses"][record_id][address_type]
+        if not existing_address:
+            return False
+
+        fields_to_compare = {
+            "addrtext": "addressText",
+            "addr1": "line1",
+            "addr2": "line2",
+            "addr3": "line3",
+            "city": "city",
+            "state": "state",
+            "country": "country",
+            "zip": "postalCode"
+        }
+
+        for existing_field, unified_field in fields_to_compare.items():
+            if unified.get(unified_field) != existing_address.get(existing_field):
+                return False
+
+        return True
+
+    def _map_addresses(self, reference_type):
+        """Extracts addresses to a NetSuite addressbook."""
+        in_addresses = self.record.get("addresses", [])
+        out_addresses = []
+        record = self._find_existing_record(self.reference_data[reference_type])
+
+        if not in_addresses:
+            return {}
+
         for addr in self.record.get("addresses", []):
-            ns_key = self.ADDRESS_TYPE_MAP.get(addr.get("addressType"))
-            if ns_key:
-                addresses[ns_key] = f"{addr.get('line1', '')} {addr.get('line2', '')} {addr.get('line3', '')}, {addr.get('city', '')}, {addr.get('state', '')}, {addr.get('country', '')}, {addr.get('postalCode', '')}".replace("  ", " ").strip()
+            unified_address_type = addr.get("addressType")
+            if unified_address_type in self.ADDRESS_TYPE_MAP:
+                if record and not self._check_for_existing_address(addr, unified_address_type, record["internalId"]):
+                    addressboookaddress = self._map_addressbookaddress(addr)
+                    out_addresses.append(addressboookaddress)
+                else:
+                    addressboookaddress = self._map_addressbookaddress(addr)
+                    out_addresses.append(addressboookaddress)
 
-        return addresses
-
+        if out_addresses:
+            return { "addressbook": { "items": out_addresses } }
+        return {}
