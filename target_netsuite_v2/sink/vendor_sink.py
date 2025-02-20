@@ -6,25 +6,25 @@ class VendorSink(NetSuiteBatchSink):
     record_type = "vendor"
 
     def get_batch_reference_data(self, context) -> dict:
-        return {
-            **self._target.reference_data,
-            **self.get_primary_records_for_batch(context),
-            **self.get_addresses_for_batch(context)
-        }
-
-    def get_addresses_for_batch(self, context) -> dict:
         raw_records = context["records"]
 
-        ids = set()
+        ids = {record["id"] for record in raw_records if record.get("id")}
+        ids.update(record["parent"] for record in raw_records if record.get("parent"))
+        ids.update(record["parentRef"]["id"] for record in raw_records if record.get("parentRef", {}).get("id"))
 
-        for record in raw_records:
-            if record.get("id"):
-                ids.add(record["id"])
+        external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+
+        _, _, items = self.suite_talk_client.get_reference_data(
+            self.record_type,
+            record_ids=ids,
+            external_ids=external_ids
+        )
 
         _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, ids)
 
-
         return {
+            **self._target.reference_data,
+            self.name: items,
             "Addresses": addresses
         }
 

@@ -8,28 +8,14 @@ class CustomerSink(NetSuiteBatchSink):
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
 
-        ids = set()
-        external_ids = set()
-        sales_rep_ids = set()
+        ids = {record["id"] for record in raw_records if record.get("id")}
+        ids.update(record["parent"] for record in raw_records if record.get("parent"))
+        ids.update(record["parentRef"]["id"] for record in raw_records if record.get("parentRef", {}).get("id"))
 
-        for record in raw_records:
-            if record.get("id"):
-                ids.add(record["id"])
+        external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
 
-            if record.get("parent"):
-                ids.add(record["parent"])
-
-            if record.get("parentRef", {}).get("id"):
-                ids.add(record["parentRef"]["id"])
-
-            if record.get("externalId"):
-                external_ids.add(record["externalId"])
-
-            if record.get("salesRep"):
-                sales_rep_ids.add(record["salesRep"])
-
-            if record.get("salesRepRef", {}).get("id"):
-                sales_rep_ids.add(record["salesRepRef"]["id"])
+        sales_rep_ids = {record["salesRep"] for record in raw_records if record.get("salesRep")}
+        sales_rep_ids.update(record["salesRepRef"]["id"] for record in raw_records if record.get("salesRepRef", {}).get("id"))
 
         _, _, items = self.suite_talk_client.get_reference_data(
             self.record_type,
