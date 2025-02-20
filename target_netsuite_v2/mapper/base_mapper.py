@@ -272,3 +272,8 @@ class BaseMapper:
         if out_addresses:
             return { "addressbook": { "items": out_addresses } }
         return {}
+
+    def _map_custom_fields(self):
+        """Maps custom fields to a dictionary of name-value pairs."""
+        custom_fields = self.record.get("customFields", [])
+        return {field["name"]: field["value"] for field in custom_fields}
