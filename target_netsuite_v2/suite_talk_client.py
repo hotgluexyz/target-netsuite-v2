@@ -16,7 +16,8 @@ class SuiteTalkRestClient:
         "location": "location.id as internalId, location.name as name, location.externalId",
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
         "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId",
-        "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name"
+        "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
+        "employee": "employee.id as internalid, employee.externalId as externalid"
     }
 
     def __init__(self, config):
@@ -102,7 +103,8 @@ class SuiteTalkRestClient:
             resp_json = response.json()
             items = resp_json.get("items", [])
 
-            # SuiteQL response fields come in as lower case
+            # SuiteQL response fields come in as lower case,
+            # even when using `AS` syntax that includes capital letters
             for item in items:
                 if "internalid" in item:
                     item["internalId"] = item.pop("internalid")

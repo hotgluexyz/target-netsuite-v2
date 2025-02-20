@@ -80,10 +80,11 @@ class BaseMapper:
             if found_item:
                 return found_item
 
-        # If no match by id, try to find by reference object's name
+        # If no match by id, try to find by reference object's name.
+        # Not supported by all reference data types (for instance employee)
         if ref_name := ref_obj.get("name"):
             return next(
-                (item for item in reference_list if item["name"] == ref_name),
+                (item for item in reference_list if item.get("name") == ref_name),
                 None
             )
 
