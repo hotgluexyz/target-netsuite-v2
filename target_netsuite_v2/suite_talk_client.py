@@ -166,9 +166,6 @@ class SuiteTalkRestClient:
 
         return True, None, default_addresses
 
-    def get_vendor_default_addresses(self, vendor_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
-        return self.get_default_addresses("vendor", vendor_ids)
-
     def _make_request(self, url, method, data=None, params=None, headers=None):
         request_headers = {"Content-Type": "application/json"}
         if headers:

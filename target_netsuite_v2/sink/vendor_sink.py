@@ -21,7 +21,8 @@ class VendorSink(NetSuiteBatchSink):
             if record.get("id"):
                 ids.add(record["id"])
 
-        _, _, addresses = self.suite_talk_client.get_customer_default_addresses(list(ids))
+        _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, ids)
+
 
         return {
             "Addresses": addresses
