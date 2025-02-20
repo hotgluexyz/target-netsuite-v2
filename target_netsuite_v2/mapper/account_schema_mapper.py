@@ -5,7 +5,7 @@ class AccountSchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         payload = {
-            **self._map_internal_id("Accounts"),
+            **self._map_internal_id(),
             **self._map_currency(),
             **self._map_subrecord("Accounts", "parent", "parentRef"),
             **self._map_subrecord("Locations", "location", "locationRef"),

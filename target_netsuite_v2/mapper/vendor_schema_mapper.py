@@ -6,9 +6,9 @@ class VendorSchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         payload = {
-            **self._map_internal_id("Vendors"),
+            **self._map_internal_id(),
             **self._map_phone_numbers(),
-            **self._map_addresses("Vendors"),
+            **self._map_addresses(),
             **self._map_currency(),
             **self._map_subrecord("VendorCategory", "category", "categoryRef"),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef")

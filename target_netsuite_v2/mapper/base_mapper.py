@@ -10,10 +10,13 @@ class BaseMapper:
     def __init__(
             self,
             record,
+            sink_name,
             reference_data
     ) -> None:
         self.record = record
+        self.sink_name = sink_name
         self.reference_data = reference_data
+        self.existing_record = self._find_existing_record(self.reference_data[sink_name])
 
     def _find_existing_record(self, reference_list):
         """Finds an existing record in the reference data by matching internal or external ID.
@@ -188,10 +191,9 @@ class BaseMapper:
             }
         return {}
 
-    def _map_internal_id(self, reference_type):
-        record = self._find_existing_record(self.reference_data[reference_type])
-        if record:
-            return { "internalId": record["internalId"]}
+    def _map_internal_id(self):
+        if self.existing_record:
+            return { "internalId": self.existing_record["internalId"]}
         return {}
 
     def _map_currency(self):
@@ -250,11 +252,10 @@ class BaseMapper:
 
         return True
 
-    def _map_addresses(self, reference_type):
+    def _map_addresses(self):
         """Extracts addresses to a NetSuite addressbook."""
         in_addresses = self.record.get("addresses", [])
         out_addresses = []
-        record = self._find_existing_record(self.reference_data[reference_type])
 
         if not in_addresses:
             return {}
@@ -262,7 +263,7 @@ class BaseMapper:
         for addr in self.record.get("addresses", []):
             unified_address_type = addr.get("addressType")
             if unified_address_type in self.ADDRESS_TYPE_MAP:
-                if record and not self._check_for_existing_address(addr, unified_address_type, record["internalId"]):
+                if self.existing_record and not self._check_for_existing_address(addr, unified_address_type, self.existing_record["internalId"]):
                     addressboookaddress = self._map_addressbookaddress(addr)
                     out_addresses.append(addressboookaddress)
                 else:

@@ -29,4 +29,4 @@ class VendorSink(NetSuiteBatchSink):
         }
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
-        return VendorSchemaMapper(record, reference_data).to_netsuite()
+        return VendorSchemaMapper(record, self.name, reference_data).to_netsuite()

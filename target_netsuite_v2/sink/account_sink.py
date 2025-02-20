@@ -6,4 +6,4 @@ class AccountSink(NetSuiteBatchSink):
     record_type = "account"
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
-        return AccountSchemaMapper(record, reference_data).to_netsuite()
+        return AccountSchemaMapper(record, self.name, reference_data).to_netsuite()

@@ -5,14 +5,14 @@ class CustomerSchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         payload = {
-            **self._map_internal_id("Customers"),
+            **self._map_internal_id(),
             **self._map_subrecord("Customers", "parent", "parentRef"),
             **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef"),
             **self._map_subrecord("CustomerCategory", "category", "categoryRef"),
             **self._map_subrecord("Employees", "salesRep", "salesRepRef"),
             **self._map_custom_fields(),
             **self._map_phone_numbers(),
-            **self._map_addresses("Customers"),
+            **self._map_addresses(),
             **self._map_currency(),
         }
 
