@@ -231,7 +231,8 @@ class BaseMapper:
         }
 
     def _check_for_existing_address(self, unified, address_type, record_id):
-        existing_address = self.reference_data["Addresses"][record_id][address_type]
+        """Checks if an address already exists in the reference data."""
+        existing_address = self.reference_data["Addresses"].get(record_id, {}).get(address_type)
         if not existing_address:
             return False
 
@@ -246,33 +247,25 @@ class BaseMapper:
             "zip": "postalCode"
         }
 
-        for existing_field, unified_field in fields_to_compare.items():
-            if unified.get(unified_field) != existing_address.get(existing_field):
-                return False
-
-        return True
+        return all(
+            unified.get(unified_field) == existing_address.get(existing_field)
+            for existing_field, unified_field in fields_to_compare.items()
+        )
 
     def _map_addresses(self):
         """Extracts addresses to a NetSuite addressbook."""
         in_addresses = self.record.get("addresses", [])
-        out_addresses = []
-
         if not in_addresses:
             return {}
 
-        for addr in self.record.get("addresses", []):
-            unified_address_type = addr.get("addressType")
-            if unified_address_type in self.ADDRESS_TYPE_MAP:
-                if self.existing_record and not self._check_for_existing_address(addr, unified_address_type, self.existing_record["internalId"]):
-                    addressboookaddress = self._map_addressbookaddress(addr)
-                    out_addresses.append(addressboookaddress)
-                else:
-                    addressboookaddress = self._map_addressbookaddress(addr)
-                    out_addresses.append(addressboookaddress)
+        out_addresses = [
+            self._map_addressbookaddress(addr)
+            for addr in in_addresses
+            if addr.get("addressType") in self.ADDRESS_TYPE_MAP and
+               (not self.existing_record or not self._check_for_existing_address(addr, addr["addressType"], self.existing_record["internalId"]))
+        ]
 
-        if out_addresses:
-            return { "addressbook": { "items": out_addresses } }
-        return {}
+        return { "addressbook": { "items": out_addresses } } if out_addresses else {}
 
     def _map_custom_fields(self):
         """Maps custom fields to a dictionary of name-value pairs."""
