@@ -9,6 +9,7 @@ from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.sink.vendor_sink import VendorSink
 from target_netsuite_v2.sink.account_sink import AccountSink
 from target_netsuite_v2.sink.customer_sink import CustomerSink
+from target_netsuite_v2.sink.item_sink import ItemSink
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
 
@@ -24,7 +25,12 @@ class TargetNetsuiteV2(TargetHotglue):
         th.Property("ns_account", th.StringType)
     ).to_dict()
 
-    SINK_TYPES = [VendorSink, AccountSink, CustomerSink]
+    SINK_TYPES = [
+        VendorSink,
+        AccountSink,
+        CustomerSink,
+        ItemSink
+    ]
 
     def __init__(
         self,

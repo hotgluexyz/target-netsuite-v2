@@ -124,25 +124,3 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             state["error"] = error_message
 
         return id, success, state
-
-    def get_primary_records_for_batch(self, context) -> dict:
-        """Get the reference records for the sinks record type for a given batch"""
-        raw_records = context["records"]
-
-        ids = []
-        external_ids = []
-
-        for record in raw_records:
-            if record.get("id"):
-                ids.append(record["id"])
-
-            if record.get("externalId"):
-                external_ids.append(record["externalId"])
-
-        _, _, items = self.suite_talk_client.get_reference_data(
-            self.record_type,
-            record_ids=ids,
-            external_ids=external_ids
-        )
-
-        return { self.name: items }

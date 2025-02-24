@@ -11,18 +11,15 @@ class CustomerSink(NetSuiteBatchSink):
         ids = {record["id"] for record in raw_records if record.get("id")}
         ids.update(record["parent"] for record in raw_records if record.get("parent"))
         ids.update(record["parentRef"]["id"] for record in raw_records if record.get("parentRef", {}).get("id"))
-
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
-
-        sales_rep_ids = {record["salesRep"] for record in raw_records if record.get("salesRep")}
-        sales_rep_ids.update(record["salesRepRef"]["id"] for record in raw_records if record.get("salesRepRef", {}).get("id"))
-
-        _, _, items = self.suite_talk_client.get_reference_data(
+        _, _, customers = self.suite_talk_client.get_reference_data(
             self.record_type,
             record_ids=ids,
             external_ids=external_ids
         )
 
+        sales_rep_ids = {record["salesRep"] for record in raw_records if record.get("salesRep")}
+        sales_rep_ids.update(record["salesRepRef"]["id"] for record in raw_records if record.get("salesRepRef", {}).get("id"))
         _, _, employees = self.suite_talk_client.get_reference_data(
             "employee",
             record_ids=sales_rep_ids,
@@ -32,7 +29,7 @@ class CustomerSink(NetSuiteBatchSink):
 
         return {
             **self._target.reference_data,
-            self.name: items,
+            self.name: customers,
             "Addresses": addresses,
             "Employees": employees
         }

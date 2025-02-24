@@ -18,7 +18,8 @@ class SuiteTalkRestClient:
         "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId",
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
-        "employee": "employee.id as internalid, employee.externalId as externalid"
+        "employee": "employee.id as internalid, employee.externalId as externalid",
+        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name"
     }
 
     def __init__(self, config):
@@ -53,6 +54,63 @@ class SuiteTalkRestClient:
         record_id = self._extract_id_from_response_header(response.headers)
         return record_id, success, error_message
 
+    def create_item(self, item):
+        url = self.get_item_url(item)
+        if not url:
+            return None, False, "Unknown Item type and category"
+        response = self._make_request(url, "POST", data=item)
+        success, error_message = self._validate_response(response)
+        record_id = self._extract_id_from_response_header(response.headers)
+        return record_id, success, error_message
+
+    def update_item(self, item_id, item):
+        url = self.get_item_url(item)
+        url += f"/{str(item_id)}"
+        if not url:
+            return None, False, "Unknown Item type and category"
+        response = self._make_request(url, "PATCH", data=item)
+        success, error_message = self._validate_response(response)
+        record_id = self._extract_id_from_response_header(response.headers)
+        return record_id, success, error_message
+
+    def get_item_url(self, item: dict) -> str:
+        item_type = item.get("type")
+        item_subtype = item.get("category")
+        if item_type == "InvtPart":
+            endpoint = "inventoryItem"
+        elif item_type == "NonInvtPart":
+            if item_subtype == "Sale":
+                endpoint = "nonInventorySaleItem"
+            elif item_subtype == "Purchase":
+                endpoint = "nonInventoryPurchaseItem"
+            elif item_subtype == "Resale":
+                endpoint = "nonInventoryResaleItem"
+            else:
+                endpoint = None
+        elif item_type == "Service":
+            if item_subtype == "Sale":
+                endpoint = "serviceSaleItem"
+            elif item_subtype == "Purchase":
+                endpoint = "servicePurchaseItem"
+            elif item_subtype == "Resale":
+                endpoint = "serviceResaleItem"
+            else:
+                endpoint = None
+        elif item_type == "OtherCharge":
+            if item_subtype == "Sale":
+                endpoint = "otherChargeSaleItem"
+            elif item_subtype == "Purchase":
+                endpoint = "otherChargePurchaseItem"
+            elif item_subtype == "Resale":
+                endpoint = "otherChargeResaleItem"
+            else:
+                endpoint = None
+        else:
+            endpoint = None
+
+        if endpoint:
+            return f"{self.record_url}/{endpoint}"
+
     def get_reference_data(
         self,
         record_type,
@@ -60,8 +118,15 @@ class SuiteTalkRestClient:
         external_ids: Optional[List[str]] = None,
         page_size=1000
     ) -> List[Dict]:
+        # Early exit if both record_ids and external_ids are provided but empty
+        # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids
+        # Otherwise, we would simply not construct where clauses, and pull back everything.
+        if record_ids is not None and external_ids is not None and not record_ids and not external_ids:
+            return True, None, []
+
         select_clause = self.ref_select_clauses[record_type]
         where_clause = ""
+
         if record_ids:
             id_string = ",".join(str(id) for id in record_ids)
             where_clause = f"WHERE id IN ({id_string})"
