@@ -19,7 +19,8 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name ",
-        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name"
+        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name",
+        "transaction": "transaction.id, transaction.externalId"
     }
 
     ref_name_where_clauses = {
@@ -34,6 +35,10 @@ class SuiteTalkRestClient:
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
         "item": "item.fullName"
+    }
+
+    ref_filter_clauses = {
+        "transaction": "type = 'VendBill'"
     }
 
     def __init__(self, config):
@@ -133,7 +138,7 @@ class SuiteTalkRestClient:
         names: Optional[List[str]] = None,
         page_size=1000
     ) -> List[Dict]:
-        # Early exit if record_ids, external_ids, and names are provided but empty
+        # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
         if record_ids is not None and external_ids is not None and names is not None and not record_ids and not external_ids and not names:
@@ -150,7 +155,7 @@ class SuiteTalkRestClient:
             external_id_string = ",".join(f"'{id}'" for id in external_ids)
 
             if where_clause:
-                where_clause = f"{where_clause} OR externalId IN ({external_id_string}))"
+                where_clause = f"{where_clause} OR externalId IN ({external_id_string})"
             else:
                 where_clause = f"WHERE externalId IN ({external_id_string})"
 
@@ -161,6 +166,12 @@ class SuiteTalkRestClient:
                 where_clause = f"{where_clause} OR {self.ref_name_where_clauses[record_type]} IN ({names_string})"
             else:
                 where_clause = f"WHERE {self.ref_name_where_clauses[record_type]} IN ({names_string})"
+
+        if record_type in self.ref_filter_clauses:
+            if where_clause:
+                where_clause = f"{where_clause} AND {self.ref_filter_clauses[record_type]}"
+            else:
+                where_clause = f"WHERE {self.ref_filter_clauses[record_type]}"
 
         query = f"SELECT {select_clause} FROM {record_type}"
         if where_clause:
