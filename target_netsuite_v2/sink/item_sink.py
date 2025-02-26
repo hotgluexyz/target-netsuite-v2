@@ -10,10 +10,12 @@ class ItemSink(NetSuiteBatchSink):
 
         ids = {record["id"] for record in raw_records if record.get("id")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        names = {record["name"] for record in raw_records if record.get("name")}
         _, _, items = self.suite_talk_client.get_reference_data(
             self.record_type,
             record_ids=ids,
-            external_ids=external_ids
+            external_ids=external_ids,
+            names=names
         )
 
         return {

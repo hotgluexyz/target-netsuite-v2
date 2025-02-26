@@ -10,10 +10,12 @@ class VendorSink(NetSuiteBatchSink):
 
         ids = {record["id"] for record in raw_records if record.get("id")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        names = {record["vendorName"] for record in raw_records if record.get("vendorName")}
         _, _, vendors = self.suite_talk_client.get_reference_data(
             self.record_type,
             record_ids=ids,
-            external_ids=external_ids
+            external_ids=external_ids,
+            names=names
         )
 
         _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, ids)
