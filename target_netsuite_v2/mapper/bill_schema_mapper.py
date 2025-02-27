@@ -25,6 +25,7 @@ class BillSchemaMapper(BaseMapper):
             "totalAmount": "total",
             "issueDate": "tranDate",
             "exchangeRate": "exchangeRate",
+            "relatedPayments": "relatedPayments"
         }
 
         for record_key, payload_key in field_mappings.items():

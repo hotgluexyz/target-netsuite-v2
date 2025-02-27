@@ -1,5 +1,6 @@
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.bill_schema_mapper import BillSchemaMapper
+from target_netsuite_v2.mapper.bill_payment_schema_mapper import BillPaymentSchemaMapper
 
 class BillSink(NetSuiteBatchSink):
     name = "Bills"
@@ -44,5 +45,46 @@ class BillSink(NetSuiteBatchSink):
             "Items": items
         }
 
+    def upsert_record(self, record: dict, reference_data: dict):
+        state = {}
+
+        _record = self._omit_key(record, "relatedPayments")
+
+        if self.record_exists(record):
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], _record)
+        else:
+            id, success, error_message = self.suite_talk_client.create_record(self.record_type, _record)
+
+            if error_message:
+                state["error"] = error_message
+                return
+
+            _, _, error_message = self.create_child_records(id, record, reference_data)
+
+            if error_message:
+                state["error"] = error_message
+
+        return id, success, state
+
+    def create_child_records(self, parent_id: int, record: dict, reference_data: dict):
+        payments = record.get("relatedPayments", [])
+
+        created_ids = []
+        for payment in payments:
+            preprocessed_payment = BillPaymentSchemaMapper(payment, record.get("entity"), parent_id, reference_data).to_netsuite()
+
+            id, success, error_message = self.suite_talk_client.create_record("vendorPayment", preprocessed_payment)
+
+            if not success:
+                return created_ids, error_message, False
+
+            created_ids.append(id)
+
+        return created_ids, None, True
+
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
         return BillSchemaMapper(record, self.name, reference_data).to_netsuite()
+
+    def _omit_key(self, d, key):
+        return {k: v for k, v in d.items() if k != key}
+

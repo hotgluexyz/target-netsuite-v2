@@ -23,10 +23,10 @@ class ItemSink(NetSuiteBatchSink):
             "Items": items
         }
 
-    def upsert_record(self, record: dict, context: dict):
+    def upsert_record(self, record: dict, reference_data: dict):
         state = {}
 
-        if self.record_exists(record, context):
+        if self.record_exists(record):
             id, success, error_message = self.suite_talk_client.update_item(record['internalId'], record)
         else:
             id, success, error_message = self.suite_talk_client.create_item(record)

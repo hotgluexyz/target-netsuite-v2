@@ -19,7 +19,7 @@ class NetSuiteBaseSink(HotglueBaseSink):
         super().__init__(target, stream_name, schema, key_properties)
         self.suite_talk_client = self._target.suite_talk_client
 
-    def record_exists(self, record: dict, context: dict) -> bool:
+    def record_exists(self, record: dict) -> bool:
         return bool(record.get("internalId"))
 
     def build_record_hash(self, record: dict):
@@ -76,16 +76,16 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             record: Individual raw record in the stream.
             reference_data: A dictionary containing all reference_data necessary for a batch.
         """
-        preprocessed = self.preprocess_batch_record(record, reference_data)
-        hash = self.build_record_hash(preprocessed)
+        hash = self.build_record_hash(record)
         existing_state = self.get_existing_state(hash)
+        preprocessed = self.preprocess_batch_record(record, reference_data)
         external_id = preprocessed.get("externalId")
 
         if existing_state:
             self.update_state(existing_state, is_duplicate=True)
             return
 
-        id, success, state = self.upsert_record(preprocessed, {})
+        id, success, state = self.upsert_record(preprocessed, reference_data)
 
         if success:
             self.logger.info(f"{self.name} processed id: {id}")
@@ -112,10 +112,10 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         """
         pass
 
-    def upsert_record(self, record: dict, context: dict):
+    def upsert_record(self, record: dict, reference_data: dict):
         state = {}
 
-        if self.record_exists(record, context):
+        if self.record_exists(record):
             id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], record)
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
