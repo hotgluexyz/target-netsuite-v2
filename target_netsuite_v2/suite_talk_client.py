@@ -1,6 +1,7 @@
 import json
 import requests
 from typing import List, Dict, Optional
+from collections import defaultdict
 
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1
@@ -35,10 +36,6 @@ class SuiteTalkRestClient:
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
         "item": "item.fullName"
-    }
-
-    ref_filter_clauses = {
-        "transaction": "type = 'VendBill'"
     }
 
     def __init__(self, config):
@@ -130,6 +127,65 @@ class SuiteTalkRestClient:
         if endpoint:
             return f"{self.record_url}/{endpoint}"
 
+    def get_transaction_data(
+        self,
+        tran_ids: Optional[List[str]] = None,
+        page_size=1000
+    ) -> List[Dict]:
+        if  tran_ids is not None and not tran_ids:
+            return True, None, []
+
+        query = f"SELECT transaction.id as internalId, transaction.externalId FROM transaction WHERE transaction.type = 'VendBill'"
+
+        where_clause = ""
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clause = f"AND tranId IN ({tran_id_string})"
+
+        if where_clause:
+            query += f" {where_clause}"
+
+        all_items = []
+        offset = 0
+        limit = min(page_size, 1000)
+        has_more = True
+
+        while has_more:
+            query_data = {"q": query}
+            params = {"offset": offset, "limit": limit}
+            headers = {"Prefer": "transient"}
+
+            response = self._make_request(
+                url=self.suiteql_url,
+                method="POST",
+                data=query_data,
+                params=params,
+                headers=headers
+            )
+
+            success, error_message = self._validate_response(response)
+            if not success:
+                return success, error_message, []
+
+            resp_json = response.json()
+            items = resp_json.get("items", [])
+
+            # SuiteQL response fields come in as lower case,
+            # even when using `AS` syntax that includes capital letters
+            for item in items:
+                if "internalid" in item:
+                    item["internalId"] = item.pop("internalid")
+                if "externalid" in item:
+                    item["externalId"] = item.pop("externalid")
+
+            all_items.extend(items)
+
+            has_more = resp_json.get("hasMore", False)
+            offset += limit
+
+        return True, None, all_items
+
     def get_reference_data(
         self,
         record_type,
@@ -166,12 +222,6 @@ class SuiteTalkRestClient:
                 where_clause = f"{where_clause} OR {self.ref_name_where_clauses[record_type]} IN ({names_string})"
             else:
                 where_clause = f"WHERE {self.ref_name_where_clauses[record_type]} IN ({names_string})"
-
-        if record_type in self.ref_filter_clauses:
-            if where_clause:
-                where_clause = f"{where_clause} AND {self.ref_filter_clauses[record_type]}"
-            else:
-                where_clause = f"WHERE {self.ref_filter_clauses[record_type]}"
 
         query = f"SELECT {select_clause} FROM {record_type}"
         if where_clause:
@@ -216,6 +266,47 @@ class SuiteTalkRestClient:
             offset += limit
 
         return True, None, all_items
+
+    def get_bill_items(self, external_ids=None):
+        if external_ids is not None and not external_ids:
+            return True, None, []
+
+        where_clause = ""
+
+        if external_ids:
+            external_id_string = ",".join(f"'{id}'" for id in external_ids)
+            where_clause = f"AND t.tranid IN ({external_id_string})"
+
+        query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
+        if where_clause:
+            query += f" {where_clause}"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, []
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+        result = defaultdict(lambda: {"lineItems": [], "expenses": []})
+
+        for item in items:
+            transaction_id = item["transaction"]
+            category = "lineItems" if item.get("accountinglinetype") == "ASSET" else "expenses"
+            result[transaction_id][category].append(item)
+
+        return True, None, dict(result)
+
 
     def get_default_addresses(self, entity_type: str, entity_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
         if not entity_ids:

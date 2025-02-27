@@ -9,12 +9,10 @@ class BillSink(NetSuiteBatchSink):
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
 
-        ids = {record["id"] for record in raw_records if record.get("id")}
+        # ids = {record["id"] for record in raw_records if record.get("id")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
-        _, _, bills = self.suite_talk_client.get_reference_data(
-            "transaction",
-            record_ids=ids,
-            external_ids=external_ids
+        _, _, bills = self.suite_talk_client.get_transaction_data(
+            tran_ids=external_ids
         )
 
         vendor_ids = {record["vendor"] for record in raw_records if record.get("vendor")}
@@ -38,11 +36,16 @@ class BillSink(NetSuiteBatchSink):
             names = item_names
         )
 
+        _, _, bill_items = self.suite_talk_client.get_bill_items(
+            external_ids=external_ids
+        )
+
         return {
             **self._target.reference_data,
             "Bills": bills,
             "Vendors": vendors,
-            "Items": items
+            "Items": items,
+            "BillItems": bill_items
         }
 
     def upsert_record(self, record: dict, reference_data: dict):
@@ -61,6 +64,7 @@ class BillSink(NetSuiteBatchSink):
 
             _, _, error_message = self.create_child_records(id, record, reference_data)
 
+            # TODO: enrich error message with the payment that failed
             if error_message:
                 state["error"] = error_message
 
@@ -76,11 +80,11 @@ class BillSink(NetSuiteBatchSink):
             id, success, error_message = self.suite_talk_client.create_record("vendorPayment", preprocessed_payment)
 
             if not success:
-                return created_ids, error_message, False
+                return created_ids, False, error_message,
 
             created_ids.append(id)
 
-        return created_ids, None, True
+        return created_ids, True, None
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
         return BillSchemaMapper(record, self.name, reference_data).to_netsuite()
