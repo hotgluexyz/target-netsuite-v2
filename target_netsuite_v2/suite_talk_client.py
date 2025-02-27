@@ -20,7 +20,7 @@ class SuiteTalkRestClient:
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name ",
         "item": "item.id as internalid, item.externalId as externalId, item.fullname as name",
-        "transaction": "transaction.id, transaction.externalId"
+        "transaction": "transaction.id as internalId, transaction.externalId"
     }
 
     ref_name_where_clauses = {

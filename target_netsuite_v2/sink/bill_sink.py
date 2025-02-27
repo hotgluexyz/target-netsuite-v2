@@ -1,9 +1,9 @@
 from target_netsuite_v2.sinks import NetSuiteBatchSink
-# from target_netsuite_v2.mapper.account_schema_mapper import AccountSchemaMapper
+from target_netsuite_v2.mapper.bill_schema_mapper import BillSchemaMapper
 
 class BillSink(NetSuiteBatchSink):
     name = "Bills"
-    record_type = "transaction"
+    record_type = "vendorBill"
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
@@ -11,7 +11,7 @@ class BillSink(NetSuiteBatchSink):
         ids = {record["id"] for record in raw_records if record.get("id")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         _, _, bills = self.suite_talk_client.get_reference_data(
-            self.record_type,
+            "transaction",
             record_ids=ids,
             external_ids=external_ids
         )
@@ -25,12 +25,12 @@ class BillSink(NetSuiteBatchSink):
             names=vendor_names
         )
 
-        item_ids = {}
-        item_names = {}
+        item_ids = set()
+        item_names = set()
         for record in raw_records:
             item_ids.update(line_item["item"] for line_item in record.get("lineItems", []) if line_item.get("item"))
-            item_ids.update(line_item["itemRef"]["id"] for line_item in record.get("lineItems", []) if line_item.get("itemRef").get("id"))
-            item_names.update(line_item["itemRef"]["name"] for line_item in record.get("lineItems", []) if line_item.get("itemRef").get("name"))
+            item_ids.update(line_item["itemRef"]["id"] for line_item in record.get("lineItems", []) if line_item.get("itemRef", {}).get("id"))
+            item_names.update(line_item["itemRef"]["name"] for line_item in record.get("lineItems", []) if line_item.get("itemRef", {}).get("name"))
         _, _, items = self.suite_talk_client.get_reference_data(
             "item",
             record_ids = item_ids,
@@ -45,5 +45,4 @@ class BillSink(NetSuiteBatchSink):
         }
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
-        # return AccountSchemaMapper(record, self.name, reference_data).to_netsuite()
-        return {}
+        return BillSchemaMapper(record, self.name, reference_data).to_netsuite()
