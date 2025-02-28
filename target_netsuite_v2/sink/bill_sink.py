@@ -1,3 +1,4 @@
+from datetime import datetime
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.bill_schema_mapper import BillSchemaMapper
 from target_netsuite_v2.mapper.bill_payment_schema_mapper import BillPaymentSchemaMapper
@@ -40,13 +41,22 @@ class BillSink(NetSuiteBatchSink):
             external_ids=external_ids
         )
 
+        bill_ids = {bill["internalId"] for bill in bills}
+        _, _, bill_payments = self.suite_talk_client.get_bill_payments(
+            bill_ids=bill_ids
+        )
+
         return {
             **self._target.reference_data,
             "Bills": bills,
             "Vendors": vendors,
             "Items": items,
-            "BillItems": bill_items
+            "BillItems": bill_items,
+            "BillPayments": bill_payments
         }
+
+    def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
+        return BillSchemaMapper(record, self.name, reference_data).to_netsuite()
 
     def upsert_record(self, record: dict, reference_data: dict):
         state = {}
@@ -61,7 +71,11 @@ class BillSink(NetSuiteBatchSink):
                 state["error"] = error_message
                 return id, success, state
 
-            # create child records (payments) but only if they are new payments
+            _, _, error_message = self.create_child_records(id, record, reference_data)
+
+            # TODO: enrich error message with the payment that failed
+            if error_message:
+                state["error"] = error_message
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, _record)
 
@@ -141,6 +155,9 @@ class BillSink(NetSuiteBatchSink):
 
         created_ids = []
         for payment in payments:
+            if self.check_payment_exists(parent_id, payment, reference_data):
+                continue
+
             preprocessed_payment = BillPaymentSchemaMapper(payment, record.get("entity"), parent_id, reference_data).to_netsuite()
 
             id, success, error_message = self.suite_talk_client.create_record("vendorPayment", preprocessed_payment)
@@ -152,8 +169,41 @@ class BillSink(NetSuiteBatchSink):
 
         return created_ids, True, None
 
-    def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
-        return BillSchemaMapper(record, self.name, reference_data).to_netsuite()
+    def check_payment_exists(self, record_id, payment, reference_data):
+        existing_payments = reference_data["BillPayments"].get(record_id, {}).get("payments", [])
+        for existing_payment in existing_payments:
+            does_exist = self.compare_payment(existing_payment, payment)
+            if does_exist:
+                return True
+        return False
+
+    def compare_payment(self, existing_payment, new_payment):
+        existing_amount = abs(float(existing_payment.get("amount")))
+        new_amount = new_payment.get("amount")
+
+        if existing_amount != new_amount:
+            return False
+
+        existing_payment_date = existing_payment.get("trandate")
+        new_payment_date = new_payment.get("paymentDate")
+
+        if not self._are_dates_equivalent(existing_payment_date, new_payment_date):
+            return False
+
+        return True
+
+    def _are_dates_equivalent(self, netsuite_date, unified_date) -> bool:
+        """Compares two date strings and returns True if they have the same month, day, and year."""
+        if netsuite_date is None and unified_date is None:
+            return True
+        if netsuite_date is None or unified_date is None:
+            return False
+        try:
+            dt1 = datetime.strptime(unified_date[:10], "%Y-%m-%d")
+            dt2 = datetime.strptime(netsuite_date, "%m/%d/%Y")
+            return (dt1.year, dt1.month, dt1.day) == (dt2.year, dt2.month, dt2.day)
+        except ValueError:
+            return False
 
     def _omit_key(self, d, key):
         return {k: v for k, v in d.items() if k != key}

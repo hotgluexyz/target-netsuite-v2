@@ -307,6 +307,45 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
+    def get_bill_payments(self, bill_ids=None):
+        if bill_ids is not None and not bill_ids:
+            return True, None, []
+
+        where_clause = ""
+
+        if bill_ids:
+            external_id_string = ",".join(f"'{id}'" for id in bill_ids)
+            where_clause = f"and NTLL.PreviousDoc in ({external_id_string})"
+
+        query = "SELECT DISTINCT NTLL.PreviousDoc transaction, NT.ID ID, NT.tranid, NT.transactionNumber, NT.account account, NT.TranDate, NT.Type, BUILTIN.DF(NT.Status) status, NT.ForeignTotal amount, currency, exchangeRate FROM NextTransactionLineLink AS NTLL INNER JOIN Transaction AS NT ON (NT.ID = NTLL.NextDoc) WHERE NT.recordtype = 'vendorpayment'"
+        if where_clause:
+            query += f" {where_clause}"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, []
+
+        resp_json = response.json()
+        payments = resp_json.get("items", [])
+        result = defaultdict(lambda: {"payments": []})
+
+        for payment in payments:
+            transaction_id = payment["transaction"]
+            result[transaction_id]["payments"].append(payment)
+
+        return True, None, dict(result)
+
 
     def get_default_addresses(self, entity_type: str, entity_ids: List[str]) -> Dict[int, Dict[str, Optional[Dict]]]:
         if not entity_ids:
