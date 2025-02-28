@@ -135,7 +135,7 @@ class SuiteTalkRestClient:
         if  tran_ids is not None and not tran_ids:
             return True, None, []
 
-        query = f"SELECT transaction.id as internalId, transaction.externalId FROM transaction WHERE transaction.type = 'VendBill'"
+        query = f"SELECT transaction.id as internalId, transaction.tranid as externalId FROM transaction WHERE transaction.type = 'VendBill'"
 
         where_clause = ""
 
