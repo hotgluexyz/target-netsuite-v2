@@ -54,13 +54,20 @@ class BillSink(NetSuiteBatchSink):
         _record = self._omit_key(record, "relatedPayments")
 
         if self.record_exists(record):
-            id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], _record)
+            post_processed_record = self.post_processing_for_update(_record, reference_data)
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, _record['internalId'], post_processed_record)
+
+            if error_message:
+                state["error"] = error_message
+                return id, success, state
+
+            # create child records (payments) but only if they are new payments
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, _record)
 
             if error_message:
                 state["error"] = error_message
-                return
+                return id, success, state
 
             _, _, error_message = self.create_child_records(id, record, reference_data)
 
@@ -69,6 +76,65 @@ class BillSink(NetSuiteBatchSink):
                 state["error"] = error_message
 
         return id, success, state
+
+    def post_processing_for_update(self, record, reference_data):
+        items = record.get("item", {}).get("items")
+        new_items = []
+        for item in items:
+            exists = self.check_item_exists(record['internalId'], item, reference_data)
+            if not exists:
+                new_items.append(item)
+
+        if new_items:
+            new_item_payload = {
+                "items": new_items
+            }
+            record["item"] = new_item_payload
+        else:
+            record = self._omit_key(record, "item")
+
+        expenses = record.get("expense", {}).get("items")
+        new_expenses = []
+        for expense in expenses:
+            exists = self.check_expense_exists(record['internalId'], expense, reference_data)
+            if not exists:
+                new_expenses.append(expense)
+
+        if new_expenses:
+            new_expense_payload = {
+                "items": new_expenses
+            }
+            record["expense"] = new_expense_payload
+        else:
+            record = self._omit_key(record, "expense")
+
+        return record
+
+    def check_item_exists(self, record_id, item, reference_data):
+        existing_items = reference_data["BillItems"].get(record_id, {}).get("lineItems")
+        for existing_item in existing_items:
+            does_exist = self.compare_item(existing_item, item)
+            if does_exist:
+                return True
+        return False
+
+    def compare_item(self, existing_item, new_item):
+        if existing_item.get("memo") == new_item.get("description") and existing_item.get("memo") != None:
+            return True
+        return False
+
+    def check_expense_exists(self, record_id, expense, reference_data):
+        existing_expenses = reference_data["BillItems"].get(record_id, {}).get("expenses")
+        for existing_expense in existing_expenses:
+            does_exist = self.compare_expense(existing_expense, expense)
+            if does_exist:
+                return True
+        return False
+
+    def compare_expense(self, existing_expense, new_expense):
+        if existing_expense.get("memo") == new_expense.get("memo") and existing_expense.get("memo") != None:
+            return True
+        return False
 
     def create_child_records(self, parent_id: int, record: dict, reference_data: dict):
         payments = record.get("relatedPayments", [])
