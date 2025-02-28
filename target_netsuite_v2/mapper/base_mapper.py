@@ -1,3 +1,5 @@
+class InvalidReferenceError(Exception):
+    pass
 class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
@@ -91,54 +93,66 @@ class BaseMapper:
                 None
             )
 
-        return None
+        error_message = f"Unable to find reference for {main_field}."
+        tried_lookups = []
+
+        if direct_id or ref_id:
+            tried_lookups.append(f"Tried lookup by id {direct_id or ref_id}")
+        if ref_name:
+            tried_lookups.append(f"Tried lookup by name {ref_name}")
+
+        if tried_lookups:
+            error_message += " " + " ".join(tried_lookups)
+
+        raise InvalidReferenceError(error_message)
 
     def _find_references_by_id_or_ref(self, reference_list, main_field, ref_field):
-        """Generic method to find multiple references either by direct IDs or through reference objects
+        """Generic method to find multiple references either by direct IDs or through reference objects.
+
         Args:
             reference_list (list): List of reference data to search through (e.g. Subsidiaries)
             main_field (str): Name of the direct ID field (e.g. "subsidiary")
             ref_field (str): Name of the reference object field (e.g. "subsidiaryRef")
 
         Returns:
-            list[dict]: List of matching reference objects. Empty list if none found.
+            list[dict]: List of matching reference objects. Raises an error if any reference is not found.
         """
-        matches = set()  # Use set to avoid duplicates
+        matches = set()
+        missing_references = []
 
-        # Check for direct ID array first
         direct_ids = self.record.get(main_field, [])
         for direct_id in direct_ids:
-            if found := next(
-                (item for item in reference_list if item["internalId"] == direct_id),
-                None
-            ):
+            found = next((item for item in reference_list if item["internalId"] == direct_id), None)
+            if found:
                 matches.add(found["internalId"])
+            else:
+                missing_references.append(f"ID {direct_id}")
 
-        # Check for reference objects array
         ref_objects = self.record.get(ref_field, [])
         for ref_obj in ref_objects:
-            # Try to find by reference object's ID first
-            if ref_id := ref_obj.get("id"):
-                if found := next(
-                    (item for item in reference_list if item["internalId"] == ref_id),
-                    None
-                ):
-                    matches.add(found["internalId"])
-                    continue
+            ref_id = ref_obj.get("id")
+            ref_name = ref_obj.get("name")
+            found = None
 
-            # If no match by id, try to find by reference object's name
-            if ref_name := ref_obj.get("name"):
-                if found := next(
-                    (item for item in reference_list if item["name"] == ref_name),
-                    None
-                ):
+            if ref_id:
+                found = next((item for item in reference_list if item["internalId"] == ref_id), None)
+            if found:
+                matches.add(found["internalId"])
+            elif ref_name:
+                found = next((item for item in reference_list if item.get("name") == ref_name), None)
+                if found:
                     matches.add(found["internalId"])
 
-        # Convert the set of internalIds back to full reference objects
-        return [
-            item for item in reference_list
-            if item["internalId"] in matches
-        ]
+            if not found:
+                missing_info = f"ID {ref_id}" if ref_id else f"Name {ref_name}"
+                missing_references.append(missing_info)
+
+        # If any references were missing, raise an error
+        if missing_references:
+            error_message = f"Unable to find references for {main_field}. " + "Missing: " + ", ".join(missing_references)
+            raise InvalidReferenceError(error_message)
+
+        return [item for item in reference_list if item["internalId"] in matches]
 
     def _find_existing_currency(self, currency_symbol):
         """Find a currency in the reference data by searching by symbol"""

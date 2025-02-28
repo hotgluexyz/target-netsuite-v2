@@ -51,4 +51,5 @@ class CustomerSink(NetSuiteBatchSink):
         }
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
+        mapped = CustomerSchemaMapper(record, self.name, reference_data).to_netsuite()
         return CustomerSchemaMapper(record, self.name, reference_data).to_netsuite()

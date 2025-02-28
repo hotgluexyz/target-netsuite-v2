@@ -7,6 +7,7 @@ from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
+from target_netsuite_v2.mapper.base_mapper import InvalidReferenceError
 
 class NetSuiteBaseSink(HotglueBaseSink):
     def __init__(
@@ -78,7 +79,20 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         """
         hash = self.build_record_hash(record)
         existing_state = self.get_existing_state(hash)
-        preprocessed = self.preprocess_batch_record(record, reference_data)
+        try:
+            preprocessed = self.preprocess_batch_record(record, reference_data)
+        except InvalidReferenceError as e:
+            state = {}
+            state["error"] = str(e)
+            external_id = record.get("externalId")
+            if external_id:
+                state["externalId"] = external_id
+            id = record.get("id")
+            if id:
+                state["id"] = id
+            self.update_state(state)
+            return
+
         external_id = preprocessed.get("externalId")
 
         if existing_state:
