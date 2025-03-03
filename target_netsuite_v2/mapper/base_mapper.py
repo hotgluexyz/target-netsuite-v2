@@ -146,10 +146,15 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_existing_currency(self, currency_symbol):
-        """Find a currency in the reference data by searching by symbol"""
+    def _find_existing_currency(self, currency_symbol, currency_name, currency_id):
+        """Find a currency in the reference data by searching by symbol, name, or ID."""
         return next(
-            (item for item in self.reference_data["Currencies"] if item["symbol"] == currency_symbol),
+            (
+                item for item in self.reference_data["Currencies"]
+                if item["symbol"] == currency_symbol
+                or item["name"] == currency_name
+                or item["internalId"] == currency_id
+            ),
             None
         )
 
@@ -204,7 +209,10 @@ class BaseMapper:
 
     def _map_currency(self):
         """Extracts a currency object in NetSuite format"""
-        currency = self._find_existing_currency(self.record.get("currency"))
+        currency_symbol = self.record.get("currency")
+        currency_id = self.record.get("currencyId")
+        currency_name = self.record.get("currencyName")
+        currency = self._find_existing_currency(currency_symbol, currency_name, currency_id)
         if currency:
             return { "currency": { "id": currency["internalId"] } }
 
