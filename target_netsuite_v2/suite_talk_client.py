@@ -10,16 +10,16 @@ from target_hotglue.common import HGJSONEncoder
 class SuiteTalkRestClient:
     ref_select_clauses = {
         "account": "account.id as internalId, account.acctName as name, account.externalId",
-        "classification": "classification.id as internalId, classification.name, classification.externalId",
+        "classification": "classification.id as internalId, classification.name, classification.externalId, subsidiary as subsidiaryId",
         "currency": "currency.id as internalId, currency.symbol, currency.name",
         "customer": "customer.id as internalId, customer.companyName as name, customer.externalId",
-        "department": "department.id as internalId, department.name, department.externalId",
-        "location": "location.id as internalId, location.name as name, location.externalId",
+        "department": "department.id as internalId, department.name, department.externalId, subsidiary as subsidiaryId",
+        "location": "location.id as internalId, location.name as name, location.externalId, location.subsidiary as subsidiaryId",
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
-        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId",
+        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId, vendor.subsidiary as subsidiaryId",
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
-        "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name ",
+        "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
         "item": "item.id as internalid, item.externalId as externalId, item.fullname as name",
         "transaction": "transaction.id as internalId, transaction.externalId"
     }
@@ -178,6 +178,8 @@ class SuiteTalkRestClient:
                     item["internalId"] = item.pop("internalid")
                 if "externalid" in item:
                     item["externalId"] = item.pop("externalid")
+                if "subsidiaryid" in item:
+                    item["subsidiaryId"] = item.pop("subsidiaryid")
 
             all_items.extend(items)
 
@@ -259,6 +261,8 @@ class SuiteTalkRestClient:
                     item["internalId"] = item.pop("internalid")
                 if "externalid" in item:
                     item["externalId"] = item.pop("externalid")
+                if "subsidiaryid" in item:
+                    item["subsidiaryId"] = item.pop("subsidiaryid")
 
             all_items.extend(items)
 
@@ -269,7 +273,7 @@ class SuiteTalkRestClient:
 
     def get_bill_items(self, external_ids=None):
         if external_ids is not None and not external_ids:
-            return True, None, []
+            return True, None, {}
 
         where_clause = ""
 
@@ -294,7 +298,7 @@ class SuiteTalkRestClient:
 
         success, error_message = self._validate_response(response)
         if not success:
-            return success, error_message, []
+            return success, error_message, {}
 
         resp_json = response.json()
         items = resp_json.get("items", [])
@@ -309,7 +313,7 @@ class SuiteTalkRestClient:
 
     def get_bill_payments(self, bill_ids=None):
         if bill_ids is not None and not bill_ids:
-            return True, None, []
+            return True, None, {}
 
         where_clause = ""
 
@@ -334,7 +338,7 @@ class SuiteTalkRestClient:
 
         success, error_message = self._validate_response(response)
         if not success:
-            return success, error_message, []
+            return success, error_message, {}
 
         resp_json = response.json()
         payments = resp_json.get("items", [])

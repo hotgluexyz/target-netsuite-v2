@@ -54,16 +54,49 @@ class BaseMapper:
 
         return None
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field):
-        """Generic method to find a reference either by direct ID or through a reference object
-        Args:
-            reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
-            id_field (str): Name of the direct ID field
-            name_field (str): Name of the reference name field
+    def _find_subsidiaries(self, main_field, ref_field):
+        reference_list = self.reference_data["Subsidiaries"]
 
-        Returns:
-            dict|None: Matching reference object or None if not found
-        """
+        matches = set()
+        missing_references = []
+
+        direct_ids = self.record.get(main_field, [])
+        for direct_id in direct_ids:
+            found = next((item for item in reference_list if item["internalId"] == direct_id), None)
+            if found:
+                matches.add(found["internalId"])
+            else:
+                missing_references.append(f"ID {direct_id}")
+
+        ref_objects = self.record.get(ref_field, [])
+        for ref_obj in ref_objects:
+            ref_id = ref_obj.get("id")
+            ref_name = ref_obj.get("name")
+            found = None
+
+            if ref_id:
+                found = next((item for item in reference_list if item["internalId"] == ref_id), None)
+            if found:
+                matches.add(found["internalId"])
+            elif ref_name:
+                found = next((item for item in reference_list if item.get("name") == ref_name), None)
+                if found:
+                    matches.add(found["internalId"])
+
+            if not found:
+                missing_info = f"ID {ref_id}" if ref_id else f"Name {ref_name}"
+                missing_references.append(missing_info)
+
+        # If any references were missing, raise an error
+        if missing_references:
+            error_message = f"Unable to find references for {main_field}. " + "Missing: " + ", ".join(missing_references)
+            raise InvalidReferenceError(error_message)
+
+        return [item for item in reference_list if item["internalId"] in matches]
+
+    def _find_subsidiary(self, id_field, name_field):
+        reference_list = self.reference_data["Subsidiaries"]
+
         found = None
         # Check for direct ID field first
         if direct_id := self.record.get(id_field):
@@ -81,6 +114,57 @@ class BaseMapper:
                 (item for item in reference_list if item.get("name") == ref_name),
                 None
             )
+
+        if found:
+            return found
+
+        error_message = f"Unable to find reference for {id_field}."
+        tried_lookups = []
+
+        if direct_id:
+            tried_lookups.append(f"Tried lookup by id {direct_id}")
+        if ref_name:
+            tried_lookups.append(f"Tried lookup by name {ref_name}")
+
+        if tried_lookups:
+            error_message += " " + " ".join(tried_lookups)
+
+        raise InvalidReferenceError(error_message)
+
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None):
+        """Generic method to find a reference either by direct ID or through a reference object
+        Args:
+            reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
+            id_field (str): Name of the direct ID field
+            name_field (str): Name of the reference name field
+            subsidiary_scope (str): The ID of a subsidiary to filter by when doing name search
+
+        Returns:
+            dict|None: Matching reference object or None if not found
+        """
+        found = None
+        # Check for direct ID field first
+        if direct_id := self.record.get(id_field):
+            found = next(
+                (item for item in reference_list if item["internalId"] == direct_id),
+                None
+            )
+
+        if found:
+            return found
+
+        # If no match by id, try to find by reference name and subsidiary scope if provided.
+        if ref_name := self.record.get(name_field):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("name") == ref_name and
+                    (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                ),
+                None
+            )
+
 
         if found:
             return found
@@ -158,7 +242,7 @@ class BaseMapper:
             None
         )
 
-    def _map_subrecord(self, reference_type, id_field, name_field, target_field):
+    def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None):
         """Generic method to map a subrecord reference to NetSuite format
         Args:
             reference_type (str): Key in reference_data (e.g. "Accounts", "Locations")
@@ -171,7 +255,8 @@ class BaseMapper:
         reference = self._find_reference_by_id_or_ref(
             self.reference_data[reference_type],
             id_field,
-            name_field
+            name_field,
+            subsidiary_scope
         )
 
         if reference:

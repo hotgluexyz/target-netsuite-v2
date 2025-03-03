@@ -16,12 +16,14 @@ class ItemSchemaMapper(BaseMapper):
         return account_dict
 
     def to_netsuite(self) -> dict:
+        subsidiary_id = self._find_subsidiaries("subsidiary", "subsidiaryRef")[0].get("internalId")
+
         payload = {
             **self._map_internal_id(),
             **self._map_subrecord_list("Subsidiaries", "subsidiary", "subsidiaryRef"),
-            **self._map_subrecord("Locations", "locationId", "locationName", "location"),
-            **self._map_subrecord("Classifications", "classId", "className", "class"),
-            **self._map_subrecord("Departments", "departmentId", "departmentName", "department"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=subsidiary_id),
+            **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=subsidiary_id),
+            **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
             **self._map_accounts()
         }
         if "isActive" in self.record:

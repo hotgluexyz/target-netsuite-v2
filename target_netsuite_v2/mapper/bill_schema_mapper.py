@@ -6,15 +6,18 @@ class BillSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
+
+        subsidiary_id = self._find_subsidiary("subsidiaryId", "subsidiaryName").get("internalId")
+
         payload = {
             **self._map_internal_id(),
             **self._map_entity(),
             **self._map_currency(),
             **self._map_custom_fields(),
-            **self._map_subrecord("Locations", "locationId", "locationName", "location"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
-            **self._map_bill_line_items(),
-            **self._map_bill_expenses()
+            **self._map_bill_line_items(subsidiary_id),
+            **self._map_bill_expenses(subsidiary_id)
         }
 
         field_mappings = {
@@ -46,12 +49,12 @@ class BillSchemaMapper(BaseMapper):
 
         return {}
 
-    def _map_bill_line_items(self):
+    def _map_bill_line_items(self, subsidiary_id):
         line_items = self.record.get("lineItems", [])
         mapped_line_items = []
 
         for line_item in line_items:
-            payload = BillLineItemSchemaMapper(line_item, self.reference_data).to_netsuite()
+            payload = BillLineItemSchemaMapper(line_item, self.reference_data, subsidiary_id).to_netsuite()
             mapped_line_items.append(payload)
 
         if mapped_line_items:
@@ -59,12 +62,12 @@ class BillSchemaMapper(BaseMapper):
         else:
             return {}
 
-    def _map_bill_expenses(self):
+    def _map_bill_expenses(self, subsidiary_id):
         expenses = self.record.get("expenses", [])
         mapped_expenses = []
 
         for expense in expenses:
-            payload =  BillExpenseSchemaMapper(expense, self.reference_data).to_netsuite()
+            payload =  BillExpenseSchemaMapper(expense, self.reference_data, subsidiary_id).to_netsuite()
             mapped_expenses.append(payload)
 
         if mapped_expenses:
