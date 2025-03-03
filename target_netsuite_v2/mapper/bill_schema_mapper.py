@@ -11,8 +11,8 @@ class BillSchemaMapper(BaseMapper):
             **self._map_entity(),
             **self._map_currency(),
             **self._map_custom_fields(),
-            **self._map_subrecord("Locations", "location", "locationRef"),
-            **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location"),
+            **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
             **self._map_bill_line_items(),
             **self._map_bill_expenses()
         }
@@ -37,8 +37,8 @@ class BillSchemaMapper(BaseMapper):
     def _map_entity(self):
         reference = self._find_reference_by_id_or_ref(
             self.reference_data["Vendors"],
-            "vendor",
-            "vendorRef"
+            "vendorId",
+            "vendorName"
         )
 
         if reference:

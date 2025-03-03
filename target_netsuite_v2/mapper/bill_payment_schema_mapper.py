@@ -17,7 +17,7 @@ class BillPaymentSchemaMapper(BaseMapper):
         payload = {
             "entity": self.entity,
             **self._map_currency(),
-            **self._map_subrecord("Accounts", "account", "accountRef"),
+            **self._map_subrecord("Accounts", "accountId", "accountName", "account"),
             **self._map_apply()
         }
 

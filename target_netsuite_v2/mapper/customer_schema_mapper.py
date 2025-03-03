@@ -6,10 +6,10 @@ class CustomerSchemaMapper(BaseMapper):
         """Transforms the unified record into a NetSuite-compatible payload."""
         payload = {
             **self._map_internal_id(),
-            **self._map_subrecord("Customers", "parent", "parentRef"),
-            **self._map_subrecord("Subsidiaries", "subsidiary", "subsidiaryRef"),
-            **self._map_subrecord("CustomerCategory", "category", "categoryRef"),
-            **self._map_subrecord("Employees", "salesRep", "salesRepRef"),
+            **self._map_subrecord("Customers", "parentId", "parentName", "parent"),
+            **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
+            **self._map_subrecord("CustomerCategory", "categoryId", "categoryName", "category"),
+            **self._map_subrecord("Employees", "salesRepId", "salesRepName", "salesRep"),
             **self._map_custom_fields(),
             **self._map_phone_numbers(),
             **self._map_addresses(),

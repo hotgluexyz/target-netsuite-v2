@@ -12,11 +12,11 @@ class BillLineItemSchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         payload = {
             **self._map_custom_fields(),
-            **self._map_subrecord("Items", "item", "itemRef"),
-            **self._map_subrecord("Accounts", "account", "accountRef"),
-            **self._map_subrecord("Locations", "location", "locationRef"),
-            **self._map_subrecord("Classifications", "class", "classRef"),
-            **self._map_subrecord("Departments", "department", "departmentRef"),
+            **self._map_subrecord("Items", "itemId", "itemName", "item"),
+            **self._map_subrecord("Accounts", "accountId", "accountName", "account"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location"),
+            **self._map_subrecord("Classifications", "classId", "className", "class"),
+            **self._map_subrecord("Departments", "departmentId", "departmentName", "department"),
         }
 
         field_mappings = {

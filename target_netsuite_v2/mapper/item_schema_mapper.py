@@ -19,9 +19,9 @@ class ItemSchemaMapper(BaseMapper):
         payload = {
             **self._map_internal_id(),
             **self._map_subrecord_list("Subsidiaries", "subsidiary", "subsidiaryRef"),
-            **self._map_subrecord("Locations", "location", "locationRef"),
-            **self._map_subrecord("Classifications", "class", "classRef"),
-            **self._map_subrecord("Departments", "department", "departmentRef"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location"),
+            **self._map_subrecord("Classifications", "classId", "className", "class"),
+            **self._map_subrecord("Departments", "departmentId", "departmentName", "department"),
             **self._map_accounts()
         }
         if "isActive" in self.record:

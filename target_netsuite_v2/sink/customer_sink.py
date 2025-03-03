@@ -8,19 +8,12 @@ class CustomerSink(NetSuiteBatchSink):
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
 
-        # Get customer ids
         ids = {record["id"] for record in raw_records if record.get("id")}
-        ids.update(record["parent"] for record in raw_records if record.get("parent"))
-        ids.update(record["parentRef"]["id"] for record in raw_records if record.get("parentRef", {}).get("id"))
-
-        # Get customer external ids
+        ids.update(record["parentId"] for record in raw_records if record.get("parentId"))
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        names = {record["parentName"] for record in raw_records if record.get("parentName")}
+        names.update({record["companyName"] for record in raw_records if record.get("companyName")})
 
-        # Get customer names
-        names = {record["companyName"] for record in raw_records if record.get("companyName")}
-        names.update(record["parentRef"]["name"] for record in raw_records if record.get("parentRef", {}).get("name"))
-
-        # Get customers
         _, _, customers = self.suite_talk_client.get_reference_data(
             self.record_type,
             record_ids=ids,
@@ -28,13 +21,8 @@ class CustomerSink(NetSuiteBatchSink):
             names=names
         )
 
-        # Get sales rep ids
-        sales_rep_ids = {record["salesRep"] for record in raw_records if record.get("salesRep")}
-        sales_rep_ids.update(record["salesRepRef"]["id"] for record in raw_records if record.get("salesRepRef", {}).get("id"))
-
-        # Get sales rep names
-        sales_rep_names = {record["salesRepRef"]["name"] for record in raw_records if record.get("salesRepRef", {}).get("name")}
-
+        sales_rep_ids = {record["salesRepId"] for record in raw_records if record.get("salesRepId")}
+        sales_rep_names = {record["salesRepName"] for record in raw_records if record.get("salesRepName")}
         _, _, employees = self.suite_talk_client.get_reference_data(
             "employee",
             record_ids=sales_rep_ids,
@@ -51,5 +39,4 @@ class CustomerSink(NetSuiteBatchSink):
         }
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
-        mapped = CustomerSchemaMapper(record, self.name, reference_data).to_netsuite()
         return CustomerSchemaMapper(record, self.name, reference_data).to_netsuite()

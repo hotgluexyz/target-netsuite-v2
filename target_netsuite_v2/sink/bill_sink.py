@@ -10,15 +10,13 @@ class BillSink(NetSuiteBatchSink):
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
 
-        # ids = {record["id"] for record in raw_records if record.get("id")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         _, _, bills = self.suite_talk_client.get_transaction_data(
             tran_ids=external_ids
         )
 
-        vendor_ids = {record["vendor"] for record in raw_records if record.get("vendor")}
-        vendor_ids.update(record["vendorRef"]["id"] for record in raw_records if record.get("vendorRef", {}).get("id"))
-        vendor_names = {record["vendorRef"]["name"] for record in raw_records if record.get("vendorRef", {}).get("name")}
+        vendor_ids = {record["vendorId"] for record in raw_records if record.get("vendorId")}
+        vendor_names = {record["vendorName"] for record in raw_records if record.get("vendorName")}
         _, _, vendors = self.suite_talk_client.get_reference_data(
             "vendor",
             record_ids=vendor_ids,
@@ -28,9 +26,8 @@ class BillSink(NetSuiteBatchSink):
         item_ids = set()
         item_names = set()
         for record in raw_records:
-            item_ids.update(line_item["item"] for line_item in record.get("lineItems", []) if line_item.get("item"))
-            item_ids.update(line_item["itemRef"]["id"] for line_item in record.get("lineItems", []) if line_item.get("itemRef", {}).get("id"))
-            item_names.update(line_item["itemRef"]["name"] for line_item in record.get("lineItems", []) if line_item.get("itemRef", {}).get("name"))
+            item_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_names.update(line_item["itemName"] for line_item in record.get("lineItems", []) if line_item.get("itemName"))
         _, _, items = self.suite_talk_client.get_reference_data(
             "item",
             record_ids = item_ids,

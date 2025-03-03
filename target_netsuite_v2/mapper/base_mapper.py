@@ -54,50 +54,42 @@ class BaseMapper:
 
         return None
 
-    def _find_reference_by_id_or_ref(self, reference_list, main_field, ref_field):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
-            main_field (str): Name of the direct ID field (e.g. "parent", "location")
-            ref_field (str): Name of the reference object field (e.g. "parentRef", "locationRef")
+            id_field (str): Name of the direct ID field
+            name_field (str): Name of the reference name field
 
         Returns:
             dict|None: Matching reference object or None if not found
         """
+        found = None
         # Check for direct ID field first
-        if direct_id := self.record.get(main_field):
-            return next(
+        if direct_id := self.record.get(id_field):
+            found = next(
                 (item for item in reference_list if item["internalId"] == direct_id),
                 None
             )
 
-        # If no direct ID field, check for reference object
-        ref_obj = self.record.get(ref_field)
-        if not ref_obj:
-            return None
+        if found:
+            return found
 
-        # Try to find by reference object's ID first
-        if ref_id := ref_obj.get("id"):
-            found_item = next(
-                (item for item in reference_list if item["internalId"] == ref_id),
-                None
-            )
-            if found_item:
-                return found_item
-
-        # If no match by id, try to find by reference object's name.
-        # Not supported by all reference data types (for instance employee)
-        if ref_name := ref_obj.get("name"):
-            return next(
+        # If no match by id, try to find by reference name.
+        if ref_name := self.record.get(name_field):
+            found = next(
                 (item for item in reference_list if item.get("name") == ref_name),
                 None
             )
 
-        error_message = f"Unable to find reference for {main_field}."
+        if found:
+            return found
+
+        error_message = f"Unable to find reference for {id_field}."
         tried_lookups = []
 
-        if direct_id or ref_id:
-            tried_lookups.append(f"Tried lookup by id {direct_id or ref_id}")
+        if direct_id:
+            tried_lookups.append(f"Tried lookup by id {direct_id}")
         if ref_name:
             tried_lookups.append(f"Tried lookup by name {ref_name}")
 
@@ -161,7 +153,7 @@ class BaseMapper:
             None
         )
 
-    def _map_subrecord(self, reference_type, field_name, ref_field_name):
+    def _map_subrecord(self, reference_type, id_field, name_field, target_field):
         """Generic method to map a subrecord reference to NetSuite format
         Args:
             reference_type (str): Key in reference_data (e.g. "Accounts", "Locations")
@@ -173,12 +165,12 @@ class BaseMapper:
         """
         reference = self._find_reference_by_id_or_ref(
             self.reference_data[reference_type],
-            field_name,
-            ref_field_name
+            id_field,
+            name_field
         )
 
         if reference:
-            return { field_name: { "id": reference["internalId"] } }
+            return { target_field: { "id": reference["internalId"] } }
 
         return {}
 
