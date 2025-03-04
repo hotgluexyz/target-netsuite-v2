@@ -175,7 +175,7 @@ class BillSink(NetSuiteBatchSink):
         return False
 
     def compare_payment(self, existing_payment, new_payment):
-        existing_amount = abs(float(existing_payment.get("amount")))
+        existing_amount = -(float(existing_payment.get("amount")))
         new_amount = new_payment.get("amount")
 
         if existing_amount != new_amount:
