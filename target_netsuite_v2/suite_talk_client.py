@@ -20,8 +20,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
-        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name",
-        "transaction": "transaction.id as internalId, transaction.externalId"
+        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name"
     }
 
     ref_name_where_clauses = {
@@ -129,19 +128,19 @@ class SuiteTalkRestClient:
 
     def get_transaction_data(
         self,
-        tran_ids: Optional[List[str]] = None,
+        transaction_type,
+        external_ids: Optional[List[str]] = None,
         page_size=1000
     ) -> List[Dict]:
-        if  tran_ids is not None and not tran_ids:
+        if  external_ids is not None and not external_ids:
             return True, None, []
-
-        query = f"SELECT transaction.id as internalId, transaction.tranid as externalId FROM transaction WHERE transaction.type = 'VendBill'"
+        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId FROM transaction WHERE transaction.type = '{transaction_type}'"
 
         where_clause = ""
 
-        if tran_ids:
-            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
-            where_clause = f"AND tranId IN ({tran_id_string})"
+        if external_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in external_ids)
+            where_clause = f"AND externalId IN ({tran_id_string})"
 
         if where_clause:
             query += f" {where_clause}"
@@ -279,7 +278,7 @@ class SuiteTalkRestClient:
 
         if external_ids:
             external_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND t.tranid IN ({external_id_string})"
+            where_clause = f"AND t.externalid IN ({external_id_string})"
 
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:

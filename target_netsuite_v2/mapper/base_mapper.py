@@ -351,7 +351,7 @@ class BaseMapper:
             for existing_field, unified_field in fields_to_compare.items()
         )
 
-    def _map_addresses(self):
+    def _map_addressbook(self):
         """Extracts addresses to a NetSuite addressbook."""
         in_addresses = self.record.get("addresses", [])
         if not in_addresses:

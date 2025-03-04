@@ -14,7 +14,7 @@ class CustomerSchemaMapper(BaseMapper):
             **self._map_subrecord("Employees", "salesRepId", "salesRepName", "salesRep", subsidiary_scope=subsidiary_id),
             **self._map_custom_fields(),
             **self._map_phone_numbers(),
-            **self._map_addresses(),
+            **self._map_addressbook(),
             **self._map_currency(),
         }
 

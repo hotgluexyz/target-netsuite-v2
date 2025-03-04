@@ -11,6 +11,7 @@ from target_netsuite_v2.sink.account_sink import AccountSink
 from target_netsuite_v2.sink.customer_sink import CustomerSink
 from target_netsuite_v2.sink.item_sink import ItemSink
 from target_netsuite_v2.sink.bill_sink import BillSink
+from target_netsuite_v2.sink.invoice_sink import InvoiceSink
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
 
@@ -31,7 +32,8 @@ class TargetNetsuiteV2(TargetHotglue):
         AccountSink,
         CustomerSink,
         ItemSink,
-        BillSink
+        BillSink,
+        InvoiceSink
     ]
 
     def __init__(

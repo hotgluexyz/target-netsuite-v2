@@ -8,7 +8,7 @@ class VendorSchemaMapper(BaseMapper):
         payload = {
             **self._map_internal_id(),
             **self._map_phone_numbers(),
-            **self._map_addresses(),
+            **self._map_addressbook(),
             **self._map_currency(),
             **self._map_subrecord("VendorCategory", "categoryId", "categoryName", "category"),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary")

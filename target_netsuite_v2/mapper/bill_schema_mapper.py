@@ -22,7 +22,6 @@ class BillSchemaMapper(BaseMapper):
 
         field_mappings = {
             "externalId": "externalId",
-            "externalId": "tranId",
             "dueDate": "dueDate",
             "balance": "balance",
             "totalAmount": "total",
