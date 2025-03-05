@@ -191,20 +191,3 @@ class BillSink(NetSuiteBatchSink):
             return False
 
         return True
-
-    def _are_dates_equivalent(self, netsuite_date, unified_date) -> bool:
-        """Compares two date strings and returns True if they have the same month, day, and year."""
-        if netsuite_date is None and unified_date is None:
-            return True
-        if netsuite_date is None or unified_date is None:
-            return False
-        try:
-            dt1 = datetime.strptime(unified_date[:10], "%Y-%m-%d")
-            dt2 = datetime.strptime(netsuite_date, "%m/%d/%Y")
-            return (dt1.year, dt1.month, dt1.day) == (dt2.year, dt2.month, dt2.day)
-        except ValueError:
-            return False
-
-    def _omit_key(self, d, key):
-        return {k: v for k, v in d.items() if k != key}
-
