@@ -94,12 +94,15 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_subsidiary(self, id_field, name_field):
+    def _find_subsidiary(self):
+        if "subsidiaryId" not in self.record and "subsidiaryName" not in self.record and not self.existing_record:
+            raise InvalidReferenceError("Missing both 'subsidiaryId' and 'subsidiaryName' in record. Can not process.")
+
         reference_list = self.reference_data["Subsidiaries"]
 
         found = None
         # Check for direct ID field first
-        if direct_id := self.record.get(id_field):
+        if direct_id := self.record.get("subsidiaryId"):
             found = next(
                 (item for item in reference_list if item["internalId"] == direct_id),
                 None
@@ -109,7 +112,7 @@ class BaseMapper:
             return found
 
         # If no match by id, try to find by reference name.
-        if ref_name := self.record.get(name_field):
+        if ref_name := self.record.get("subsidiaryName"):
             found = next(
                 (item for item in reference_list if item.get("name") == ref_name),
                 None
@@ -118,7 +121,7 @@ class BaseMapper:
         if found:
             return found
 
-        error_message = f"Unable to find reference for {id_field}."
+        error_message = f"Unable to find subsidiary."
         tried_lookups = []
 
         if direct_id:
@@ -165,11 +168,10 @@ class BaseMapper:
                 None
             )
 
-
         if found:
             return found
 
-        error_message = f"Unable to find reference for {id_field}."
+        error_message = f"Unable to find {id_field.replace('Id', '')}."
         tried_lookups = []
 
         if direct_id:
