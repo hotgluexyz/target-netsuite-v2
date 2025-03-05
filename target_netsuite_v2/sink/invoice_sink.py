@@ -1,5 +1,7 @@
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.invoice_schema_mapper import InvoiceSchemaMapper
+from target_netsuite_v2.mapper.invoice_payment_schema_mapper import InvoicePaymentSchemaMapper
+from target_netsuite_v2.mapper.base_mapper import InvalidReferenceError
 
 class InvoiceSink(NetSuiteBatchSink):
     name = "Invoices"
@@ -53,3 +55,55 @@ class InvoiceSink(NetSuiteBatchSink):
 
     def preprocess_batch_record(self, record: dict, reference_data: dict) -> dict:
         return InvoiceSchemaMapper(record, self.name, reference_data).to_netsuite()
+
+    def upsert_record(self, record: dict, reference_data: dict):
+        state = {}
+
+        _record = self._omit_key(record, "relatedPayments")
+
+        if self.record_exists(record):
+            post_processed_record = self.post_processing_for_update(_record, reference_data)
+            id, success, error_message = self.suite_talk_client.update_record(self.record_type, _record['internalId'], post_processed_record)
+
+            if error_message:
+                state["error"] = error_message
+                return id, success, state
+
+            _, success, error_messages = self.create_child_records(id, record, reference_data)
+
+            if error_messages:
+                state["error"] = error_messages
+        else:
+            id, success, error_message = self.suite_talk_client.create_record(self.record_type, _record)
+
+            if error_message:
+                state["error"] = error_message
+                return id, success, state
+
+            _, success, error_messages = self.create_child_records(id, record, reference_data)
+
+            if error_messages:
+                state["error"] = error_messages
+
+        return id, success, state
+
+    def create_child_records(self, parent_id: int, record: dict, reference_data: dict):
+        payments = record.get("relatedPayments", [])
+
+        created_ids = []
+        error_messages = []
+        for payment in payments:
+            # if self.check_payment_exists(parent_id, payment, reference_data):
+            #     continue
+
+            try:
+                preprocessed_payment = InvoicePaymentSchemaMapper(payment, record.get("entity"), parent_id, reference_data).to_netsuite()
+                id, success, error_message = self.suite_talk_client.create_record("customerPayment", preprocessed_payment)
+                if not success:
+                    error_messages.append(f"Error creating payment for Invoice: {error_message}")
+                else:
+                    created_ids.append(id)
+            except InvalidReferenceError as e:
+                error_messages.append(f"Error creating payment for Invoice: {str(e)}")
+
+        return created_ids, len(error_messages) == 0, error_messages

@@ -1,21 +1,21 @@
 from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
-class BillPaymentSchemaMapper(BaseMapper):
+class InvoicePaymentSchemaMapper(BaseMapper):
     def __init__(
             self,
             record,
             entity,
-            vendor_bill_id,
+            invoice_id,
             reference_data
     ) -> None:
         self.record = record
         self.entity = entity
-        self.vendor_bill_id = vendor_bill_id
+        self.invoice_id = invoice_id
         self.reference_data = reference_data
 
     def to_netsuite(self) -> dict:
         payload = {
-            "entity": self.entity,
+            "customer": self.entity,
             **self._map_currency(),
             **self._map_subrecord("Accounts", "accountId", "accountName", "account"),
             **self._map_apply()
@@ -39,7 +39,7 @@ class BillPaymentSchemaMapper(BaseMapper):
                 "items": [
                     {
                         "doc": {
-                            "id": self.vendor_bill_id
+                            "id": self.invoice_id
                         },
                         "apply": True,
                         "amount": self.record.get("amount")
