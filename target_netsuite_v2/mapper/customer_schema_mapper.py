@@ -27,7 +27,7 @@ class CustomerSchemaMapper(BaseMapper):
             "lastName": "lastName",
             "title": "title",
             "email": "email",
-            "url": "url",
+            "website": "url",
             "printOnCheckAs": "printOnCheckAs"
         }
 
