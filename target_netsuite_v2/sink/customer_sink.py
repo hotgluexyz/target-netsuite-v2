@@ -29,7 +29,7 @@ class CustomerSink(NetSuiteBatchSink):
             names=sales_rep_names
         )
 
-        _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, ids)
+        _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, {customer["internalId"] for customer in customers})
 
         return {
             **self._target.reference_data,

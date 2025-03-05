@@ -18,7 +18,7 @@ class VendorSink(NetSuiteBatchSink):
             names=names
         )
 
-        _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, ids)
+        _, _, addresses = self.suite_talk_client.get_default_addresses(self.record_type, {vendor["internalId"] for vendor in vendors})
 
         return {
             **self._target.reference_data,

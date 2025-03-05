@@ -21,7 +21,7 @@ class CustomerSchemaMapper(BaseMapper):
         field_mappings = {
             "externalId": "externalId",
             "companyName": "companyName",
-            "salutation": "salutation",
+            "prefix": "salutation",
             "firstName": "firstName",
             "middleName": "middleName",
             "lastName": "lastName",
