@@ -171,18 +171,20 @@ class BaseMapper:
         if found:
             return found
 
-        error_message = f"Unable to find {id_field.replace('Id', '')}."
-        tried_lookups = []
+        # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
+        if direct_id or ref_name:
+            error_message = f"Unable to find {id_field.replace('Id', '')}."
+            tried_lookups = []
 
-        if direct_id:
-            tried_lookups.append(f"Tried lookup by id {direct_id}")
-        if ref_name:
-            tried_lookups.append(f"Tried lookup by name {ref_name}")
+            if direct_id:
+                tried_lookups.append(f"Tried lookup by id {direct_id}")
+            if ref_name:
+                tried_lookups.append(f"Tried lookup by name {ref_name}")
 
-        if tried_lookups:
-            error_message += " " + " ".join(tried_lookups)
+            if tried_lookups:
+                error_message += " " + " ".join(tried_lookups)
 
-        raise InvalidReferenceError(error_message)
+            raise InvalidReferenceError(error_message)
 
     def _find_references_by_id_or_ref(self, reference_list, main_field, ref_field):
         """Generic method to find multiple references either by direct IDs or through reference objects.
