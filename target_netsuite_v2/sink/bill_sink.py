@@ -89,7 +89,7 @@ class BillSink(NetSuiteBatchSink):
         return id, success, state
 
     def post_processing_for_update(self, record, reference_data):
-        items = record.get("item", {}).get("items")
+        items = record.get("item", {}).get("items", [])
         new_items = []
         for item in items:
             exists = self.check_item_exists(record['internalId'], item, reference_data)
@@ -104,7 +104,7 @@ class BillSink(NetSuiteBatchSink):
         else:
             record = self._omit_key(record, "item")
 
-        expenses = record.get("expense", {}).get("items")
+        expenses = record.get("expense", {}).get("items", [])
         new_expenses = []
         for expense in expenses:
             exists = self.check_expense_exists(record['internalId'], expense, reference_data)
@@ -122,7 +122,7 @@ class BillSink(NetSuiteBatchSink):
         return record
 
     def check_item_exists(self, record_id, item, reference_data):
-        existing_items = reference_data["BillItems"].get(record_id, {}).get("lineItems")
+        existing_items = reference_data["BillItems"].get(record_id, {}).get("lineItems", [])
         for existing_item in existing_items:
             does_exist = self.compare_item(existing_item, item)
             if does_exist:
@@ -135,7 +135,7 @@ class BillSink(NetSuiteBatchSink):
         return False
 
     def check_expense_exists(self, record_id, expense, reference_data):
-        existing_expenses = reference_data["BillItems"].get(record_id, {}).get("expenses")
+        existing_expenses = reference_data["BillItems"].get(record_id, {}).get("expenses", [])
         for existing_expense in existing_expenses:
             does_exist = self.compare_expense(existing_expense, expense)
             if does_exist:

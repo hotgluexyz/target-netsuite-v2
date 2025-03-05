@@ -88,7 +88,7 @@ class InvoiceSink(NetSuiteBatchSink):
         return id, success, state
 
     def post_processing_for_update(self, record, reference_data):
-        items = record.get("item", {}).get("items")
+        items = record.get("item", {}).get("items", [])
         new_items = []
         for item in items:
             exists = self.check_item_exists(record['internalId'], item, reference_data)
@@ -106,7 +106,7 @@ class InvoiceSink(NetSuiteBatchSink):
         return record
 
     def check_item_exists(self, record_id, item, reference_data):
-        existing_items = reference_data["InvoiceItems"].get(record_id, {}).get("lineItems")
+        existing_items = reference_data["InvoiceItems"].get(record_id, {}).get("lineItems", [])
         for existing_item in existing_items:
             does_exist = self.compare_item(existing_item, item)
             if does_exist:
