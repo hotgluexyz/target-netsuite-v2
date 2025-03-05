@@ -367,6 +367,6 @@ class BaseMapper:
         return { "addressbook": { "items": out_addresses } } if out_addresses else {}
 
     def _map_custom_fields(self):
-        """Maps custom fields to a dictionary of name-value pairs."""
+        """Maps custom fields to a dictionary of name-value pairs, excluding None values."""
         custom_fields = self.record.get("customFields", [])
-        return {field["name"]: field["value"] for field in custom_fields}
+        return {field["name"]: field["value"] for field in custom_fields if field["value"] is not None}
