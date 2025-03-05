@@ -6,7 +6,7 @@ class InvoiceSchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
 
-        subsidiary_id = self._find_subsidiary("subsidiaryId", "subsidiaryName").get("internalId")
+        subsidiary_id = self._find_subsidiary().get("internalId")
 
         payload = {
             **self._map_internal_id(),
@@ -25,7 +25,8 @@ class InvoiceSchemaMapper(BaseMapper):
             "dueDate": "dueDate",
             "issueDate": "tranDate",
             "shipDate": "shipDate",
-            "exchangeRate": "exchangeRate"
+            "exchangeRate": "exchangeRate",
+            "relatedPayments": "relatedPayments"
         }
 
         for record_key, payload_key in field_mappings.items():
