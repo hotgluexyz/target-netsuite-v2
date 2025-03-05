@@ -5,7 +5,16 @@ class InvoiceSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
-        subsidiary_id = self._find_subsidiary().get("internalId")
+        if "subsidiaryId" in self.record or "subsidiaryName" in self.record:
+            subsidiary_id = self._find_reference_by_id_or_ref(
+                self.reference_data["Subsidiaries"],
+                "subsidiaryId",
+                "subsidiaryName"
+            )["internalId"]
+        elif self.existing_record:
+            subsidiary_id = self.existing_record["subsidiaryId"]
+        else:
+            subsidiary_id = None
 
         payload = {
             **self._map_internal_id(),

@@ -134,7 +134,7 @@ class SuiteTalkRestClient:
     ) -> List[Dict]:
         if  external_ids is not None and not external_ids:
             return True, None, []
-        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId FROM transaction WHERE transaction.type = '{transaction_type}'"
+        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId FROM transaction WHERE transaction.type = '{transaction_type}'"
 
         where_clause = ""
 
