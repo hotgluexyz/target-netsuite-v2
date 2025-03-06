@@ -27,7 +27,8 @@ class VendorSchemaMapper(BaseMapper):
             "checkName": "printOnCheckAs",
             "balance": "balance",
             "updatedAt": "lastModifiedDate",
-            "createdAt": "dateCreated"
+            "createdAt": "dateCreated",
+            "isPerson": "isPerson"
         }
 
         if "isActive" in self.record:

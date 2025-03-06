@@ -37,7 +37,8 @@ class CustomerSchemaMapper(BaseMapper):
             "title": "title",
             "email": "email",
             "website": "url",
-            "printOnCheckAs": "printOnCheckAs"
+            "printOnCheckAs": "printOnCheckAs",
+            "isPerson": "isPerson"
         }
 
         if "isActive" in self.record:
