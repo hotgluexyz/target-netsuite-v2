@@ -329,7 +329,10 @@ class BaseMapper:
         for pn in self.record.get("phoneNumbers", []):
             phone_type = self.PHONE_TYPE_MAP.get(pn.get("type"))
             if phone_type:
-                phones[phone_type] = pn.get("phoneNumber")
+                if "phoneNumber" in pn:
+                    phones[phone_type] = pn.get("phoneNumber")
+                else:
+                    raise InvalidPhoneError("Phone missing phoneNumber key")
             else:
                 raise InvalidPhoneError(f"Unsupported phone type: {phone_type}")
 
