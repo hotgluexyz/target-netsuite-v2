@@ -7,6 +7,9 @@ class InvalidReferenceError(InvalidInputError):
 class InvalidAddressError(InvalidInputError):
     pass
 
+class InvalidPhoneError(InvalidInputError):
+    pass
+
 class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
@@ -327,6 +330,8 @@ class BaseMapper:
             phone_type = self.PHONE_TYPE_MAP.get(pn.get("type"))
             if phone_type:
                 phones[phone_type] = pn.get("phoneNumber")
+            else:
+                raise InvalidPhoneError(f"Unsupported phone type: {phone_type}")
 
         return phones
 
