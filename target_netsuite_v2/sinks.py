@@ -114,6 +114,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                         # This is done to work around the where items in netsuite are getting duplicated on update.
                         if 'item' in record:
                             del record['item']
+                        # NetSuite does not allow updating currency on existing transactions
+                        # see: https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/bridgehead_N1398658.html
+                        if 'currency' in record:
+                            del record['currency']
 
                         response = self.rest_patch(url=f"{url}/{inv_id}", json=record)
                         continue
