@@ -94,46 +94,6 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_subsidiary(self):
-        if "subsidiaryId" not in self.record and "subsidiaryName" not in self.record and not self.existing_record:
-            raise InvalidReferenceError("Missing both 'subsidiaryId' and 'subsidiaryName' in record. Can not process.")
-
-        reference_list = self.reference_data["Subsidiaries"]
-
-        found = None
-        # Check for direct ID field first
-        if direct_id := self.record.get("subsidiaryId"):
-            found = next(
-                (item for item in reference_list if item["internalId"] == direct_id),
-                None
-            )
-
-        if found:
-            return found
-
-        # If no match by id, try to find by reference name.
-        if ref_name := self.record.get("subsidiaryName"):
-            found = next(
-                (item for item in reference_list if item.get("name") == ref_name),
-                None
-            )
-
-        if found:
-            return found
-
-        error_message = f"Unable to find subsidiary."
-        tried_lookups = []
-
-        if direct_id:
-            tried_lookups.append(f"Tried lookup by id {direct_id}")
-        if ref_name:
-            tried_lookups.append(f"Tried lookup by name {ref_name}")
-
-        if tried_lookups:
-            error_message += " " + " ".join(tried_lookups)
-
-        raise InvalidReferenceError(error_message)
-
     def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
