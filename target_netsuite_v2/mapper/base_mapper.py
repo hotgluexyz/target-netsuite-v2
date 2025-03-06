@@ -171,18 +171,24 @@ class BaseMapper:
         if found:
             return found
 
+
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
         if direct_id or ref_name:
-            error_message = f"Unable to find {id_field.replace('Id', '')}."
-            tried_lookups = []
-
+            lookup_attempts = []
             if direct_id:
-                tried_lookups.append(f"Tried lookup by id {direct_id}")
+                lookup_attempts.append(f"by id {direct_id}")
             if ref_name:
-                tried_lookups.append(f"Tried lookup by name {ref_name}")
+                lookup_attempts.append(f"by name {ref_name}")
+            if subsidiary_scope:
+                lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
-            if tried_lookups:
-                error_message += " " + " ".join(tried_lookups)
+            # Properly format with "and" before the last item
+            if len(lookup_attempts) > 1:
+                lookup_message = ", ".join(lookup_attempts[:-1]) + f", and {lookup_attempts[-1]}"
+            else:
+                lookup_message = lookup_attempts[0]
+
+            error_message = f"Unable to find {id_field.replace('Id', '')}. Tried lookup {lookup_message}."
 
             raise InvalidReferenceError(error_message)
 
@@ -314,7 +320,7 @@ class BaseMapper:
         for pn in self.record.get("phoneNumbers", []):
             phone_type = self.PHONE_TYPE_MAP.get(pn.get("type"))
             if phone_type:
-                phones[phone_type] = pn["phoneNumber"]
+                phones[phone_type] = pn.get("phoneNumber")
 
         return phones
 
