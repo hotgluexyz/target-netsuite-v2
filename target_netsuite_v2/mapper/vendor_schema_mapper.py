@@ -11,7 +11,8 @@ class VendorSchemaMapper(BaseMapper):
             **self._map_addressbook(),
             **self._map_currency(),
             **self._map_subrecord("VendorCategory", "categoryId", "categoryName", "category"),
-            **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary")
+            **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
+            **self._map_custom_fields()
         }
 
         field_mappings = {
