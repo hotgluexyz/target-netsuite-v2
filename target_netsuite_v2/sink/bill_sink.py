@@ -1,8 +1,7 @@
-from datetime import datetime
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.bill_schema_mapper import BillSchemaMapper
 from target_netsuite_v2.mapper.bill_payment_schema_mapper import BillPaymentSchemaMapper
-from target_netsuite_v2.mapper.base_mapper import InvalidReferenceError
+from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 
 class BillSink(NetSuiteBatchSink):
     name = "Bills"
@@ -165,7 +164,7 @@ class BillSink(NetSuiteBatchSink):
                     error_messages.append(f"Error creating payment for Bill: {error_message}")
                 else:
                     created_ids.append(id)
-            except InvalidReferenceError as e:
+            except InvalidInputError as e:
                 error_messages.append(f"Error creating payment for Bill: {str(e)}")
 
 

@@ -1,7 +1,7 @@
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.invoice_schema_mapper import InvoiceSchemaMapper
 from target_netsuite_v2.mapper.invoice_payment_schema_mapper import InvoicePaymentSchemaMapper
-from target_netsuite_v2.mapper.base_mapper import InvalidReferenceError
+from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 
 class InvoiceSink(NetSuiteBatchSink):
     name = "Invoices"
@@ -136,7 +136,7 @@ class InvoiceSink(NetSuiteBatchSink):
                     error_messages.append(f"Error creating payment for Invoice: {error_message}")
                 else:
                     created_ids.append(id)
-            except InvalidReferenceError as e:
+            except InvalidInputError as e:
                 error_messages.append(f"Error creating payment for Invoice: {str(e)}")
 
         return created_ids, len(error_messages) == 0, error_messages

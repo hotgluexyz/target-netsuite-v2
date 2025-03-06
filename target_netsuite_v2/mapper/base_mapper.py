@@ -1,5 +1,12 @@
-class InvalidReferenceError(Exception):
+class InvalidInputError(Exception):
     pass
+
+class InvalidReferenceError(InvalidInputError):
+    pass
+
+class InvalidAddressError(InvalidInputError):
+    pass
+
 class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
@@ -366,12 +373,13 @@ class BaseMapper:
         if not in_addresses:
             return {}
 
-        out_addresses = [
-            self._map_addressbookaddress(addr)
-            for addr in in_addresses
-            if addr.get("addressType") in self.ADDRESS_TYPE_MAP and
-               (not self.existing_record or not self._check_for_existing_address(addr, addr["addressType"], self.existing_record["internalId"]))
-        ]
+        out_addresses = []
+        for addr in in_addresses:
+            if addr.get("addressType") in self.ADDRESS_TYPE_MAP:
+                if not self.existing_record or not self._check_for_existing_address(addr, addr["addressType"], self.existing_record["internalId"]):
+                    out_addresses.append(self._map_addressbookaddress(addr))
+            else:
+                raise InvalidAddressError(f"Unsupported addressType: {addr.get('addressType')}")
 
         return { "addressbook": { "items": out_addresses } } if out_addresses else {}
 

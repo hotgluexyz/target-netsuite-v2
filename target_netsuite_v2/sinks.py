@@ -8,7 +8,7 @@ from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
-from target_netsuite_v2.mapper.base_mapper import InvalidReferenceError
+from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 
 class NetSuiteBaseSink(HotglueBaseSink):
     def __init__(
@@ -82,8 +82,9 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         existing_state = self.get_existing_state(hash)
         try:
             preprocessed = self.preprocess_batch_record(record, reference_data)
-        except InvalidReferenceError as e:
+        except InvalidInputError as e:
             state = {}
+            # TODO: Include error class in the message
             state["error"] = str(e)
             external_id = record.get("externalId")
             if external_id:
