@@ -171,7 +171,6 @@ class BaseMapper:
         if found:
             return found
 
-
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
         if direct_id or ref_name:
             lookup_attempts = []
@@ -240,17 +239,60 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_existing_currency(self, currency_symbol, currency_name, currency_id):
+    def _find_existing_currency(self):
         """Find a currency in the reference data by searching by symbol, name, or ID."""
-        return next(
-            (
-                item for item in self.reference_data["Currencies"]
-                if item["symbol"] == currency_symbol
-                or item["name"] == currency_name
-                or item["internalId"] == currency_id
-            ),
-            None
-        )
+        reference_list = self.reference_data["Currencies"]
+
+        found = None
+        # Check for direct ID field first
+        if direct_id := self.record.get("currencyId"):
+            found = next(
+                (item for item in reference_list if item["internalId"] == direct_id),
+                None
+            )
+
+        if found:
+            return found
+
+        # If no match by id, try to find by name
+        if ref_name := self.record.get("currencyName"):
+            found = next(
+                (item for item in reference_list if item["name"] == ref_name),
+                None
+            )
+
+        if found:
+            return found
+
+        # If no match by id, or name try to find by symbol
+        if ref_symbol := self.record.get("currency"):
+            found = next(
+                (item for item in reference_list if item["symbol"] == ref_symbol),
+                None
+            )
+
+        if found:
+            return found
+
+        # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
+        if direct_id or ref_name:
+            lookup_attempts = []
+            if direct_id:
+                lookup_attempts.append(f"by id {direct_id}")
+            if ref_name:
+                lookup_attempts.append(f"by name {ref_name}")
+            if ref_symbol:
+                lookup_attempts.append(f"by symbol {ref_symbol}")
+
+            # Properly format with "and" before the last item
+            if len(lookup_attempts) > 1:
+                lookup_message = ", ".join(lookup_attempts[:-1]) + f", and {lookup_attempts[-1]}"
+            else:
+                lookup_message = lookup_attempts[0]
+
+            error_message = f"Unable to find currency. Tried lookup {lookup_message}."
+
+            raise InvalidReferenceError(error_message)
 
     def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None):
         """Generic method to map a subrecord reference to NetSuite format
@@ -304,10 +346,7 @@ class BaseMapper:
 
     def _map_currency(self):
         """Extracts a currency object in NetSuite format"""
-        currency_symbol = self.record.get("currency")
-        currency_id = self.record.get("currencyId")
-        currency_name = self.record.get("currencyName")
-        currency = self._find_existing_currency(currency_symbol, currency_name, currency_id)
+        currency = self._find_existing_currency()
         if currency:
             return { "currency": { "id": currency["internalId"] } }
 
