@@ -235,7 +235,7 @@ class BaseMapper:
             return found
 
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
-        if direct_id or ref_name:
+        if direct_id or ref_name or ref_symbol:
             lookup_attempts = []
             if direct_id:
                 lookup_attempts.append(f"by id {direct_id}")
