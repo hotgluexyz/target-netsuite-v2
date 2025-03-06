@@ -130,13 +130,17 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
     def upsert_record(self, record: dict, reference_data: dict):
         state = {}
 
+        did_update = False
         if self.record_exists(record):
             id, success, error_message = self.suite_talk_client.update_record(self.record_type, record['internalId'], record)
+            did_update = True
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
 
         if error_message:
             state["error"] = error_message
+        elif did_update:
+            state["is_updated"] = True
 
         return id, success, state
 

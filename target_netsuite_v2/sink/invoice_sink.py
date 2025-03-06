@@ -73,6 +73,8 @@ class InvoiceSink(NetSuiteBatchSink):
 
             if error_messages:
                 state["error"] = error_messages
+            else:
+                state["is_updated"] = True
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, _record)
 
