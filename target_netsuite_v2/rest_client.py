@@ -446,6 +446,7 @@ class netsuiteRestV2Sink(BatchSink):
         # Get the NetSuite Subsidiary Ref
         if context["reference_data"].get("Subsidiaries") and record.get("subsidiary"):
             # look for subsidiary id match 
+            record["subsidiary"] = record["subsidiary"] if isinstance(record["subsidiary"], str) else str(record["subsidiary"]).split(".")[0]
             sub_data = [
                 s
                 for s in context["reference_data"]["Subsidiaries"]
