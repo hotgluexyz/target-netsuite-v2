@@ -20,7 +20,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
-        "item": "item.id as internalid, item.externalId as externalId, item.fullname as name"
+        "item": "item.id as internalid, item.externalId as externalId, item.displayName as name"
     }
 
     ref_name_where_clauses = {
@@ -34,7 +34,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.name",
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
-        "item": "item.fullName"
+        "item": "item.displayName"
     }
 
     def __init__(self, config):

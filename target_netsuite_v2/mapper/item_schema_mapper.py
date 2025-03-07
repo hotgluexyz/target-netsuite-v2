@@ -33,7 +33,8 @@ class ItemSchemaMapper(BaseMapper):
             "code": "itemId",
             "displayName": "displayName",
             "type": "type",
-            "category": "category"
+            "category": "category",
+            "externalId": "externalId"
         }
 
         for record_key, payload_key in field_mappings.items():
