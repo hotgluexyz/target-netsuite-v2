@@ -102,7 +102,8 @@ class netsuiteSoapV2Sink(BatchSink):
             self._check_exception(e, "Accounts")
         
         try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList"])
+            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"])
+            self.logger.info(f"Locations: {reference_data['Locations']}")
         except NetSuiteRequestError as e:
             message = e.message.replace("error", "failure").replace("Error", "")
             self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
