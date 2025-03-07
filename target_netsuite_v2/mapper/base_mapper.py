@@ -1,3 +1,5 @@
+import re
+
 class InvalidInputError(Exception):
     pass
 
@@ -9,6 +11,12 @@ class InvalidAddressError(InvalidInputError):
 
 class InvalidPhoneError(InvalidInputError):
     pass
+
+class InvalidDateError(InvalidInputError):
+    pass
+
+# Regex to ensure the string starts with 'YYYY-MM-DD', but allows anything after
+DATE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
 class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""

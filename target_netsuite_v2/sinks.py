@@ -8,7 +8,7 @@ from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
-from target_netsuite_v2.mapper.base_mapper import InvalidInputError
+from target_netsuite_v2.mapper.base_mapper import InvalidInputError, InvalidDateError, DATE_REGEX
 
 class NetSuiteBaseSink(HotglueBaseSink):
     def __init__(
@@ -152,12 +152,18 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         if netsuite_date is None or unified_date is None:
             return False
         try:
+            if not DATE_REGEX.match(unified_date):
+                raise InvalidDateError(f"Invalid ISO-8601 date format: {unified_date}")
+
+            # Parse the dates
             dt1 = datetime.strptime(unified_date[:10], "%Y-%m-%d")
             dt2 = datetime.strptime(netsuite_date, "%m/%d/%Y")
+
+            # Compare dates
             return (dt1.year, dt1.month, dt1.day) == (dt2.year, dt2.month, dt2.day)
+
         except ValueError:
             return False
-
     def _omit_key(self, d, key):
         return {k: v for k, v in d.items() if k != key}
 
