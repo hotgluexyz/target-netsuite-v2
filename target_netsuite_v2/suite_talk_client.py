@@ -80,9 +80,9 @@ class SuiteTalkRestClient:
 
     def update_item(self, item_id, item):
         url = self.get_item_url(item)
-        url += f"/{str(item_id)}"
         if not url:
             return None, False, "Unknown Item type and category"
+        url += f"/{str(item_id)}"
         response = self._make_request(url, "PATCH", data=item)
         success, error_message = self._validate_response(response)
         record_id = self._extract_id_from_response_header(response.headers)
