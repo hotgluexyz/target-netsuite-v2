@@ -15,6 +15,9 @@ class InvalidPhoneError(InvalidInputError):
 class InvalidDateError(InvalidInputError):
     pass
 
+class InvalidAccountError(InvalidInputError):
+    pass
+
 # Regex to ensure the string starts with 'YYYY-MM-DD', but allows anything after
 DATE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 

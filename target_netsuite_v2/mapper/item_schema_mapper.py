@@ -1,4 +1,4 @@
-from target_netsuite_v2.mapper.base_mapper import BaseMapper
+from target_netsuite_v2.mapper.base_mapper import BaseMapper, InvalidAccountError
 
 class ItemSchemaMapper(BaseMapper):
     """A class responsible for mapping an item record ingested in the unified schema format to a payload for NetSuite"""
@@ -9,6 +9,8 @@ class ItemSchemaMapper(BaseMapper):
         account_dict = {}
 
         for account in accounts:
+            if "id" not in account or "accountType" not in account:
+                raise InvalidAccountError("Invalid account provided. Must include 'id' and 'accountType' fields.")
             id = account["id"]
             account_dict_key = f"{account['accountType']}Account"
             account_dict[account_dict_key] = { "id": id }
