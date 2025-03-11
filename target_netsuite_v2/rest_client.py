@@ -39,7 +39,7 @@ class netsuiteRestV2Sink(BatchSink):
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "Prefer": "transient"}
         response = requests.post(**kwarg, headers=headers, auth=oauth)
         if response.status_code >= 400:
             try:
@@ -92,6 +92,19 @@ class netsuiteRestV2Sink(BatchSink):
                 response.raise_for_status()
         return response
     
+
+    def check_custom_field(self, script_id):
+        # validates if a custom field is valid using SuiteQL
+        try:
+            url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
+            custom_fields = self.rest_post(url=url, json={
+                "q": f"SELECT id, scriptid, name, recordtype FROM customfield WHERE scriptid='{script_id}'"
+            }).json()
+            return custom_fields.get("count") > 0
+        except:
+            self.logger.exception(f"Failed to check existence of custom field '{script_id}'. Assuming it exists.")
+            return True
+
     def parse_objs(self, record):
         if isinstance(record, str):
             try:

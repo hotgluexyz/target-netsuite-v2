@@ -35,6 +35,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
+            # do final validation
+            for line in journal_entry.get('lineList', []):
+                for cf in line.get('customFieldList', []):
+                    script_id = cf['scriptId']
+                    if not self.check_custom_field(script_id):
+                        raise Exception(f"Error parsing custom field, scriptid '{script_id}' is not valid.")
+
             context["JournalEntry"].append(journal_entry)
         if self.stream_name.lower() in ["customer"]:
             customer = self.process_customer(context,record)
