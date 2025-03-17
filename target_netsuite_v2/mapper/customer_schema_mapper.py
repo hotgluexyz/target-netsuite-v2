@@ -2,6 +2,21 @@ from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
 class CustomerSchemaMapper(BaseMapper):
     """A class responsible for mapping a customer record ingested in the unified schema format to a payload for NetSuite"""
+
+    field_mappings = {
+        "externalId": "externalId",
+        "companyName": "companyName",
+        "prefix": "salutation",
+        "firstName": "firstName",
+        "middleName": "middleName",
+        "lastName": "lastName",
+        "title": "title",
+        "email": "email",
+        "website": "url",
+        "printOnCheckAs": "printOnCheckAs",
+        "isPerson": "isPerson"
+    }
+
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         if "subsidiaryId" in self.record or "subsidiaryName" in self.record:
@@ -26,26 +41,7 @@ class CustomerSchemaMapper(BaseMapper):
             **self._map_addressbook(),
             **self._map_currency(),
         }
-
-        field_mappings = {
-            "externalId": "externalId",
-            "companyName": "companyName",
-            "prefix": "salutation",
-            "firstName": "firstName",
-            "middleName": "middleName",
-            "lastName": "lastName",
-            "title": "title",
-            "email": "email",
-            "website": "url",
-            "printOnCheckAs": "printOnCheckAs",
-            "isPerson": "isPerson"
-        }
-
-        if "isActive" in self.record:
-            payload["isInactive"] = not self.record.get("isActive", True)
-
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
+        self._map_is_active(payload)
+        self._map_fields(payload)
 
         return payload

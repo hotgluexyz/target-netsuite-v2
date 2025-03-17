@@ -1,6 +1,13 @@
 from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
 class BillLineItemSchemaMapper(BaseMapper):
+    field_mappings = {
+        "description": "description",
+        "quantity": "quantity",
+        "unitPrice": "rate",
+        "totalPrice": "amount",
+    }
+
     def __init__(
             self,
             record,
@@ -21,15 +28,6 @@ class BillLineItemSchemaMapper(BaseMapper):
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=self.subsidiary_id),
         }
 
-        field_mappings = {
-            "description": "description",
-            "quantity": "quantity",
-            "unitPrice": "rate",
-            "totalPrice": "amount",
-        }
+        self._map_fields(payload)
 
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
         return payload
-

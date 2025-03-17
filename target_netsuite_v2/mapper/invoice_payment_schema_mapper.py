@@ -1,6 +1,12 @@
 from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
 class InvoicePaymentSchemaMapper(BaseMapper):
+    field_mappings = {
+        "externalId": "externalId",
+        "exchangeRate": "exchangeRate",
+        "paymentDate": "tranDate"
+    }
+
     def __init__(
             self,
             record,
@@ -21,15 +27,7 @@ class InvoicePaymentSchemaMapper(BaseMapper):
             **self._map_apply()
         }
 
-        field_mappings = {
-            "externalId": "externalId",
-            "exchangeRate": "exchangeRate",
-            "paymentDate": "tranDate"
-        }
-
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
+        self._map_fields(payload)
 
         return payload
 

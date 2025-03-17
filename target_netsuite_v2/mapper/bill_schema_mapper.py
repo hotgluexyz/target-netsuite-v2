@@ -4,6 +4,16 @@ from target_netsuite_v2.mapper.bill_expense_schema_mapper import BillExpenseSche
 
 class BillSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
+    field_mappings = {
+        "externalId": "externalId",
+        "dueDate": "dueDate",
+        "balance": "balance",
+        "totalAmount": "total",
+        "issueDate": "tranDate",
+        "exchangeRate": "exchangeRate",
+        "relatedPayments": "relatedPayments"
+    }
+
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
 
@@ -29,19 +39,7 @@ class BillSchemaMapper(BaseMapper):
             **self._map_bill_expenses(subsidiary_id)
         }
 
-        field_mappings = {
-            "externalId": "externalId",
-            "dueDate": "dueDate",
-            "balance": "balance",
-            "totalAmount": "total",
-            "issueDate": "tranDate",
-            "exchangeRate": "exchangeRate",
-            "relatedPayments": "relatedPayments"
-        }
-
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
+        self._map_fields(payload)
 
         return payload
 

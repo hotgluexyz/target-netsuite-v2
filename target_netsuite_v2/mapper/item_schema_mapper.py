@@ -3,6 +3,14 @@ from target_netsuite_v2.mapper.base_mapper import BaseMapper, InvalidAccountErro
 class ItemSchemaMapper(BaseMapper):
     """A class responsible for mapping an item record ingested in the unified schema format to a payload for NetSuite"""
 
+    field_mappings = {
+        "code": "itemId",
+        "displayName": "displayName",
+        "type": "type",
+        "category": "category",
+        "externalId": "externalId"
+    }
+
     def _map_accounts(self):
         accounts = self.record.get("accounts", [])
 
@@ -28,19 +36,7 @@ class ItemSchemaMapper(BaseMapper):
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
             **self._map_accounts()
         }
-        if "isActive" in self.record:
-            payload["isInactive"] = not self.record.get("isActive", True)
-
-        field_mappings = {
-            "code": "itemId",
-            "displayName": "displayName",
-            "type": "type",
-            "category": "category",
-            "externalId": "externalId"
-        }
-
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
+        self._map_is_active(payload)
+        self._map_fields(payload)
 
         return payload

@@ -406,3 +406,12 @@ class BaseMapper:
         """Maps custom fields to a dictionary of name-value pairs, excluding None values."""
         custom_fields = self.record.get("customFields", [])
         return {field["name"]: field["value"] for field in custom_fields if field["value"] is not None}
+
+    def _map_fields(self, payload):
+        for record_key, payload_key in self.field_mappings.items():
+            if record_key in self.record and self.record.get(record_key) != None:
+                payload[payload_key] = self.record.get(record_key)
+
+    def _map_is_active(self, payload):
+        if "isActive" in self.record and self.record.get("isActive") != None:
+            payload["isInactive"] = not self.record.get("isActive", True)

@@ -3,6 +3,15 @@ from target_netsuite_v2.mapper.invoice_line_item_schema_mapper import InvoiceLin
 
 class InvoiceSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
+    field_mappings = {
+        "externalId": "externalId",
+        "dueDate": "dueDate",
+        "issueDate": "tranDate",
+        "shipDate": "shipDate",
+        "exchangeRate": "exchangeRate",
+        "relatedPayments": "relatedPayments"
+    }
+
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         if "subsidiaryId" in self.record or "subsidiaryName" in self.record:
@@ -28,18 +37,7 @@ class InvoiceSchemaMapper(BaseMapper):
             **self._map_invoice_line_items(subsidiary_id)
         }
 
-        field_mappings = {
-            "externalId": "externalId",
-            "dueDate": "dueDate",
-            "issueDate": "tranDate",
-            "shipDate": "shipDate",
-            "exchangeRate": "exchangeRate",
-            "relatedPayments": "relatedPayments"
-        }
-
-        for record_key, payload_key in field_mappings.items():
-            if record_key in self.record:
-                payload[payload_key] = self.record.get(record_key)
+        self._map_fields(payload)
 
         return payload
 
