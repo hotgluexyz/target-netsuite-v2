@@ -89,34 +89,34 @@ class SuiteTalkRestClient:
         return record_id, success, error_message
 
     def get_item_url(self, item: dict) -> str:
-        item_type = item.get("type")
-        item_subtype = item.get("category")
-        if item_type == "InvtPart":
+        item_type = item.get("type", "").lower()
+        item_subtype = item.get("category", "").lower()
+        if item_type == "invtpart":
             endpoint = "inventoryItem"
-        elif item_type == "NonInvtPart":
-            if item_subtype == "Sale":
+        elif item_type == "noninvtpart":
+            if item_subtype == "sale":
                 endpoint = "nonInventorySaleItem"
-            elif item_subtype == "Purchase":
+            elif item_subtype == "purchase":
                 endpoint = "nonInventoryPurchaseItem"
-            elif item_subtype == "Resale":
+            elif item_subtype == "resale":
                 endpoint = "nonInventoryResaleItem"
             else:
                 endpoint = None
-        elif item_type == "Service":
-            if item_subtype == "Sale":
+        elif item_type == "service":
+            if item_subtype == "sale":
                 endpoint = "serviceSaleItem"
-            elif item_subtype == "Purchase":
+            elif item_subtype == "purchase":
                 endpoint = "servicePurchaseItem"
-            elif item_subtype == "Resale":
+            elif item_subtype == "resale":
                 endpoint = "serviceResaleItem"
             else:
                 endpoint = None
-        elif item_type == "OtherCharge":
-            if item_subtype == "Sale":
+        elif item_type == "othercharge":
+            if item_subtype == "sale":
                 endpoint = "otherChargeSaleItem"
-            elif item_subtype == "Purchase":
+            elif item_subtype == "purchase":
                 endpoint = "otherChargePurchaseItem"
-            elif item_subtype == "Resale":
+            elif item_subtype == "resale":
                 endpoint = "otherChargeResaleItem"
             else:
                 endpoint = None
