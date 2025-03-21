@@ -1021,6 +1021,10 @@ class netsuiteRestV2Sink(BatchSink):
             "subsidiary": {"id": subsidiary}
         }
 
+        # if transactionNumber is provided, we should use it as the tranId
+        if record.get("transactionNumber"):
+            credit_memo_mapping["tranId"] = record["transactionNumber"]
+
         return credit_memo_mapping
     
     def process_refund(self, context, record):
