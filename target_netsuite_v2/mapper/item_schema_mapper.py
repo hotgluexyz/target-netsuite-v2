@@ -34,7 +34,8 @@ class ItemSchemaMapper(BaseMapper):
             **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
-            **self._map_accounts()
+            **self._map_accounts(),
+            **self._map_custom_fields()
         }
         self._map_is_active(payload)
         self._map_fields(payload)
