@@ -529,7 +529,7 @@ class netsuiteRestV2Sink(BatchSink):
         return invoice
 
     def invoice_payment(self, context, record):
-        invoice_id = record.get("transaction_id", record.get("id"))
+        invoice_id = record.get("transactionId", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -576,7 +576,7 @@ class netsuiteRestV2Sink(BatchSink):
         The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
         that is prepopulated with data from an existing record (in this case, a vendorBill).
         """
-        vendor_bill_id = record.get("transaction_id", record.get("id"))
+        vendor_bill_id = record.get("transactionId", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -942,9 +942,8 @@ class netsuiteRestV2Sink(BatchSink):
 
     def process_credit_memo(self, context, record):
         
-        # validate required field currency
-        if not record.get("currency"):
-            raise Exception(f"Currency was not provided and it's a required field for credit memo.")
+        if not record.get("customerName") and not record.get("customerId"):
+            raise Exception(f"Neither CustomerId nor customerName was provided and it's a required field for credit memo.")
         
         # validate required field customer
         customer = record.get("customerId")
@@ -957,7 +956,7 @@ class netsuiteRestV2Sink(BatchSink):
             )
             customer = customer[0].get("internalId") if customer else None
         if not customer:
-            raise Exception(f"Customer '{record.get('customerName')}' with id '{record.get('customerId')}' was not provided or it's not valid and it's a required field for credit memo.")
+            raise Exception(f"Customer '{record.get('customerName')}' was not found in netsuite and it's a required field for credit memo.")
 
         # validate required field location
         location = record.get("locationId")
@@ -984,6 +983,9 @@ class netsuiteRestV2Sink(BatchSink):
         line_items = self.parse_objs(record.get("lineItems"))
         items = []
         for item in line_items:
+            if not item.get("productId") and not item.get("productName"):
+                raise Exception(f"Neither ProductId nor productName was provided and it's a required field for credit memo line.")
+            
             product = item.get("productId")
             if not product and item.get("productName"):
                 product = list(
@@ -994,7 +996,7 @@ class netsuiteRestV2Sink(BatchSink):
                 )
                 product = product[0].get("internalId") if product else None
             if not product:
-                raise Exception(f"Item with name '{record.get('productName')}' and id '{record.get('productId')} was not found for credit memo line.'")
+                raise Exception(f"Item with name '{item.get('productName')}' was not found in netsuite  and it's a required field for credit memo line.")
 
             item_mapping = {
                 "amount": item.get("totalAmount"),
@@ -1008,7 +1010,6 @@ class netsuiteRestV2Sink(BatchSink):
             "id": record.get("id"),
             "memo": record.get("note"),
             "status": {"id": record.get("status")},
-            "currency": {"refName": record.get("currency")},
             "subtotal": record.get("subtotal"),
             "tranDate": record.get("issueDate"),
             "entity": {"id": customer},
@@ -1024,6 +1025,19 @@ class netsuiteRestV2Sink(BatchSink):
         # if transactionNumber is provided, we should use it as the tranId
         if record.get("transactionNumber"):
             credit_memo_mapping["tranId"] = record["transactionNumber"]
+        
+        # currency is the symbol, we need to send the name
+        currency = record.get("currency")
+        if currency:
+            currency = list(
+                filter(
+                    lambda x: x["symbol"] == currency,
+                    context["reference_data"]["Currencies"],
+                )
+            )
+            currency = currency[0].get("name") if currency else None
+            if currency:
+                credit_memo_mapping["currency"] = {"refName": currency}
 
         return credit_memo_mapping
     
