@@ -12,7 +12,8 @@ class BillSchemaMapper(BaseMapper):
         "issueDate": "tranDate",
         "exchangeRate": "exchangeRate",
         "relatedPayments": "relatedPayments",
-        "description": "memo"
+        "description": "memo",
+        "transactionNumber": "tranId"
     }
 
     def to_netsuite(self) -> dict:
