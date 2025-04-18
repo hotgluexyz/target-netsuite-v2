@@ -410,7 +410,11 @@ class BaseMapper:
     def _map_fields(self, payload):
         for record_key, payload_key in self.field_mappings.items():
             if record_key in self.record and self.record.get(record_key) != None:
-                payload[payload_key] = self.record.get(record_key)
+                if isinstance(payload_key, list):
+                    for key in payload_key:
+                        payload[key] = self.record.get(record_key)
+                else:
+                    payload[payload_key] = self.record.get(record_key)
 
     def _map_is_active(self, payload):
         if "isActive" in self.record and self.record.get("isActive") != None:
