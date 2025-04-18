@@ -5,7 +5,7 @@ from target_netsuite_v2.mapper.bill_expense_schema_mapper import BillExpenseSche
 class BillSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     field_mappings = {
-        "externalId": "externalId",
+        "externalId": ["externalId", "tranId"],
         "dueDate": "dueDate",
         "balance": "balance",
         "totalAmount": "total",
@@ -13,7 +13,6 @@ class BillSchemaMapper(BaseMapper):
         "exchangeRate": "exchangeRate",
         "relatedPayments": "relatedPayments",
         "description": "memo",
-        "externalId": "tranId"
     }
 
     def to_netsuite(self) -> dict:

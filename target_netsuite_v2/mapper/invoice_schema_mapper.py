@@ -4,12 +4,13 @@ from target_netsuite_v2.mapper.invoice_line_item_schema_mapper import InvoiceLin
 class InvoiceSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     field_mappings = {
-        "externalId": "externalId",
+        "externalId": ["externalId", "tranId"],
         "dueDate": "dueDate",
         "issueDate": "tranDate",
         "shipDate": "shipDate",
         "exchangeRate": "exchangeRate",
-        "relatedPayments": "relatedPayments"
+        "relatedPayments": "relatedPayments",
+        "description": "memo"
     }
 
     def to_netsuite(self) -> dict:
