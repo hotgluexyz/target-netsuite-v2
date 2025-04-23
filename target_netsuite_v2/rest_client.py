@@ -529,6 +529,7 @@ class netsuiteRestV2Sink(BatchSink):
         return invoice
 
     def invoice_payment(self, context, record):
+        raw_record = record.copy()
         invoice_id = record.get("transactionId", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
@@ -536,26 +537,26 @@ class netsuiteRestV2Sink(BatchSink):
         oauth_creds = oauth_creds["tokenPassport"]
 
         base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <soap:Header>
-        <tokenPassport>
-            <account>{oauth_creds["account"]}</account>
-            <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
-            <token>{oauth_creds["token"]}</token>
-            <nonce>{oauth_creds["nonce"]}</nonce>
-            <timestamp>{oauth_creds["timestamp"]}</timestamp>
-            <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
-        </tokenPassport>
-    </soap:Header>
-    <soap:Body>
-        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
-            <platformMsgs:initializeRecord>
-                <platformCore:type>customerPayment</platformCore:type>
-                <platformCore:reference internalId="{invoice_id}" type="invoice">
-                </platformCore:reference>
-            </platformMsgs:initializeRecord>
-        </platformMsgs:initialize>
-    </soap:Body>
-</soap:Envelope>"""
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
+                    <platformMsgs:initializeRecord>
+                        <platformCore:type>customerPayment</platformCore:type>
+                        <platformCore:reference internalId="{invoice_id}" type="invoice">
+                        </platformCore:reference>
+                    </platformMsgs:initializeRecord>
+                </platformMsgs:initialize>
+            </soap:Body>
+        </soap:Envelope>"""
 
         headers = {"SOAPAction": "initialize", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
@@ -567,6 +568,75 @@ class netsuiteRestV2Sink(BatchSink):
         for r in record:
             if isinstance(r.text, str):
                 r.getparent().remove(r)
+        
+        # Add fields at the header level with tranCust: namespace prefix
+        if raw_record.get("amount"):
+            payment_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}payment")
+            payment_elem.text = str(raw_record["amount"])
+            record.append(payment_elem)
+            
+            # Find the applyList element
+            apply_list = record.find(".//{urn:customers_2024_2.transactions.webservices.netsuite.com}applyList")
+            if apply_list is not None:
+                # Find the apply element with value "true"
+                for apply_elem in apply_list.findall(".//{urn:customers_2024_2.transactions.webservices.netsuite.com}apply"):
+                    apply_value = apply_elem.find(".//{urn:customers_2024_2.transactions.webservices.netsuite.com}apply")
+                    if apply_value is not None and apply_value.text == "true":
+                        # Update the amount in this apply element
+                        amount_elem = apply_elem.find(".//{urn:customers_2024_2.transactions.webservices.netsuite.com}amount")
+                        if amount_elem is not None:
+                            amount_elem.text = str(raw_record["amount"])
+                        break
+        
+        if raw_record.get("date"):
+            tran_date_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}tranDate")
+            tran_date_elem.text = raw_record["date"]
+            record.append(tran_date_elem)
+
+        # field araccount uses the same account as the invoice and it's read-only
+        # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
+        if context["reference_data"].get("Accounts"):
+            acct_data = None
+            if raw_record.get("accountNumber"):
+                acct_num = str(raw_record["accountNumber"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["acctNumber"] == acct_num
+                ]
+            if not acct_data and raw_record.get("accountName"):
+                acct_name = raw_record["accountName"]
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["acctName"] == acct_name
+                ]
+            if acct_data:
+                acct_data = acct_data[0]
+                account_elem = etree.Element(
+                    "{urn:customers_2024_2.transactions.webservices.netsuite.com}account",
+                    attrib={"internalId": acct_data["internalId"]},
+                )
+                record.append(account_elem)
+                undep_funds_elem = etree.Element(
+                    "{urn:customers_2024_2.transactions.webservices.netsuite.com}undepFunds"
+                )
+                undep_funds_elem.text = "false"
+                record.append(undep_funds_elem)
+        
+        if context["reference_data"].get("Currencies") and raw_record.get("currency"):
+            currency_symbol = raw_record.get("currency")
+            currency = [
+                c
+                for c in context["reference_data"]["Currencies"]
+                if c["symbol"] == currency_symbol
+            ]
+            if currency:
+                currency_elem = record.find(".//{urn:customers_2024_2.transactions.webservices.netsuite.com}currency")
+                if currency_elem is not None:
+                    name_elem = currency_elem.find("{urn:core_2024_2.platform.webservices.netsuite.com}name")
+                    if name_elem is not None:
+                        name_elem.text = currency[0].get("name")
 
         return etree.tostring(record, pretty_print=True)
 
