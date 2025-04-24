@@ -11,9 +11,11 @@ class BillSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        ids = {record["id"] for record in raw_records if record.get("id")}
         _, _, bills = self.suite_talk_client.get_transaction_data(
             transaction_type="VendBill",
-            external_ids=external_ids
+            external_ids=external_ids,
+            record_ids=ids
         )
 
         vendor_ids = {record["vendorId"] for record in raw_records if record.get("vendorId")}

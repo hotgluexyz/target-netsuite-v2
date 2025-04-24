@@ -11,9 +11,11 @@ class InvoiceSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        ids = {record["id"] for record in raw_records if record.get("id")}
         _, _, invoices = self.suite_talk_client.get_transaction_data(
             transaction_type="CustInvc",
-            external_ids=external_ids
+            external_ids=external_ids,
+            record_ids=ids
         )
 
         customer_ids = {record["customerId"] for record in raw_records if record.get("customerId")}
