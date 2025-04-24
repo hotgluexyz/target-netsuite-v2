@@ -22,7 +22,7 @@ class BillLineItemSchemaMapper(BaseMapper):
         payload = {
             **self._map_custom_fields(),
             **self._map_subrecord("Items", "itemId", "itemName", "item"),
-            **self._map_account("Accounts", "accountId", "accountName", "account", number_field="accountNumber"),
+            **self._map_account("Accounts", "accountId", "accountName", "accountNumber", "account"),
             **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=self.subsidiary_id),
             **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=self.subsidiary_id),
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=self.subsidiary_id),
