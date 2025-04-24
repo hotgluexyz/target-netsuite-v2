@@ -5,6 +5,7 @@ class BillExpenseSchemaMapper(BaseMapper):
         "description": "memo",
         "quantity": "quantity",
         "totalPrice": "amount",
+        "projectId": "customer",
     }
 
     def __init__(
