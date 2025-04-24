@@ -174,7 +174,7 @@ class BaseMapper:
                 lookup_attempts.append(f"by id {direct_id}")
             if ref_name:
                 lookup_attempts.append(f"by name {ref_name}")
-            if ref_number:
+            if number_field and ref_number:
                 lookup_attempts.append(f"by number {ref_number}")
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
