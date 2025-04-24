@@ -115,7 +115,7 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
@@ -152,6 +152,21 @@ class BaseMapper:
         if found:
             return found
 
+        # If no match by id or name, try to find by number
+        if number_field and (ref_number := self.record.get(number_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("number") == ref_number and
+                    (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                ),
+                None
+            )
+
+        if found:
+            return found
+
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
         if direct_id or ref_name:
             lookup_attempts = []
@@ -159,6 +174,8 @@ class BaseMapper:
                 lookup_attempts.append(f"by id {direct_id}")
             if ref_name:
                 lookup_attempts.append(f"by name {ref_name}")
+            if number_field and ref_number:
+                lookup_attempts.append(f"by number {ref_number}")
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
@@ -419,3 +436,17 @@ class BaseMapper:
     def _map_is_active(self, payload):
         if "isActive" in self.record and self.record.get("isActive") != None:
             payload["isInactive"] = not self.record.get("isActive", True)
+
+    def _map_account(self, reference_type, id_field, name_field, number_field, target_field):
+        # NOTE: we needed a custm method here to pass number_field
+        reference = self._find_reference_by_id_or_ref(
+            self.reference_data[reference_type],
+            id_field,
+            name_field,
+            number_field=number_field
+        )
+
+        if reference:
+            return { target_field: { "id": reference["internalId"] } }
+
+        return {}

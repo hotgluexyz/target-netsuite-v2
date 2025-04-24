@@ -9,7 +9,7 @@ from target_hotglue.common import HGJSONEncoder
 
 class SuiteTalkRestClient:
     ref_select_clauses = {
-        "account": "account.id as internalId, account.acctName as name, account.externalId",
+        "account": "account.id as internalId, account.acctName as name, account.acctNumber as number, account.externalId",
         "classification": "classification.id as internalId, classification.name, classification.externalId, subsidiary as subsidiaryId",
         "currency": "currency.id as internalId, currency.symbol, currency.name",
         "customer": "customer.id as internalId, customer.companyName as name, customer.externalId",

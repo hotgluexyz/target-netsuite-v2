@@ -7,6 +7,7 @@ class BillSchemaMapper(BaseMapper):
     field_mappings = {
         "externalId": ["externalId", "tranId"],
         "dueDate": "dueDate",
+        "paidDate": "enddate",
         "balance": "balance",
         "totalAmount": "total",
         "issueDate": "tranDate",
@@ -36,6 +37,7 @@ class BillSchemaMapper(BaseMapper):
             **self._map_custom_fields(),
             **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
+            **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
             **self._map_bill_line_items(subsidiary_id),
             **self._map_bill_expenses(subsidiary_id)
         }
