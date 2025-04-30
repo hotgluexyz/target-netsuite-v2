@@ -4,7 +4,7 @@ from target_netsuite_v2.mapper.invoice_line_item_schema_mapper import InvoiceLin
 class InvoiceSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
     field_mappings = {
-        "externalId": ["externalId", "tranId"],
+        "externalId": "externalId",
         "dueDate": "dueDate",
         "issueDate": "tranDate",
         "shipDate": "shipDate",
