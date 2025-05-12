@@ -646,6 +646,7 @@ class netsuiteRestV2Sink(BatchSink):
         The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
         that is prepopulated with data from an existing record (in this case, a vendorBill).
         """
+        raw_record = record.copy()
         vendor_bill_id = record.get("transactionId", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
 
@@ -653,26 +654,26 @@ class netsuiteRestV2Sink(BatchSink):
         oauth_creds = oauth_creds["tokenPassport"]
 
         base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <soap:Header>
-        <tokenPassport>
-            <account>{oauth_creds["account"]}</account>
-            <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
-            <token>{oauth_creds["token"]}</token>
-            <nonce>{oauth_creds["nonce"]}</nonce>
-            <timestamp>{oauth_creds["timestamp"]}</timestamp>
-            <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
-        </tokenPassport>
-    </soap:Header>
-    <soap:Body>
-        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
-            <platformMsgs:initializeRecord>
-                <platformCore:type>vendorPayment</platformCore:type>
-                <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
-                </platformCore:reference>
-            </platformMsgs:initializeRecord>
-        </platformMsgs:initialize>
-    </soap:Body>
-</soap:Envelope>"""
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2024_2.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com">
+                    <platformMsgs:initializeRecord>
+                        <platformCore:type>vendorPayment</platformCore:type>
+                        <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
+                        </platformCore:reference>
+                    </platformMsgs:initializeRecord>
+                </platformMsgs:initialize>
+            </soap:Body>
+        </soap:Envelope>"""
 
         headers = {"SOAPAction": "initialize", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
@@ -684,6 +685,71 @@ class netsuiteRestV2Sink(BatchSink):
         for r in record:
             if isinstance(r.text, str):
                 r.getparent().remove(r)
+        
+        # Add fields at the header level with tranCust: namespace prefix
+        if raw_record.get("amount"):
+            # Find the applyList element
+            apply_list = record.find(".//{urn:purchases_2024_2.transactions.webservices.netsuite.com}applyList")
+            if apply_list is not None:
+                # Find the apply element with value "true"
+                for apply_elem in apply_list.findall(".//{urn:purchases_2024_2.transactions.webservices.netsuite.com}apply"):
+                    apply_value = apply_elem.find(".//{urn:purchases_2024_2.transactions.webservices.netsuite.com}apply")
+                    if apply_value is not None and apply_value.text == "true":
+                        # Update the amount in this apply element
+                        amount_elem = apply_elem.find(".//{urn:purchases_2024_2.transactions.webservices.netsuite.com}amount")
+                        if amount_elem is not None:
+                            amount_elem.text = str(raw_record["amount"])
+                        break
+        
+        if raw_record.get("date"):
+            tran_date_elem = etree.Element("{urn:purchases_2024_2.transactions.webservices.netsuite.com}tranDate")
+            tran_date_elem.text = raw_record["date"]
+            record.append(tran_date_elem)
+
+        # field araccount uses the same account as the invoice and it's read-only
+        # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
+        if context["reference_data"].get("Accounts"):
+            acct_data = None
+            if raw_record.get("accountNumber"):
+                acct_num = str(raw_record["accountNumber"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["acctNumber"] == acct_num
+                ]
+            if not acct_data and raw_record.get("accountName"):
+                acct_name = raw_record["accountName"]
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["acctName"] == acct_name
+                ]
+            if acct_data:
+                acct_data = acct_data[0]
+                account_elem = etree.Element(
+                    "{urn:purchases_2024_2.transactions.webservices.netsuite.com}account",
+                    attrib={"internalId": acct_data["internalId"]},
+                )
+                record.append(account_elem)
+                undep_funds_elem = etree.Element(
+                    "{urn:purchases_2024_2.transactions.webservices.netsuite.com}undepFunds"
+                )
+                undep_funds_elem.text = "false"
+                record.append(undep_funds_elem)
+        
+        if context["reference_data"].get("Currencies") and raw_record.get("currency"):
+            currency_symbol = raw_record.get("currency")
+            currency = [
+                c
+                for c in context["reference_data"]["Currencies"]
+                if c["symbol"] == currency_symbol
+            ]
+            if currency:
+                currency_elem = record.find(".//{urn:purchases_2024_2.transactions.webservices.netsuite.com}currency")
+                if currency_elem is not None:
+                    name_elem = currency_elem.find("{urn:core_2024_2.platform.webservices.netsuite.com}name")
+                    if name_elem is not None:
+                        name_elem.text = currency[0].get("name")
 
         return {
             "payload": etree.tostring(record, pretty_print=True),
@@ -794,14 +860,7 @@ class netsuiteRestV2Sink(BatchSink):
         payload = payload.decode()
         payload = "\n".join(payload.split("\n")[1:-2])
 
-        # TODO: we might not need the applyList part if the balance is >0
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com"
-               xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com"
-               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="urn:platform_2024_2.webservices.netsuite.com"
-               xmlns:tranPurch="urn:purchases_2024_2.transactions.webservices.netsuite.com"
-               xmlns:platformCore="urn:core_2024_2.platform.webservices.netsuite.com"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
                 <tokenPassport>
                     <account>{oauth_creds["account"]}</account>
@@ -814,22 +873,15 @@ class netsuiteRestV2Sink(BatchSink):
             </soap:Header>
             <soap:Body>
                 <platformMsgs:add>
-                <platformMsgs:record xsi:type="tranPurch:VendorPayment">
+                <platformMsgs:record xsi:type="tranPurch:VendorPayment" xmlns:tranPurch="urn:purchases_2024_2.transactions.webservices.netsuite.com">
                     {payload}
-                    <tranPurch:applyList>
-                        <tranPurch:apply>
-                            <tranPurch:doc internalId="{bill_id}"/>
-                            <tranPurch:apply>true</tranPurch:apply>
-                            <tranPurch:amount>{bill_obj.get("balance")}</tranPurch:amount>
-                        </tranPurch:apply>
-                    </tranPurch:applyList>
                 </platformMsgs:record>
                 </platformMsgs:add>
             </soap:Body>
         </soap:Envelope>"""
 
         headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
-        self.logger.info(f"Making request = {base_request}")
+        self.logger.info(f"Making vendor payment request")
         res = requests.post(url, headers=headers, data=base_request)
         self.logger.info(f"Got response = {res.text}")
         if res.status_code >= 400:
