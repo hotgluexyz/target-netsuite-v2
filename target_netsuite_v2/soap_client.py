@@ -34,7 +34,7 @@ class netsuiteSoapV2Sink(BatchSink):
         return {v: k for (k, v) in result}
 
     def get_ns_client(self):
-        ns_account = self.config.get("ns_account")
+        ns_account = self.config.get("ns_account", "").replace("-", "_").upper()
         ns_consumer_key = self.config.get("ns_consumer_key")
         ns_consumer_secret = self.config.get("ns_consumer_secret")
         ns_token_key = self.config.get("ns_token_key")
