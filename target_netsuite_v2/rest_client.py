@@ -1300,13 +1300,14 @@ class netsuiteRestV2Sink(BatchSink):
             "type": "service for sale" # value not sent to netsuite, only used locally 
         }
 
-        if record.get("id"):
+        if record.get("id") or record.get("itemId"):
             match_conditions = [("id", "internalId"), ("id", "itemId"), ("itemId", "itemId"), ]
             matching_item = next((item for item in context["reference_data"]["Items"] if any(item[netsuite_field] == record.get(payload_field) for (payload_field, netsuite_field) in match_conditions)), None)
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            else:
+            
+            if not matching_item and record.get("id"):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")        
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
@@ -1369,13 +1370,14 @@ class netsuiteRestV2Sink(BatchSink):
             "id": record.get("id"),
         }
 
-        if record.get("id"):
+        if record.get("id") or record.get("itemId"):
             match_conditions = [("id", "internalId"), ("id", "itemId"), ("itemId", "itemId"), ]
             matching_item = next((item for item in context["reference_data"]["Items"] if any(item[netsuite_field] == record.get(payload_field) for (payload_field, netsuite_field) in match_conditions)), None)
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            else:
+            
+            if not matching_item and record.get("id"):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")
 
         if record.get("isBillItem"):
