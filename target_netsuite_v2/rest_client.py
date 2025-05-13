@@ -1292,6 +1292,7 @@ class netsuiteRestV2Sink(BatchSink):
         payload = {
             "displayName": record.get("displayName") or record.get("name"),
             "itemId": record.get("name"),
+            "id": record.get("id"),
             "upcCode": record.get("code"),
             "createdAt": record.get("createdAt"),
             "isInactive": not record.get("active", True),
@@ -1356,6 +1357,7 @@ class netsuiteRestV2Sink(BatchSink):
             "quantityOnHand": record.get("quantityOnHand"),
             "isInactive": not record.get("active"),
             "itemId": record.get("name"),
+            "id": record.get("id"),
         }
 
         if record.get("isBillItem"):

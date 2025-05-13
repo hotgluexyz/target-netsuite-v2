@@ -204,7 +204,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     url = f"{url}serviceSaleItem"
                 else:
                     url = f"{url}inventoryItem"
-                response = self.rest_post(url=url,json=record)
+
+                if record.get("id"):
+                    url = url + "/{id}"
+                    url = url.format(id=record.pop("id"))
+                    response = self.rest_patch(url=url,json=record)
+                else:
+                    response = self.rest_post(url=url,json=record)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
             for record in context.get("PurchaseOrder",[]):
