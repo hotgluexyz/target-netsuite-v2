@@ -600,7 +600,14 @@ class netsuiteRestV2Sink(BatchSink):
         # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
         if context["reference_data"].get("Accounts"):
             acct_data = None
-            if raw_record.get("accountNumber"):
+            if raw_record.get("accountId"):
+                acct_id = str(raw_record["accountId"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["internalId"] == acct_id
+                ]
+            if not acct_data and raw_record.get("accountNumber"):
                 acct_num = str(raw_record["accountNumber"])
                 acct_data = [
                     a
@@ -626,6 +633,8 @@ class netsuiteRestV2Sink(BatchSink):
                 )
                 undep_funds_elem.text = "false"
                 record.append(undep_funds_elem)
+            if not acct_data and (raw_record.get("accountId") or raw_record.get("accountNumber")) or raw_record.get("accountName"):
+                raise ValueError(f"Account {raw_record.get('accountId') or raw_record.get('accountNumber') or raw_record.get('accountName')} not found in reference data")
         
         if context["reference_data"].get("Currencies") and raw_record.get("currency"):
             currency_symbol = raw_record.get("currency")
@@ -713,7 +722,14 @@ class netsuiteRestV2Sink(BatchSink):
         # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
         if context["reference_data"].get("Accounts"):
             acct_data = None
-            if raw_record.get("accountNumber"):
+            if raw_record.get("accountId"):
+                acct_id = str(raw_record["accountId"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["internalId"] == acct_id
+                ]
+            if not acct_data and raw_record.get("accountNumber"):
                 acct_num = str(raw_record["accountNumber"])
                 acct_data = [
                     a
@@ -734,11 +750,9 @@ class netsuiteRestV2Sink(BatchSink):
                     attrib={"internalId": acct_data["internalId"]},
                 )
                 record.append(account_elem)
-                undep_funds_elem = etree.Element(
-                    "{urn:purchases_2024_2.transactions.webservices.netsuite.com}undepFunds"
-                )
-                undep_funds_elem.text = "false"
-                record.append(undep_funds_elem)
+            if not acct_data and (raw_record.get("accountId") or raw_record.get("accountNumber")) or raw_record.get("accountName"):
+                raise ValueError(f"Account {raw_record.get('accountId') or raw_record.get('accountNumber') or raw_record.get('accountName')} not found in reference data")
+
         
         if context["reference_data"].get("Currencies") and raw_record.get("currency"):
             currency_symbol = raw_record.get("currency")
