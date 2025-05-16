@@ -8,6 +8,7 @@ from pendulum import parse
 import json
 from lxml import etree
 import ast
+import xmltodict
 
 
 class netsuiteRestV2Sink(BatchSink):
@@ -595,6 +596,11 @@ class netsuiteRestV2Sink(BatchSink):
             tran_date_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}tranDate")
             tran_date_elem.text = raw_record["date"]
             record.append(tran_date_elem)
+        
+        if raw_record.get("externalId"):
+            tran_date_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}externalId")
+            tran_date_elem.text = raw_record["externalId"]
+            record.append(tran_date_elem)
 
         # field araccount uses the same account as the invoice and it's read-only
         # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
@@ -716,6 +722,11 @@ class netsuiteRestV2Sink(BatchSink):
         if raw_record.get("date"):
             tran_date_elem = etree.Element("{urn:purchases_2024_2.transactions.webservices.netsuite.com}tranDate")
             tran_date_elem.text = raw_record["date"]
+            record.append(tran_date_elem)
+
+        if raw_record.get("externalId"):
+            tran_date_elem = etree.Element("{urn:purchases_2024_2.transactions.webservices.netsuite.com}externalId")
+            tran_date_elem.text = raw_record["externalId"]
             record.append(tran_date_elem)
 
         # field araccount uses the same account as the invoice and it's read-only
@@ -901,9 +912,17 @@ class netsuiteRestV2Sink(BatchSink):
         self.logger.info(f"Making vendor payment request")
         res = requests.post(url, headers=headers, data=base_request)
         self.logger.info(f"Got response = {res.text}")
-        if res.status_code >= 400:
-            raise ConnectionError(res.text)
-        return res
+
+        # Parse XML response into dict
+        response_dict = xmltodict.parse(res.text)
+        status = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["platformCore:status"]
+        if status["@isSuccess"] == "true":
+            baseRef = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]
+            self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
+            return res
+        else:
+            raise Exception(status.get("platformCore:statusDetail"))
+
 
     def push_payments(self, payload):
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
@@ -935,9 +954,16 @@ class netsuiteRestV2Sink(BatchSink):
 
         headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code >= 400:
-            raise ConnectionError(res.text)
-        return res
+        # Parse XML response into dict
+        response_dict = xmltodict.parse(res.text)
+        status = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["platformCore:status"]
+        if status["@isSuccess"] == "true":
+            baseRef = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]
+            self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
+            return res
+        else:
+            raise Exception(status.get("platformCore:statusDetail"))
+        
 
     def po_to_vb(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
