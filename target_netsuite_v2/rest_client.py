@@ -8,6 +8,7 @@ from pendulum import parse
 import json
 from lxml import etree
 import ast
+import xmltodict
 
 
 class netsuiteRestV2Sink(BatchSink):
@@ -595,12 +596,24 @@ class netsuiteRestV2Sink(BatchSink):
             tran_date_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}tranDate")
             tran_date_elem.text = raw_record["date"]
             record.append(tran_date_elem)
+        
+        if raw_record.get("externalId"):
+            tran_date_elem = etree.Element("{urn:customers_2024_2.transactions.webservices.netsuite.com}externalId")
+            tran_date_elem.text = raw_record["externalId"]
+            record.append(tran_date_elem)
 
         # field araccount uses the same account as the invoice and it's read-only
         # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
         if context["reference_data"].get("Accounts"):
             acct_data = None
-            if raw_record.get("accountNumber"):
+            if raw_record.get("accountId"):
+                acct_id = str(raw_record["accountId"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["internalId"] == acct_id
+                ]
+            if not acct_data and raw_record.get("accountNumber"):
                 acct_num = str(raw_record["accountNumber"])
                 acct_data = [
                     a
@@ -626,6 +639,8 @@ class netsuiteRestV2Sink(BatchSink):
                 )
                 undep_funds_elem.text = "false"
                 record.append(undep_funds_elem)
+            if not acct_data and (raw_record.get("accountId") or raw_record.get("accountNumber")) or raw_record.get("accountName"):
+                raise ValueError(f"Account {raw_record.get('accountId') or raw_record.get('accountNumber') or raw_record.get('accountName')} not found in reference data")
         
         if context["reference_data"].get("Currencies") and raw_record.get("currency"):
             currency_symbol = raw_record.get("currency")
@@ -709,11 +724,23 @@ class netsuiteRestV2Sink(BatchSink):
             tran_date_elem.text = raw_record["date"]
             record.append(tran_date_elem)
 
+        if raw_record.get("externalId"):
+            tran_date_elem = etree.Element("{urn:purchases_2024_2.transactions.webservices.netsuite.com}externalId")
+            tran_date_elem.text = raw_record["externalId"]
+            record.append(tran_date_elem)
+
         # field araccount uses the same account as the invoice and it's read-only
         # field account is the bank account that will be used to pay the invoice, it can only be passed if funds have been already deposited
         if context["reference_data"].get("Accounts"):
             acct_data = None
-            if raw_record.get("accountNumber"):
+            if raw_record.get("accountId"):
+                acct_id = str(raw_record["accountId"])
+                acct_data = [
+                    a
+                    for a in context["reference_data"]["Accounts"]
+                    if a["internalId"] == acct_id
+                ]
+            if not acct_data and raw_record.get("accountNumber"):
                 acct_num = str(raw_record["accountNumber"])
                 acct_data = [
                     a
@@ -734,11 +761,9 @@ class netsuiteRestV2Sink(BatchSink):
                     attrib={"internalId": acct_data["internalId"]},
                 )
                 record.append(account_elem)
-                undep_funds_elem = etree.Element(
-                    "{urn:purchases_2024_2.transactions.webservices.netsuite.com}undepFunds"
-                )
-                undep_funds_elem.text = "false"
-                record.append(undep_funds_elem)
+            if not acct_data and (raw_record.get("accountId") or raw_record.get("accountNumber")) or raw_record.get("accountName"):
+                raise ValueError(f"Account {raw_record.get('accountId') or raw_record.get('accountNumber') or raw_record.get('accountName')} not found in reference data")
+
         
         if context["reference_data"].get("Currencies") and raw_record.get("currency"):
             currency_symbol = raw_record.get("currency")
@@ -887,9 +912,17 @@ class netsuiteRestV2Sink(BatchSink):
         self.logger.info(f"Making vendor payment request")
         res = requests.post(url, headers=headers, data=base_request)
         self.logger.info(f"Got response = {res.text}")
-        if res.status_code >= 400:
-            raise ConnectionError(res.text)
-        return res
+
+        # Parse XML response into dict
+        response_dict = xmltodict.parse(res.text)
+        status = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["platformCore:status"]
+        if status["@isSuccess"] == "true":
+            baseRef = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]
+            self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
+            return res
+        else:
+            raise Exception(status.get("platformCore:statusDetail"))
+
 
     def push_payments(self, payload):
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
@@ -921,9 +954,16 @@ class netsuiteRestV2Sink(BatchSink):
 
         headers = {"SOAPAction": "add", "Content-Type": "text/xml"}
         res = requests.post(url, headers=headers, data=base_request)
-        if res.status_code >= 400:
-            raise ConnectionError(res.text)
-        return res
+        # Parse XML response into dict
+        response_dict = xmltodict.parse(res.text)
+        status = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["platformCore:status"]
+        if status["@isSuccess"] == "true":
+            baseRef = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]
+            self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
+            return res
+        else:
+            raise Exception(status.get("platformCore:statusDetail"))
+        
 
     def po_to_vb(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
@@ -1300,13 +1340,14 @@ class netsuiteRestV2Sink(BatchSink):
             "type": "service for sale" # value not sent to netsuite, only used locally 
         }
 
-        if record.get("id"):
+        if record.get("id") or record.get("itemId"):
             match_conditions = [("id", "internalId"), ("id", "itemId"), ("itemId", "itemId"), ]
             matching_item = next((item for item in context["reference_data"]["Items"] if any(item[netsuite_field] == record.get(payload_field) for (payload_field, netsuite_field) in match_conditions)), None)
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            else:
+            
+            if not matching_item and record.get("id"):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")        
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
@@ -1369,13 +1410,14 @@ class netsuiteRestV2Sink(BatchSink):
             "id": record.get("id"),
         }
 
-        if record.get("id"):
+        if record.get("id") or record.get("itemId"):
             match_conditions = [("id", "internalId"), ("id", "itemId"), ("itemId", "itemId"), ]
             matching_item = next((item for item in context["reference_data"]["Items"] if any(item[netsuite_field] == record.get(payload_field) for (payload_field, netsuite_field) in match_conditions)), None)
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            else:
+            
+            if not matching_item and record.get("id"):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")
 
         if record.get("isBillItem"):
