@@ -1351,15 +1351,18 @@ class netsuiteRestV2Sink(BatchSink):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")        
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
+        if isinstance(subsidiary, str):
+            subsidiary = [subsidiary]
+        
         if context["reference_data"].get("Subsidiaries"):
             subsidiary_obj = [
                 sub
                 for sub in context["reference_data"].get("Subsidiaries")
-                if sub.get("name") == subsidiary or sub.get("internalId") == subsidiary
+                if sub.get("name") in subsidiary or sub.get("internalId") in subsidiary
             ]
             if subsidiary_obj:
                 payload["subsidiary"] = {
-                    "items": [{"id": subsidiary_obj[0]["internalId"]}]
+                    "items": [{"id": sub["internalId"]} for sub in subsidiary_obj]
                 }
 
         # for incomeAccount field find a match by id or name if the right payload ({"id": "sale account id"}) is not passed
