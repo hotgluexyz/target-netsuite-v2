@@ -5,7 +5,7 @@ import backoff
 from netsuitesdk.api.base import ApiBase
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 from netsuitesdk.api.currencies import Currencies
-
+from target_netsuite_v2.netsuite.exceptions import AccountDocumentPermissionError
 from zeep.exceptions import Fault
 
 import singer
@@ -13,6 +13,7 @@ import singer
 logger = singer.get_logger()
 
 class BaseFilter(ApiBase):
+    @backoff.on_exception(backoff.expo, (Fault, Exception, AccountDocumentPermissionError), max_tries=5, factor=3)
     def get_all(self, selected_fileds=[], **kwargs):
         output = []
         page_n = 1
@@ -42,6 +43,11 @@ class BaseFilter(ApiBase):
         try:
             records = self.get_all_generator(**kwargs)
         except NetSuiteRequestError as e:
+            if self.type_name == "Account":
+                self.ns_client._search_preferences = None
+                logger.warning(f"It was not possible to retrieve {self.type_name} data: {e.message}")
+                logger.warning(f"Retrying without search preferences, Accounts subsidiaryList will be empty")
+                raise AccountDocumentPermissionError(e.message)
             logger.warning(f"It was not possible to retrieve {self.type_name} data: {e.message}")
             return []
         
