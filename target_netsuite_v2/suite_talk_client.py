@@ -131,13 +131,17 @@ class SuiteTalkRestClient:
         transaction_type,
         external_ids: Optional[List[str]] = None,
         record_ids: Optional[List[str]] = None,
-        page_size=1000
+        page_size=1000,
+        extra_select_statement: Optional[str] = ''
     ) -> List[Dict]:
 
         if record_ids is not None and not record_ids and external_ids is not None and not external_ids:
             return True, None, []
+        
+        if extra_select_statement:
+            extra_select_statement = f", {extra_select_statement}"
 
-        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId FROM transaction WHERE transaction.type = '{transaction_type}'"
+        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId{extra_select_statement} FROM transaction WHERE transaction.type = '{transaction_type}'"
         where_clause = ""
 
         if record_ids:
