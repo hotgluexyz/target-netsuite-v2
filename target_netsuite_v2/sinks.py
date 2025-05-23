@@ -8,6 +8,7 @@ from singer_sdk.sinks import BatchSink
 from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
+from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from target_netsuite_v2.mapper.base_mapper import InvalidInputError, InvalidDateError, DATE_REGEX
 
 class NetSuiteBaseSink(HotglueBaseSink):
@@ -19,7 +20,7 @@ class NetSuiteBaseSink(HotglueBaseSink):
         key_properties: Optional[List[str]],
     ) -> None:
         super().__init__(target, stream_name, schema, key_properties)
-        self.suite_talk_client = self._target.suite_talk_client
+        self.suite_talk_client: SuiteTalkRestClient = self._target.suite_talk_client
 
     def record_exists(self, record: dict) -> bool:
         return bool(record.get("internalId"))
