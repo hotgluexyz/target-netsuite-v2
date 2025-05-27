@@ -132,7 +132,7 @@ class InvoiceSink(NetSuiteBatchSink):
                 continue
 
             try:
-                preprocessed_payment = InvoicePaymentSchemaMapper(payment, record.get("entity"), parent_id, reference_data).to_netsuite()
+                preprocessed_payment = InvoicePaymentSchemaMapper(payment, "InvoicePayments", record.get("entity"), parent_id, reference_data).to_netsuite()
                 id, success, error_message = self.suite_talk_client.create_record("customerPayment", preprocessed_payment)
                 if not success:
                     error_messages.append(f"Error creating payment for Invoice: {error_message}")
