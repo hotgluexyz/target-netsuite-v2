@@ -360,19 +360,28 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_invoice_payments(self, invoice_ids=None):
+    def get_invoice_payments(self, invoice_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
         if invoice_ids is not None and not invoice_ids:
             return True, None, {}
 
-        where_clause = ""
+        where_clauses = []
 
         if invoice_ids:
             external_id_string = ",".join(f"'{id}'" for id in invoice_ids)
-            where_clause = f"and NTLL.PreviousDoc in ({external_id_string})"
+            where_clauses.append(f"NTLL.PreviousDoc in ({external_id_string})")
 
-        query = "SELECT DISTINCT NTLL.PreviousDoc transaction, NT.ID ID, NT.tranid, NT.transactionNumber, NT.account account, NT.TranDate, NT.Type, BUILTIN.DF(NT.Status) status, NT.ForeignTotal amount, currency, exchangeRate FROM NextTransactionLineLink AS NTLL INNER JOIN Transaction AS NT ON (NT.ID = NTLL.NextDoc) WHERE NT.recordtype = 'customerpayment'"
-        if where_clause:
-            query += f" {where_clause}"
+        if ids:
+            ids_string = ",".join(f"{id}" for id in ids)
+            where_clauses.append(f"NT.ID in ({ids_string})")
+
+        if external_ids:
+            external_ids_string = ",".join(f"'{id}'" for id in external_ids)
+            where_clauses.append(f"NT.externalId in ({external_ids_string})")
+
+        query = "SELECT DISTINCT NTLL.PreviousDoc transaction, NT.ID ID, NT.ID internalId, NT.externalId, NT.tranid, NT.transactionNumber, NT.account account, NT.TranDate, NT.Type, BUILTIN.DF(NT.Status) status, NT.ForeignTotal amount, currency, exchangeRate FROM NextTransactionLineLink AS NTLL INNER JOIN Transaction AS NT ON (NT.ID = NTLL.NextDoc) WHERE NT.recordtype = 'customerpayment'"
+        if where_clauses:
+            where_statement = " OR ".join(where_clauses)
+            query += f" AND ({where_statement})"
 
         query_data = {"q": query}
         headers = {"Prefer": "transient"}
@@ -391,6 +400,16 @@ class SuiteTalkRestClient:
 
         resp_json = response.json()
         payments = resp_json.get("items", [])
+
+        if not aggregate_payments:
+            for payment in payments:
+                if "internalid" in payment:
+                    payment["internalId"] = payment.pop("internalid")
+                if "externalid" in payment:
+                    payment["externalId"] = payment.pop("externalid")
+
+            return True, None, payments
+
         result = defaultdict(lambda: {"payments": []})
 
         for payment in payments:
