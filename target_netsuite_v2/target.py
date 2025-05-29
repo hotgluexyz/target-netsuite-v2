@@ -13,6 +13,7 @@ from target_netsuite_v2.sink.item_sink import ItemSink
 from target_netsuite_v2.sink.bill_sink import BillSink
 from target_netsuite_v2.sink.bill_payment_sink import BillPaymentSink
 from target_netsuite_v2.sink.invoice_sink import InvoiceSink
+from target_netsuite_v2.sink.invoice_payment_sink import InvoicePaymentSink
 from target_netsuite_v2.sink.journal_entry_sink import JournalEntrySink
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
@@ -37,6 +38,7 @@ class TargetNetsuiteV2(TargetHotglue):
         BillSink,
         BillPaymentSink,
         InvoiceSink,
+        InvoicePaymentSink,
         JournalEntrySink
     ]
 
