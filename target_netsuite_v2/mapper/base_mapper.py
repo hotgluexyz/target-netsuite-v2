@@ -115,7 +115,7 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
@@ -127,6 +127,7 @@ class BaseMapper:
             dict|None: Matching reference object or None if not found
         """
         found = None
+        ref_name = None
         # Check for direct ID field first
         if direct_id := self.record.get(id_field):
             found = next(
@@ -138,13 +139,27 @@ class BaseMapper:
             return found
 
         # If no match by id, try to find by reference name and subsidiary scope if provided.
-        if ref_name := self.record.get(name_field):
+        if name_field and (ref_name := self.record.get(name_field)):
             found = next(
                 (
                     item
                     for item in reference_list
                     if item.get("name") == ref_name and
                     (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                ),
+                None
+            )
+
+        if found:
+            return found
+        
+        # If no match by external id.
+        if external_id_field and (external_id := self.record.get(external_id_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("externalId") == external_id
                 ),
                 None
             )
@@ -168,22 +183,26 @@ class BaseMapper:
             return found
 
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
-        if direct_id or ref_name:
+        if direct_id or ref_name or external_id_field:
             lookup_attempts = []
             if direct_id:
                 lookup_attempts.append(f"by id {direct_id}")
-            if ref_name:
+            if name_field and ref_name:
                 lookup_attempts.append(f"by name {ref_name}")
             if number_field and ref_number:
                 lookup_attempts.append(f"by number {ref_number}")
+            if external_id_field and external_id:
+                lookup_attempts.append(f"by externalId {external_id}")
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
             # Properly format with "and" before the last item
             if len(lookup_attempts) > 1:
                 lookup_message = ", ".join(lookup_attempts[:-1]) + f", and {lookup_attempts[-1]}"
-            else:
+            elif len(lookup_attempts) == 1:
                 lookup_message = lookup_attempts[0]
+            else:
+                return None
 
             error_message = f"Unable to find {id_field.replace('Id', '')}. Tried lookup {lookup_message}."
 
@@ -292,7 +311,7 @@ class BaseMapper:
 
             raise InvalidReferenceError(error_message)
 
-    def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None):
+    def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None, external_id_field=None):
         """Generic method to map a subrecord reference to NetSuite format
         Args:
             reference_type (str): Key in reference_data (e.g. "Accounts", "Locations")
@@ -306,7 +325,8 @@ class BaseMapper:
             self.reference_data[reference_type],
             id_field,
             name_field,
-            subsidiary_scope
+            subsidiary_scope=subsidiary_scope,
+            external_id_field=external_id_field
         )
 
         if reference:
