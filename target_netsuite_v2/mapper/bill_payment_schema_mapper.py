@@ -32,7 +32,8 @@ class BillPaymentSchemaMapper(BaseMapper):
             **self._map_entity(),
             **self._map_currency(),
             **self._map_subrecord("Accounts", "accountId", "accountName", "account"),
-            **self._map_apply()
+            **self._map_apply(),
+            **self._map_entity(), # we do this again to make sure the entity is set
         }
 
         self._map_fields(payload)
@@ -51,13 +52,14 @@ class BillPaymentSchemaMapper(BaseMapper):
         )
 
         if reference:
-            entity = self._map_entity()
-            if entity:
-                if entity["entity"]["id"] != reference["entityid"]:
-                    raise InvalidInputError(f"The Vendor supplied must be the same Bill Vendor")
+            # If the entity was not provided, fall back to the one from the Bill
+            if not self.entity:
+                self.entity = reference["entityid"]
+            elif self.entity != reference["entityid"]:
+                raise InvalidInputError(f"The Vendor supplied must be the same Bill Vendor")
 
             return { "id": reference["internalId"] }
-        
+
         return {}
 
     def _map_entity(self):
@@ -72,6 +74,7 @@ class BillPaymentSchemaMapper(BaseMapper):
         )
 
         if reference:
+            self.entity = reference["internalId"]
             return { "entity": { "id": reference["internalId"] } }
 
         return {}

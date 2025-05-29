@@ -199,8 +199,10 @@ class BaseMapper:
             # Properly format with "and" before the last item
             if len(lookup_attempts) > 1:
                 lookup_message = ", ".join(lookup_attempts[:-1]) + f", and {lookup_attempts[-1]}"
-            else:
+            elif len(lookup_attempts) == 1:
                 lookup_message = lookup_attempts[0]
+            else:
+                return None
 
             error_message = f"Unable to find {id_field.replace('Id', '')}. Tried lookup {lookup_message}."
 
