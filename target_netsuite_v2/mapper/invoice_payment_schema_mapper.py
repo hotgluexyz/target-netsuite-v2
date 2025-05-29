@@ -32,7 +32,8 @@ class InvoicePaymentSchemaMapper(BaseMapper):
             **self._map_entity(),
             **self._map_currency(),
             **self._map_subrecord("Accounts", "accountId", "accountName", "account"),
-            **self._map_apply()
+            **self._map_apply(),
+            **self._map_entity(), # we do this again to make sure the entity is set
         }
 
         self._map_fields(payload)
@@ -51,13 +52,13 @@ class InvoicePaymentSchemaMapper(BaseMapper):
         )
 
         if reference:
-            entity = self._map_entity()
-            if entity:
-                if entity["customer"]["id"] != reference["entityid"]:
-                    raise InvalidInputError(f"The Customer supplied must be the same Invoice Customer")
+            if not self.entity:
+                self.entity = reference["entityid"]
+            elif self.entity != reference["entityid"]:
+                raise InvalidInputError(f"The Customer supplied must be the same Invoice Customer")
 
             return { "id": reference["internalId"] }
-        
+
         return {}
 
     def _map_entity(self):
@@ -72,6 +73,7 @@ class InvoicePaymentSchemaMapper(BaseMapper):
         )
 
         if reference:
+            self.entity = reference["internalId"]
             return { "customer": { "id": reference["internalId"] } }
 
         return {}
