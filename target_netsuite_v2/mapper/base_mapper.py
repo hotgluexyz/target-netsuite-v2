@@ -145,7 +145,7 @@ class BaseMapper:
                     item
                     for item in reference_list
                     if item.get("name") == ref_name and
-                    (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
                 ),
                 None
             )
