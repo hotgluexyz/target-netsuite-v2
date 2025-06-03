@@ -656,7 +656,10 @@ class netsuiteRestV2Sink(BatchSink):
                     if name_elem is not None:
                         name_elem.text = currency[0].get("name")
 
-        return etree.tostring(record, pretty_print=True)
+        return {
+            "payload": etree.tostring(record, pretty_print=True),
+            "raw_record": raw_record
+        }
 
     def vendor_payment(self, context, record):
         """
@@ -781,7 +784,7 @@ class netsuiteRestV2Sink(BatchSink):
 
         return {
             "payload": etree.tostring(record, pretty_print=True),
-            "bill_id": vendor_bill_id
+            "raw_record": raw_record
         }
 
     def process_vendor_credit(self, context, record):
@@ -877,10 +880,12 @@ class netsuiteRestV2Sink(BatchSink):
         pushes a new VendorPayment record to NetSuite.
         """
         payload = record['payload']
-        bill_id = record['bill_id']
+        raw_record = record['raw_record']
+        bill_id = raw_record['transactionId']
         bill_obj = self.rest_get(url=f"{self.url_base}vendorBill/{bill_id}").json()
         if bill_obj.get("balance") == 0:
-            raise Exception(f"Bill with id={bill_id} has already been paid in full!")
+            self.logger.info(f"Bill with id={bill_id} has already been paid in full!")
+            return
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
@@ -918,10 +923,15 @@ class netsuiteRestV2Sink(BatchSink):
         status = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["platformCore:status"]
         if status["@isSuccess"] == "true":
             baseRef = response_dict["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]
-            self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
+            self.logger.info(f"VendorPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
             return res
         else:
-            raise Exception(status.get("platformCore:statusDetail"))
+            if isinstance(status.get("platformCore:statusDetail"), dict) and "This record already exists" in status.get("platformCore:statusDetail").get("platformCore:message"):
+                self.logger.info(f"VendorPayment already exists for Bill {bill_id}. externalId: {raw_record.get('externalId')}")
+            elif isinstance(status.get("platformCore:statusDetail"), dict) and "Unable to find a matching line for sublist apply with key" in status.get("platformCore:statusDetail").get("platformCore:message"):
+                self.logger.info(f"A payment can't be applied to the Bill, Bill Id= {bill_id}. Transaction externalId: {raw_record.get('externalId')}")
+            else:
+                raise Exception(status.get("platformCore:statusDetail"))
 
 
     def push_payments(self, payload):
@@ -929,8 +939,16 @@ class netsuiteRestV2Sink(BatchSink):
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
+        raw_record = payload['raw_record']
+        invoice_id = raw_record['transactionId']
+        payload = payload['payload'] 
         payload = payload.decode()
         payload = "\n".join(payload.split("\n")[1:-2])
+
+        invoice_obj = self.rest_get(url=f"{self.url_base}invoice/{invoice_id}").json()
+        if invoice_obj.get("amountRemaining") == 0:
+            self.logger.info(f"Invoice with id={invoice_id} has already been paid in full!")
+            return
 
         base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2024_2.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2024_2.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2024_2.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
@@ -962,7 +980,12 @@ class netsuiteRestV2Sink(BatchSink):
             self.logger.info(f"CustomerPayment created succesfully. InternalId: {baseRef.get('@internalId')}, externalId: {baseRef.get('@externalId')}")
             return res
         else:
-            raise Exception(status.get("platformCore:statusDetail"))
+            if isinstance(status.get("platformCore:statusDetail"), dict) and "This record already exists" in status.get("platformCore:statusDetail").get("platformCore:message"):
+                self.logger.info(f"CustomerPayment already exists for Invoice {invoice_id}. externalId: {raw_record.get('externalId')}")
+            elif isinstance(status.get("platformCore:statusDetail"), dict) and "Unable to find a matching line for sublist apply with key" in status.get("platformCore:statusDetail").get("platformCore:message"):
+                self.logger.info(f"A payment can't be applied to the Invoice, Invoice Id= {invoice_id}")
+            else:
+                raise Exception(status.get("platformCore:statusDetail"))
         
 
     def po_to_vb(self, payload):
@@ -1351,15 +1374,18 @@ class netsuiteRestV2Sink(BatchSink):
                 raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")        
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
+        if isinstance(subsidiary, str):
+            subsidiary = [subsidiary]
+        
         if context["reference_data"].get("Subsidiaries"):
             subsidiary_obj = [
                 sub
                 for sub in context["reference_data"].get("Subsidiaries")
-                if sub.get("name") == subsidiary or sub.get("internalId") == subsidiary
+                if sub.get("name") in subsidiary or sub.get("internalId") in subsidiary
             ]
             if subsidiary_obj:
                 payload["subsidiary"] = {
-                    "items": [{"id": subsidiary_obj[0]["internalId"]}]
+                    "items": [{"id": sub["internalId"]} for sub in subsidiary_obj]
                 }
 
         # for incomeAccount field find a match by id or name if the right payload ({"id": "sale account id"}) is not passed

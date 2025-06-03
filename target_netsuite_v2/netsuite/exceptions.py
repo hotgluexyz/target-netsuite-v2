@@ -5,3 +5,6 @@ class TapNetSuiteException(Exception):
 
 class TapNetSuiteQuotaExceededException(TapNetSuiteException):
     pass
+
+class AccountDocumentPermissionError(Exception):
+    pass

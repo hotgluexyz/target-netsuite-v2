@@ -125,6 +125,8 @@ class netsuiteSoapV2Sink(BatchSink):
                     subsidiary = acct_data['subsidiaryList']
                     if subsidiary:
                         subsidiary = subsidiary[0]
+                    else:
+                        raise Exception(f"No subsidiary was provided for line {line} and account subsidiaries couldn't be fetched because of missing permission.")
                 if subsidiary:
                     if line["postingType"].lower() == "credit":
                         subsidiaries["toSubsidiary"] = subsidiary
