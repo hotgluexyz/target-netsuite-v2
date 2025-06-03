@@ -115,7 +115,7 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None, entity_id_field=None):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
@@ -166,6 +166,20 @@ class BaseMapper:
 
         if found:
             return found
+        
+         # Find by entity id.
+        if entity_id_field and (entity_id := self.record.get(entity_id_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("entityId") == entity_id
+                ),
+                None
+            )
+
+        if found:
+            return found
 
         # If no match by id or name, try to find by number
         if number_field and (ref_number := self.record.get(number_field)):
@@ -183,7 +197,7 @@ class BaseMapper:
             return found
 
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
-        if direct_id or ref_name or external_id_field:
+        if direct_id or ref_name or external_id_field or entity_id_field:
             lookup_attempts = []
             if direct_id:
                 lookup_attempts.append(f"by id {direct_id}")
@@ -193,6 +207,8 @@ class BaseMapper:
                 lookup_attempts.append(f"by number {ref_number}")
             if external_id_field and external_id:
                 lookup_attempts.append(f"by externalId {external_id}")
+            if entity_id_field and entity_id:
+                lookup_attempts.append(f"by {entity_id_field}={entity_id}")
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
