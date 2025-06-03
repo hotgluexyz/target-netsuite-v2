@@ -18,12 +18,14 @@ class VendorCreditSink(NetSuiteBatchSink):
 
         vendor_ids = {record["vendorId"] for record in raw_records if record.get("vendorId")}
         vendor_external_ids = {record["vendorExternalId"] for record in raw_records if record.get("vendorExternalId")}
+        vendor_numbers = {record["vendorNumber"] for record in raw_records if record.get("vendorNumber")}
         vendor_names = {record["vendorName"] for record in raw_records if record.get("vendorName")}
         _, _, vendors = self.suite_talk_client.get_reference_data(
             "vendor",
             record_ids=vendor_ids,
             external_ids=vendor_external_ids,
-            names=vendor_names
+            names=vendor_names,
+            entity_ids=vendor_numbers
         )
 
         item_ids = set()

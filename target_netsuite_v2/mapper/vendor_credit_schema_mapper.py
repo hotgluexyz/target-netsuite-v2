@@ -45,7 +45,8 @@ class VendorCreditSchemaMapper(BaseMapper):
             self.reference_data["Vendors"],
             "vendorId",
             "vendorName",
-            external_id_field="vendorExternalId"
+            external_id_field="vendorExternalId",
+            entity_id_field="vendorNumber" 
         )
 
         if reference:
