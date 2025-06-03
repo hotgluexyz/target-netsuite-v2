@@ -192,10 +192,22 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ['customers','customer']:
             url = f"{self.url_base}{self.stream_name.lower()}"
             for record in context.get("Customer", []):
-                if record.get("id"):
-                    response = self.rest_patch(url=f"{url}/{record.pop('id')}", json=record)
+                customer_subsidiary_relationships = record.pop("customerSubsidiaryRelationships", None)
+                id = record.pop("id", None)
+                if id:
+                    response = self.rest_patch(url=f"{url}/{id}", json=record)
                 else:
                     response = self.rest_post(url=url, json=record)
+                if customer_subsidiary_relationships:
+                    for relationship in customer_subsidiary_relationships:
+                        id = id or response.json().get("id")
+                        self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
+                        relationship["entity"] = {"id": id}
+                        relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
+                        response = self.rest_post(url=relationship_url, json=relationship)
+                        self.logger.info(response)
+
+
         elif self.stream_name.lower() in ['item','items']:
             url = f"{self.url_base}"
             for record in context.get("Items",[]):
