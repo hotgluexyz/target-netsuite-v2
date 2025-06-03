@@ -7,6 +7,7 @@ from pendulum import parse
 from singer_sdk import typing as th
 from target_hotglue.target import TargetHotglue
 from target_netsuite_v2.sink.vendor_sink import VendorSink
+from target_netsuite_v2.sink.vendor_credit_sink import VendorCreditSink
 from target_netsuite_v2.sink.account_sink import AccountSink
 from target_netsuite_v2.sink.customer_sink import CustomerSink
 from target_netsuite_v2.sink.item_sink import ItemSink
@@ -32,6 +33,7 @@ class TargetNetsuiteV2(TargetHotglue):
 
     SINK_TYPES = [
         VendorSink,
+        VendorCreditSink,
         AccountSink,
         CustomerSink,
         ItemSink,
