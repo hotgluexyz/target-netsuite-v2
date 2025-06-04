@@ -299,6 +299,39 @@ class SuiteTalkRestClient:
 
         return True, None, all_items
 
+    def get_purchase_order_items(self, purchase_order_ids):
+        if not purchase_order_ids:
+            return True, None, {}
+
+        purchase_order_ids_string = ",".join(f"'{id}'" for id in purchase_order_ids)
+
+        query = f"SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T' AND t.type = 'PurchOrd' AND t.id IN ({purchase_order_ids_string})"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, {}
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+        result = defaultdict(lambda: {"lineItems": []})
+
+        for item in items:
+            transaction_id = item["transaction"]
+            result[transaction_id]["lineItems"].append(item)
+
+        return True, None, dict(result)
+
     def get_invoice_items(self, external_ids=None):
         if external_ids is not None and not external_ids:
             return True, None, {}
