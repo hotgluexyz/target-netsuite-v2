@@ -29,6 +29,7 @@ class BaseMapper:
         "shipping": { "defaultShipping": True, "defaultBilling": False },
         "billing": { "defaultShipping": False, "defaultBilling": True }
     }
+    record_extra_pk_mappings = []
 
     def __init__(
             self,
@@ -64,6 +65,17 @@ class BaseMapper:
                 if record.get("externalId") == record_id),
                 None
             )
+
+        for record_extra_pk_mapping in self.record_extra_pk_mappings:
+            if record_id := self.record.get(record_extra_pk_mapping["record_field"]):
+                found_record = next(
+                    (netsuite_record for netsuite_record in reference_list
+                    if netsuite_record.get(record_extra_pk_mapping["netsuite_field"]) == record_id),
+                    None
+                )
+
+                if found_record:
+                    return found_record
 
         # If no ID provided, try matching by external ID
         if external_id := self.record.get("externalId"):
