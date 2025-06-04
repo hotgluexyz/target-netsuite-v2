@@ -131,29 +131,35 @@ class SuiteTalkRestClient:
         transaction_type,
         external_ids: Optional[List[str]] = None,
         record_ids: Optional[List[str]] = None,
+        tran_ids: Optional[List[str]] = None,
         page_size=1000,
         extra_select_statement: Optional[str] = ''
     ) -> List[Dict]:
 
-        if record_ids is not None and not record_ids and external_ids is not None and not external_ids:
+        if record_ids is not None and not record_ids and external_ids is not None and not external_ids and not tran_ids:
             return True, None, []
         
         if extra_select_statement:
             extra_select_statement = f", {extra_select_statement}"
 
-        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId{extra_select_statement} FROM transaction WHERE transaction.type = '{transaction_type}'"
-        where_clause = ""
+        query = f"SELECT transaction.id as internalId, transaction.tranid as tranId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId{extra_select_statement} FROM transaction WHERE transaction.type = '{transaction_type}'"
+        where_clauses = []
 
         if record_ids:
             id_string = ",".join(str(id) for id in record_ids)
-            where_clause = f"AND id IN ({id_string})"
+            where_clauses.append(f"id IN ({id_string})")
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clauses.append(f"tranId IN ({tran_id_string})")
 
         if external_ids:
-            tran_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND externalId IN ({tran_id_string})"
+            external_ids_str = ",".join(f"'{id}'" for id in external_ids)
+            where_clauses.append(f"externalId IN ({external_ids_str})")
 
-        if where_clause:
-            query += f" {where_clause}"
+        if where_clauses:
+            where_statement = " OR ".join(where_clauses)
+            query += f" AND ({where_statement})"
 
         all_items = []
         offset = 0
