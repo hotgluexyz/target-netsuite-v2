@@ -9,11 +9,13 @@ class VendorCreditSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         ids = {record["id"] for record in raw_records if record.get("id")}
+        tran_ids = {record["vendorCreditNumber"] for record in raw_records if record.get("vendorCreditNumber")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         _, _, vendor_credits = self.suite_talk_client.get_transaction_data(
             transaction_type="VendCred",
             record_ids=ids,
-            external_ids=external_ids
+            external_ids=external_ids,
+            tran_ids=tran_ids
         )
 
         vendor_ids = {record["vendorId"] for record in raw_records if record.get("vendorId")}

@@ -3,8 +3,13 @@ from target_netsuite_v2.mapper.vendor_credit_line_item_schema_mapper import Vend
 from target_netsuite_v2.mapper.vendor_credit_expense_line_schema_mapper import VendorCreditExpenseLineSchemaMapper
 
 class VendorCreditSchemaMapper(BaseMapper):
+    record_extra_pk_mappings = [
+        {"record_field": "vendorCreditNumber", "netsuite_field": "tranId"}
+    ]
+
     field_mappings = {
-        "externalId": ["externalId", "tranId"],
+        "externalId": "externalId",
+        "vendorCreditNumber": "tranId",
         "issueDate": "tranDate",
         "dueDate": "duedate",
         "exchangeRate": "exchangerate",
