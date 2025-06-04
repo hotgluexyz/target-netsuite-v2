@@ -195,6 +195,8 @@ class SuiteTalkRestClient:
                     item["externalId"] = item.pop("externalid")
                 if "subsidiaryid" in item:
                     item["subsidiaryId"] = item.pop("subsidiaryid")
+                if "tranid" in item:
+                    item["tranId"] = item.pop("tranid")
 
             all_items.extend(items)
 
