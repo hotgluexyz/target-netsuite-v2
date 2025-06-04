@@ -1110,17 +1110,14 @@ class netsuiteRestV2Sink(BatchSink):
             customer["firstName"] = first_name
             customer["lastName"] = last_name
 
+        # this is the primary subsidiary
         if subsidiary:
-            if isinstance(subsidiary, list):
-                # customer payload needs a primary subsidiary, getting the first one by default, and this one can not be sent again as customer subsidiary relationships 
-                primary_subsidiary = subsidiary.pop(0)
-                customer["subsidiary"] = {"id": primary_subsidiary}
-                # send the rest of the subsidiaries as customer subsidiary relationships
-                if subsidiary:
-                    new_subsidiaries = [s for s in subsidiary]
-                    customer["customerSubsidiaryRelationships"] = [{"subsidiary": {"id": s}} for s in new_subsidiaries]
-            else:
-                customer["subsidiary"] = {"id": subsidiary}
+            customer["subsidiary"] = {"id": subsidiary}
+        
+        if record.get("additionalSubsidiaries"):
+            new_subsidiaries = [s for s in record["additionalSubsidiaries"]]
+            customer["customerSubsidiaryRelationships"] = [{"subsidiary": {"id": s}} for s in new_subsidiaries]
+
             
         if sales_rep:
             customer["salesRep"] = {"id": sales_rep}
