@@ -12,7 +12,7 @@ class SuiteTalkRestClient:
         "account": "account.id as internalId, account.acctName as name, account.acctNumber as number, account.externalId",
         "classification": "classification.id as internalId, classification.name, classification.externalId, subsidiary as subsidiaryId",
         "currency": "currency.id as internalId, currency.symbol, currency.name",
-        "customer": "customer.id as internalId, customer.companyName as name, customer.externalId",
+        "customer": "customer.id as internalId, customer.companyName as name, customer.externalId, customer.entityid as entityId",
         "department": "department.id as internalId, department.name, department.externalId, subsidiary as subsidiaryId",
         "location": "location.id as internalId, location.name as name, location.externalId, location.subsidiary as subsidiaryId",
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
