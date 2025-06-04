@@ -197,14 +197,17 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 id = record.pop("id", None)
                 if id:
                     response = self.rest_patch(url=f"{url}/{id}", json=record)
+                    self.logger.info(f"Customer with id '{id}' updated")
                 else:
                     response = self.rest_post(url=url, json=record)
+                    id = response.headers["Location"].split("/")[-1]
+                    self.logger.info(f"Customer with id '{id}' created")
+                # add additional subsidiaries to the customer
                 if customer_subsidiary_relationships:
+                    relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
                     for relationship in customer_subsidiary_relationships:
-                        id = id or response.headers["Location"].split("/")[-1]
                         self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                         relationship["entity"] = {"id": id}
-                        relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
                         try:
                             response = self.rest_post(url=relationship_url, json=relationship)
                             self.logger.info(response)
