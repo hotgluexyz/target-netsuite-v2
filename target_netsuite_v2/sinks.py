@@ -204,8 +204,15 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                         self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                         relationship["entity"] = {"id": id}
                         relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
-                        response = self.rest_post(url=relationship_url, json=relationship)
-                        self.logger.info(response)
+                        try:
+                            response = self.rest_post(url=relationship_url, json=relationship)
+                            self.logger.info(response)
+                        except Exception as e:
+                            # can't add the same subsidiary to a customer more than once
+                            if f"You have entered an Invalid Field Value {relationship.get('subsidiary', {}).get('id')} for the following field: subsidiary" in e.response.text:
+                                self.logger.info(f"Customer subsidiary relationship already exists for customer {id} and subsidiary {relationship.get('subsidiary')}")
+                            else:
+                                raise e
 
 
         elif self.stream_name.lower() in ['item','items']:
