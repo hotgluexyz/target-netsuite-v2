@@ -200,7 +200,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     response = self.rest_post(url=url, json=record)
                 if customer_subsidiary_relationships:
                     for relationship in customer_subsidiary_relationships:
-                        id = id or response.json().get("id")
+                        id = id or response.headers["Location"].split("/")[-1]
                         self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                         relationship["entity"] = {"id": id}
                         relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
