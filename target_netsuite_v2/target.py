@@ -15,6 +15,7 @@ from target_netsuite_v2.sink.bill_payment_sink import BillPaymentSink
 from target_netsuite_v2.sink.invoice_sink import InvoiceSink
 from target_netsuite_v2.sink.invoice_payment_sink import InvoicePaymentSink
 from target_netsuite_v2.sink.journal_entry_sink import JournalEntrySink
+from target_netsuite_v2.sink.purchase_order_sink import PurchaseOrderSink
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
 from typing import List, Optional, Union
 
@@ -39,7 +40,8 @@ class TargetNetsuiteV2(TargetHotglue):
         BillPaymentSink,
         InvoiceSink,
         InvoicePaymentSink,
-        JournalEntrySink
+        JournalEntrySink,
+        PurchaseOrderSink
     ]
 
     def __init__(
