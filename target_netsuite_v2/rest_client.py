@@ -1100,7 +1100,7 @@ class netsuiteRestV2Sink(BatchSink):
         }
 
         # If this companyName already exists, we should do a PATCH instead, just need to set id
-        existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId")]
+        existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId") and c.get("externalId")]
         if not existing_customer:
             existing_customer = [ c for c in customers if c.get("companyName") == customer.get("companyName")]
         if existing_customer:
@@ -1110,8 +1110,15 @@ class netsuiteRestV2Sink(BatchSink):
             customer["firstName"] = first_name
             customer["lastName"] = last_name
 
+        # this is the primary subsidiary
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
+        
+        if record.get("additionalSubsidiaries"):
+            new_subsidiaries = [s for s in record["additionalSubsidiaries"]]
+            customer["customerSubsidiaryRelationships"] = [{"subsidiary": {"id": s}} for s in new_subsidiaries]
+
+            
         if sales_rep:
             customer["salesRep"] = {"id": sales_rep}
         if record.get("currency"):
@@ -1126,6 +1133,9 @@ class netsuiteRestV2Sink(BatchSink):
                     customer[field["name"]] = field["value"]
                 else:
                     self.logger.info(f"Skipping custom field {field} because name is empty")
+
+        if "externalId" in customer and customer.get("externalId") == None:
+            customer.pop("externalId")
 
         return customer
 
