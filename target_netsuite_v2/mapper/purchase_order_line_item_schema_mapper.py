@@ -30,7 +30,7 @@ class PurchaseOrderLineItemSchemaMapper(BaseMapper):
         payload = {
             **self._map_custom_fields(),
             **self._map_subrecord("Customers", "projectId", "projectName", "customer", external_id_field="projectExternalId", entity_id_field="projectNumber"),
-            **self._map_subrecord("Items", "itemId", "itemName", "item"),
+            **self._map_item(),
             **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary")

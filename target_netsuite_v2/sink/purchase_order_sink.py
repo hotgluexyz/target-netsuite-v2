@@ -58,18 +58,21 @@ class PurchaseOrderSink(NetSuiteBatchSink):
             entity_ids=customer_entity_ids
         )
 
+        item_record_ids = set()
         item_ids = set()
         item_names = set()
         item_external_ids = set()
         for record in raw_records:
-            item_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_record_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_ids.update(line_item["itemNumber"] for line_item in record.get("lineItems", []) if line_item.get("itemNumber"))
             item_names.update(line_item["itemName"] for line_item in record.get("lineItems", []) if line_item.get("itemName"))
             item_external_ids.update(line_item["itemExternalId"] for line_item in record.get("lineItems", []) if line_item.get("itemExternalId"))
         _, _, items = self.suite_talk_client.get_reference_data(
             "item",
-            record_ids = item_ids,
+            record_ids = item_record_ids,
             names = item_names,
-            external_ids = item_external_ids
+            external_ids = item_external_ids,
+            item_ids=item_ids
         )
 
         purchase_order_ids = {purchase_order["internalId"] for purchase_order in purchase_orders}
