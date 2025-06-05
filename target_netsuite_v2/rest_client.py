@@ -1097,12 +1097,13 @@ class netsuiteRestV2Sink(BatchSink):
             if address
             else None,
             "externalId": record.get("id"),
+            "entityId": record.get("id")
         }
 
         # If this companyName already exists, we should do a PATCH instead, just need to set id
-        existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId") and c.get("externalId")]
+        existing_customer = [c for c in customers if c.get("entityId") == customer.get("entityId") and c.get("entityId")]
         if not existing_customer:
-            existing_customer = [ c for c in customers if c.get("companyName") == customer.get("companyName")]
+            existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId") and c.get("externalId")]
         if existing_customer:
             customer["id"] = existing_customer[0]["internalId"]
 
