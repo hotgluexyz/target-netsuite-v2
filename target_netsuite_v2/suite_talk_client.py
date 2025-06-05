@@ -312,15 +312,15 @@ class SuiteTalkRestClient:
 
         return True, None, all_items
 
-    def get_invoice_items(self, external_ids=None):
-        if external_ids is not None and not external_ids:
+    def get_invoice_items(self, invoice_ids: List[str]):
+        if invoice_ids is not None and not invoice_ids:
             return True, None, {}
 
         where_clause = ""
 
-        if external_ids:
-            external_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND t.externalid IN ({external_id_string})"
+        if invoice_ids:
+            invoice_id_string = ",".join(f"'{id}'" for id in invoice_ids)
+            where_clause = f"AND t.id IN ({invoice_id_string})"
 
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:
