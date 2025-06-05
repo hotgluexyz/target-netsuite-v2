@@ -352,15 +352,15 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_bill_items(self, external_ids=None):
-        if external_ids is not None and not external_ids:
+    def get_bill_items(self, bill_ids: List[str]):
+        if bill_ids is not None and not bill_ids:
             return True, None, {}
 
         where_clause = ""
 
-        if external_ids:
-            external_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND t.externalid IN ({external_id_string})"
+        if bill_ids:
+            bill_id_string = ",".join(f"'{id}'" for id in bill_ids)
+            where_clause = f"AND t.id IN ({bill_id_string})"
 
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:

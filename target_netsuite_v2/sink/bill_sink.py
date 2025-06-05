@@ -46,11 +46,11 @@ class BillSink(NetSuiteBatchSink):
             item_ids=item_ids
         )
 
-        _, _, bill_items = self.suite_talk_client.get_bill_items(
-            external_ids=external_ids
-        )
-
         bill_ids = {bill["internalId"] for bill in bills}
+        _, _, bill_items = self.suite_talk_client.get_bill_items(
+            bill_ids
+        )
+        
         _, _, bill_payments = self.suite_talk_client.get_bill_payments(
             bill_ids=bill_ids
         )
