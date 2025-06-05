@@ -9,30 +9,36 @@ class InvoicePaymentSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         ids = {record["id"] for record in raw_records if record.get("id")}
+        tran_ids = {record["paymentNumber"] for record in raw_records if record.get("paymentNumber")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         _, _, invoice_payments = self.suite_talk_client.get_invoice_payments(
             ids=ids,
             external_ids=external_ids,
+            tran_ids=tran_ids,
             aggregate_payments=False
         )
 
         invoices_ids = {record["invoiceId"] for record in raw_records if record.get("invoiceId")}
+        invoices_tran_ids = {record["invoiceNumber"] for record in raw_records if record.get("invoiceNumber")}
         invoices_external_ids = {record["invoiceExternalId"] for record in raw_records if record.get("invoiceExternalId")}
         _, _, invoices = self.suite_talk_client.get_transaction_data(
             transaction_type="CustInvc",
             external_ids=invoices_external_ids,
             record_ids=invoices_ids,
+            tran_ids=invoices_tran_ids,
             extra_select_statement="transaction.entity as entityid"
         )
 
         customer_ids = {record["customerId"] for record in raw_records if record.get("customerId")}
+        customer_entity_ids = {record["customerNumber"] for record in raw_records if record.get("customerNumber")}
         customer_external_ids = {record["customerExternalId"] for record in raw_records if record.get("customerExternalId")}
         customer_names = {record["customerName"] for record in raw_records if record.get("customerName")}
         _, _, customers = self.suite_talk_client.get_reference_data(
             "customer",
             record_ids=customer_ids,
             external_ids=customer_external_ids,
-            names=customer_names
+            names=customer_names,
+            entity_ids=customer_entity_ids
         )
 
         return {

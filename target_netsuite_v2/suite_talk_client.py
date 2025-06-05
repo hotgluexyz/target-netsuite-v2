@@ -390,7 +390,7 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_invoice_payments(self, invoice_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
+    def get_invoice_payments(self, invoice_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, tran_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
         if invoice_ids is not None and not invoice_ids:
             return True, None, {}
 
@@ -399,6 +399,10 @@ class SuiteTalkRestClient:
         if invoice_ids:
             external_id_string = ",".join(f"'{id}'" for id in invoice_ids)
             where_clauses.append(f"NTLL.PreviousDoc in ({external_id_string})")
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clauses.append(f"NT.tranid in ({tran_id_string})")
 
         if ids:
             ids_string = ",".join(f"{id}" for id in ids)
@@ -437,6 +441,8 @@ class SuiteTalkRestClient:
                     payment["internalId"] = payment.pop("internalid")
                 if "externalid" in payment:
                     payment["externalId"] = payment.pop("externalid")
+                if "tranid" in payment:
+                    payment["tranId"] = payment.pop("tranid")
 
             return True, None, payments
 
