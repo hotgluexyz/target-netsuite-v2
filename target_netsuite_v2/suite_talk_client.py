@@ -20,7 +20,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
-        "item": "item.id as internalid, item.externalId as externalId, item.displayName as name"
+        "item": "item.id as internalid, item.externalId as externalId, item.fullName as name, item.itemid as itemId"
     }
 
     ref_name_where_clauses = {
@@ -34,7 +34,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.name",
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
-        "item": "item.displayName"
+        "item": "item.fullName"
     }
 
     def __init__(self, config):
@@ -212,12 +212,13 @@ class SuiteTalkRestClient:
         external_ids: Optional[List[str]] = None,
         names: Optional[List[str]] = None,
         entity_ids: Optional[List[str]] = None,
+        item_ids: Optional[List[str]] = None,
         page_size=1000
     ) -> List[Dict]:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if record_ids is not None and external_ids is not None and names is not None and not record_ids and not external_ids and not names and not entity_ids:
+        if record_ids is not None and external_ids is not None and names is not None and not record_ids and not external_ids and not names and not entity_ids and not item_ids:
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
@@ -250,6 +251,14 @@ class SuiteTalkRestClient:
                 where_clause = f"{where_clause} OR entityId IN ({entity_id_string})"
             else:
                 where_clause = f"WHERE entityId IN ({entity_id_string})"
+
+        if item_ids:
+            item_ids_str = ",".join(f"'{id}'" for id in item_ids)
+
+            if where_clause:
+                where_clause = f"{where_clause} OR itemId IN ({item_ids_str})"
+            else:
+                where_clause = f"WHERE itemId IN ({item_ids_str})"
 
         query = f"SELECT {select_clause} FROM {record_type}"
         if where_clause:
@@ -291,6 +300,8 @@ class SuiteTalkRestClient:
                     item["subsidiaryId"] = item.pop("subsidiaryid")
                 if "entityid" in item:
                     item["entityId"] = item.pop("entityid")
+                if "itemid" in item:
+                    item["itemId"] = item.pop("itemid")
 
             all_items.extend(items)
 
