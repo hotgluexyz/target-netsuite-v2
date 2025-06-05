@@ -28,7 +28,7 @@ class VendorCreditLineItemSchemaMapper(BaseMapper):
             subsidiary_id = self.subsidiary_id
 
         payload = {
-            **self._map_subrecord("Items", "itemId", "itemName", "item", external_id_field="itemExternalId"),
+            **self._map_item(),
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id, external_id_field="departmentExternalId"),
             **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=self.subsidiary_id, external_id_field="classExternalId"),
             **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=subsidiary_id, external_id_field="locationExternalId"),
