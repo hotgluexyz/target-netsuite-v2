@@ -218,7 +218,9 @@ class SuiteTalkRestClient:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if record_ids is not None and external_ids is not None and names is not None and not record_ids and not external_ids and not names and not entity_ids and not item_ids:
+        if record_ids is not None and not record_ids and external_ids is not None and not external_ids \
+            and names is not None and not names and entity_ids is not None and not entity_ids \
+            and item_ids is not None and not item_ids:
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
