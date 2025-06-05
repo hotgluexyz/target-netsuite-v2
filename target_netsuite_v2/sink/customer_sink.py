@@ -13,12 +13,15 @@ class CustomerSink(NetSuiteBatchSink):
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         names = {record["parentName"] for record in raw_records if record.get("parentName")}
         names.update({record["companyName"] for record in raw_records if record.get("companyName")})
+        entity_ids = {record["customerNumber"] for record in raw_records if record.get("customerNumber")}
+        entity_ids.update(record["parentNumber"] for record in raw_records if record.get("parentNumber"))
 
         _, _, customers = self.suite_talk_client.get_reference_data(
             self.record_type,
             record_ids=ids,
             external_ids=external_ids,
-            names=names
+            names=names,
+            entity_ids=entity_ids
         )
 
         sales_rep_ids = {record["salesRepId"] for record in raw_records if record.get("salesRepId")}

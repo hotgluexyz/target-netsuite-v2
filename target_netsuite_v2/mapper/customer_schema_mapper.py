@@ -2,9 +2,13 @@ from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
 class CustomerSchemaMapper(BaseMapper):
     """A class responsible for mapping a customer record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "customerNumber", "netsuite_field": "entityId"}
+    ]
 
     field_mappings = {
         "externalId": "externalId",
+        "customerNumber": "entityId",
         "companyName": "companyName",
         "prefix": "salutation",
         "firstName": "firstName",
@@ -32,7 +36,7 @@ class CustomerSchemaMapper(BaseMapper):
 
         payload = {
             **self._map_internal_id(),
-            **self._map_subrecord("Customers", "parentId", "parentName", "parent"),
+            **self._map_subrecord("Customers", "parentId", "parentName", "parent", entity_id_field="parentNumber"),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
             **self._map_subrecord("CustomerCategory", "categoryId", "categoryName", "category"),
             **self._map_subrecord("Employees", "salesRepId", "salesRepName", "salesRep", subsidiary_scope=subsidiary_id),
