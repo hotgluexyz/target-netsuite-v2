@@ -4,8 +4,13 @@ from target_netsuite_v2.mapper.bill_expense_schema_mapper import BillExpenseSche
 
 class BillSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "billNumber", "netsuite_field": "tranId"}
+    ]
+    
     field_mappings = {
-        "externalId": ["externalId", "tranId"],
+        "externalId": "externalId",
+        "billNumber": "tranId",
         "dueDate": "dueDate",
         "paidDate": "enddate",
         "balance": "balance",
@@ -50,7 +55,9 @@ class BillSchemaMapper(BaseMapper):
         reference = self._find_reference_by_id_or_ref(
             self.reference_data["Vendors"],
             "vendorId",
-            "vendorName"
+            "vendorName",
+            external_id_field="vendorExternalId",
+            entity_id_field="vendorNumber"
         )
 
         if reference:

@@ -11,30 +11,39 @@ class BillSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        tran_ids = {record["billNumber"] for record in raw_records if record.get("billNumber")}
         ids = {record["id"] for record in raw_records if record.get("id")}
         _, _, bills = self.suite_talk_client.get_transaction_data(
             transaction_type="VendBill",
             external_ids=external_ids,
-            record_ids=ids
+            record_ids=ids,
+            tran_ids=tran_ids
         )
 
         vendor_ids = {record["vendorId"] for record in raw_records if record.get("vendorId")}
+        vendor_entity_ids = {record["vendorNumber"] for record in raw_records if record.get("vendorNumber")}
         vendor_names = {record["vendorName"] for record in raw_records if record.get("vendorName")}
+        vendor_external_ids = {record["vendorExternalId"] for record in raw_records if record.get("vendorExternalId")}
         _, _, vendors = self.suite_talk_client.get_reference_data(
             "vendor",
             record_ids=vendor_ids,
-            names=vendor_names
+            names=vendor_names,
+            external_ids=vendor_external_ids,
+            entity_ids=vendor_entity_ids
         )
 
+        item_record_ids = set()
         item_ids = set()
         item_names = set()
         for record in raw_records:
-            item_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_record_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_ids.update(line_item["itemNumber"] for line_item in record.get("lineItems", []) if line_item.get("itemNumber"))
             item_names.update(line_item["itemName"] for line_item in record.get("lineItems", []) if line_item.get("itemName"))
         _, _, items = self.suite_talk_client.get_reference_data(
             "item",
-            record_ids = item_ids,
-            names = item_names
+            record_ids = item_record_ids,
+            names = item_names,
+            item_ids=item_ids
         )
 
         _, _, bill_items = self.suite_talk_client.get_bill_items(
