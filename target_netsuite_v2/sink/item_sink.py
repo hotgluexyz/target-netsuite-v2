@@ -9,6 +9,7 @@ class ItemSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         ids = {record["id"] for record in raw_records if record.get("id")}
+        item_ids = {record["itemNumber"] for record in raw_records if record.get("itemNumber")}
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
         names = {record["name"] for record in raw_records if record.get("name")}
         names.update(record["displayName"] for record in raw_records if record.get("displayName"))
@@ -16,7 +17,8 @@ class ItemSink(NetSuiteBatchSink):
             self.record_type,
             record_ids=ids,
             external_ids=external_ids,
-            names=names
+            names=names,
+            item_ids=item_ids
         )
 
         return {
