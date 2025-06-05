@@ -38,8 +38,21 @@ class JournalEntryLineItemSchemaMapper(BaseMapper):
         return {"debit": self.record.get("debitAmount", None)}
 
     def _map_entity(self):
-        customer_id = self.record.get("customerId", None)
-        vendor_id = self.record.get("vendorId", None)
-        entity_id = customer_id or vendor_id
+        found_vendor = self._find_reference_by_id_or_ref(
+            self.reference_data["Vendors"],
+            "vendorId",
+            "vendorName",
+            external_id_field="vendorExternalId",
+            entity_id_field="vendorNumber"
+        )
 
-        return {"entity": {"id": entity_id } } if entity_id else {}
+        found_customer = self._find_reference_by_id_or_ref(
+            self.reference_data["Customers"],
+            "customerId",
+            "customerName",
+            external_id_field="customerExternalId",
+            entity_id_field="customerNumber"
+        )
+        entity = found_customer or found_vendor
+
+        return {"entity": {"id": entity["internalId"] } } if entity else {}

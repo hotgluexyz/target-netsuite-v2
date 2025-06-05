@@ -3,6 +3,10 @@ from target_netsuite_v2.mapper.journal_entry_line_item_schema_mapper import Jour
 
 class JournalEntrySchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "journalEntryNumber", "netsuite_field": "tranId"}
+    ]
+
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         subsidiary = self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary")
@@ -21,6 +25,7 @@ class JournalEntrySchemaMapper(BaseMapper):
 
         field_mappings = {
             "externalId": "externalId",
+            "journalEntryNumber": "tranId",
             "transactionDate": "tranDate",
             "description": "memo",
             "exchangeRate": "exchangeRate",
