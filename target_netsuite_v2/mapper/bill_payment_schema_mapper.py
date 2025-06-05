@@ -1,8 +1,13 @@
 from target_netsuite_v2.mapper.base_mapper import BaseMapper, InvalidInputError
 
 class BillPaymentSchemaMapper(BaseMapper):
+    record_extra_pk_mappings = [
+        {"record_field": "paymentNumber", "netsuite_field": "tranId"}
+    ]
+
     field_mappings = {
         "externalId": "externalId",
+        "paymentNumber": "tranId",
         "exchangeRate": "exchangeRate",
         "paymentDate": "tranDate"
     }
@@ -48,7 +53,8 @@ class BillPaymentSchemaMapper(BaseMapper):
             self.reference_data["Bills"],
             "billId",
             None,
-            external_id_field="billExternalId"
+            external_id_field="billExternalId",
+            tran_id_field="billNumber"
         )
 
         if reference:
@@ -70,7 +76,8 @@ class BillPaymentSchemaMapper(BaseMapper):
             self.reference_data["Vendors"],
             "vendorId",
             "vendorName",
-            external_id_field="vendorExternalId"
+            external_id_field="vendorExternalId",
+            entity_id_field="vendorNumber"
         )
 
         if reference:
