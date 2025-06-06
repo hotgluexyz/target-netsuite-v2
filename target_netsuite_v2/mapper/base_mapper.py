@@ -29,6 +29,7 @@ class BaseMapper:
         "shipping": { "defaultShipping": True, "defaultBilling": False },
         "billing": { "defaultShipping": False, "defaultBilling": True }
     }
+    record_extra_pk_mappings = []
 
     def __init__(
             self,
@@ -64,6 +65,17 @@ class BaseMapper:
                 if record.get("externalId") == record_id),
                 None
             )
+
+        for record_extra_pk_mapping in self.record_extra_pk_mappings:
+            if record_id := self.record.get(record_extra_pk_mapping["record_field"]):
+                found_record = next(
+                    (netsuite_record for netsuite_record in reference_list
+                    if netsuite_record.get(record_extra_pk_mapping["netsuite_field"]) == record_id),
+                    None
+                )
+
+                if found_record:
+                    return found_record
 
         # If no ID provided, try matching by external ID
         if external_id := self.record.get("externalId"):
@@ -115,7 +127,7 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None, entity_id_field=None, tran_id_field=None, item_id_field=None):
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
@@ -145,7 +157,21 @@ class BaseMapper:
                     item
                     for item in reference_list
                     if item.get("name") == ref_name and
-                    (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
+                ),
+                None
+            )
+
+        if found:
+            return found
+        
+        if item_id_field and (item_id := self.record.get(item_id_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("itemId") == item_id and
+                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
                 ),
                 None
             )
@@ -166,6 +192,33 @@ class BaseMapper:
 
         if found:
             return found
+        
+        if tran_id_field and (tran_id := self.record.get(tran_id_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("tranId") == tran_id
+                ),
+                None
+            )
+
+        if found:
+            return found
+
+         # Find by entity id.
+        if entity_id_field and (entity_id := self.record.get(entity_id_field)):
+            found = next(
+                (
+                    item
+                    for item in reference_list
+                    if item.get("entityId") == entity_id
+                ),
+                None
+            )
+
+        if found:
+            return found
 
         # If no match by id or name, try to find by number
         if number_field and (ref_number := self.record.get(number_field)):
@@ -174,7 +227,7 @@ class BaseMapper:
                     item
                     for item in reference_list
                     if item.get("number") == ref_number and
-                    (subsidiary_scope is None or item.get("subsidiaryId") == subsidiary_scope)
+                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
                 ),
                 None
             )
@@ -183,16 +236,22 @@ class BaseMapper:
             return found
 
         # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
-        if direct_id or ref_name or external_id_field:
+        if direct_id or ref_name or external_id_field or entity_id_field or item_id_field or tran_id_field:
             lookup_attempts = []
             if direct_id:
                 lookup_attempts.append(f"by id {direct_id}")
             if name_field and ref_name:
                 lookup_attempts.append(f"by name {ref_name}")
+            if tran_id_field and tran_id:
+                lookup_attempts.append(f"by tranId {tran_id}")
+            if item_id_field and item_id:
+                lookup_attempts.append(f"by itemId {item_id}")
             if number_field and ref_number:
                 lookup_attempts.append(f"by number {ref_number}")
             if external_id_field and external_id:
                 lookup_attempts.append(f"by externalId {external_id}")
+            if entity_id_field and entity_id:
+                lookup_attempts.append(f"by {entity_id_field}={entity_id}")
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
@@ -331,6 +390,24 @@ class BaseMapper:
 
         if reference:
             return { target_field: { "id": reference["internalId"] } }
+
+        return {}
+    
+    def _map_item(self, subsidiary_scope=None):
+        """Map an item to NetSuite format
+        Returns:
+            dict: Mapped item reference or empty dict if not found
+        """
+        reference = self._find_reference_by_id_or_ref(
+            self.reference_data["Items"],
+            "itemId",
+            "itemName",
+            subsidiary_scope=subsidiary_scope,
+            item_id_field="itemNumber"
+        )
+
+        if reference:
+            return { "item": { "id": reference["internalId"] } }
 
         return {}
 

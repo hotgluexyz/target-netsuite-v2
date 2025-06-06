@@ -16,11 +16,11 @@ class SuiteTalkRestClient:
         "department": "department.id as internalId, department.name, department.externalId, subsidiary as subsidiaryId",
         "location": "location.id as internalId, location.name as name, location.externalId, location.subsidiary as subsidiaryId",
         "subsidiary": "subsidiary.id as internalId, subsidiary.name, subsidiary.externalId",
-        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId, vendor.subsidiary as subsidiaryId",
+        "vendor": "vendor.id as internalId, vendor.companyName as name, vendor.externalId, vendor.subsidiary as subsidiaryId, vendor.entityid as entityId",
         "customercategory": "customercategory.id as internalid, customercategory.externalid as externalid, customercategory.name",
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
-        "item": "item.id as internalid, item.externalId as externalId, item.displayName as name"
+        "item": "item.id as internalid, item.externalId as externalId, item.fullName as name, item.itemid as itemId"
     }
 
     ref_name_where_clauses = {
@@ -34,7 +34,7 @@ class SuiteTalkRestClient:
         "customercategory": "customercategory.name",
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
-        "item": "item.displayName"
+        "item": "item.fullName"
     }
 
     def __init__(self, config):
@@ -131,29 +131,35 @@ class SuiteTalkRestClient:
         transaction_type,
         external_ids: Optional[List[str]] = None,
         record_ids: Optional[List[str]] = None,
+        tran_ids: Optional[List[str]] = None,
         page_size=1000,
         extra_select_statement: Optional[str] = ''
     ) -> List[Dict]:
 
-        if record_ids is not None and not record_ids and external_ids is not None and not external_ids:
+        if record_ids is not None and not record_ids and external_ids is not None and not external_ids and not tran_ids:
             return True, None, []
         
         if extra_select_statement:
             extra_select_statement = f", {extra_select_statement}"
 
-        query = f"SELECT transaction.id as internalId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId{extra_select_statement} FROM transaction WHERE transaction.type = '{transaction_type}'"
-        where_clause = ""
+        query = f"SELECT transaction.id as internalId, transaction.tranid as tranId, transaction.externalId as externalId, transaction.subsidiary as subsidiaryId{extra_select_statement} FROM transaction WHERE transaction.type = '{transaction_type}'"
+        where_clauses = []
 
         if record_ids:
             id_string = ",".join(str(id) for id in record_ids)
-            where_clause = f"AND id IN ({id_string})"
+            where_clauses.append(f"id IN ({id_string})")
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clauses.append(f"tranId IN ({tran_id_string})")
 
         if external_ids:
-            tran_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND externalId IN ({tran_id_string})"
+            external_ids_str = ",".join(f"'{id}'" for id in external_ids)
+            where_clauses.append(f"externalId IN ({external_ids_str})")
 
-        if where_clause:
-            query += f" {where_clause}"
+        if where_clauses:
+            where_statement = " OR ".join(where_clauses)
+            query += f" AND ({where_statement})"
 
         all_items = []
         offset = 0
@@ -189,6 +195,8 @@ class SuiteTalkRestClient:
                     item["externalId"] = item.pop("externalid")
                 if "subsidiaryid" in item:
                     item["subsidiaryId"] = item.pop("subsidiaryid")
+                if "tranid" in item:
+                    item["tranId"] = item.pop("tranid")
 
             all_items.extend(items)
 
@@ -203,12 +211,16 @@ class SuiteTalkRestClient:
         record_ids: Optional[List[str]] = None,
         external_ids: Optional[List[str]] = None,
         names: Optional[List[str]] = None,
+        entity_ids: Optional[List[str]] = None,
+        item_ids: Optional[List[str]] = None,
         page_size=1000
     ) -> List[Dict]:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if record_ids is not None and external_ids is not None and names is not None and not record_ids and not external_ids and not names:
+        if record_ids is not None and not record_ids and external_ids is not None and not external_ids \
+            and names is not None and not names and entity_ids is not None and not entity_ids \
+            and item_ids is not None and not item_ids:
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
@@ -233,6 +245,22 @@ class SuiteTalkRestClient:
                 where_clause = f"{where_clause} OR {self.ref_name_where_clauses[record_type]} IN ({names_string})"
             else:
                 where_clause = f"WHERE {self.ref_name_where_clauses[record_type]} IN ({names_string})"
+
+        if entity_ids:
+            entity_id_string = ",".join(f"'{id}'" for id in entity_ids)
+
+            if where_clause:
+                where_clause = f"{where_clause} OR entityId IN ({entity_id_string})"
+            else:
+                where_clause = f"WHERE entityId IN ({entity_id_string})"
+
+        if item_ids:
+            item_ids_str = ",".join(f"'{id}'" for id in item_ids)
+
+            if where_clause:
+                where_clause = f"{where_clause} OR itemId IN ({item_ids_str})"
+            else:
+                where_clause = f"WHERE itemId IN ({item_ids_str})"
 
         query = f"SELECT {select_clause} FROM {record_type}"
         if where_clause:
@@ -272,6 +300,10 @@ class SuiteTalkRestClient:
                     item["externalId"] = item.pop("externalid")
                 if "subsidiaryid" in item:
                     item["subsidiaryId"] = item.pop("subsidiaryid")
+                if "entityid" in item:
+                    item["entityId"] = item.pop("entityid")
+                if "itemid" in item:
+                    item["itemId"] = item.pop("itemid")
 
             all_items.extend(items)
 
@@ -333,6 +365,40 @@ class SuiteTalkRestClient:
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:
             query += f" {where_clause}"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, {}
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+        result = defaultdict(lambda: {"lineItems": [], "expenses": []})
+
+        for item in items:
+            transaction_id = item["transaction"]
+            category = "lineItems" if item.get("accountinglinetype") == "ASSET" else "expenses"
+            result[transaction_id][category].append(item)
+
+        return True, None, dict(result)
+
+    def get_vendor_credit_items(self, vendor_credit_ids):
+        if not vendor_credit_ids:
+            return True, None, {}
+
+        vendor_credit_ids_string = ",".join(f"'{id}'" for id in vendor_credit_ids)
+
+        query = f"SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T' AND t.recordtype = 'vendorcredit' AND t.id IN ({vendor_credit_ids_string})"
 
         query_data = {"q": query}
         headers = {"Prefer": "transient"}
