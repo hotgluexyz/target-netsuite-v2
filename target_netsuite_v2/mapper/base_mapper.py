@@ -370,7 +370,7 @@ class BaseMapper:
 
             raise InvalidReferenceError(error_message)
 
-    def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None, external_id_field=None):
+    def _map_subrecord(self, reference_type, id_field, name_field, target_field, subsidiary_scope=None, external_id_field=None, entity_id_field=None):
         """Generic method to map a subrecord reference to NetSuite format
         Args:
             reference_type (str): Key in reference_data (e.g. "Accounts", "Locations")
@@ -385,7 +385,8 @@ class BaseMapper:
             id_field,
             name_field,
             subsidiary_scope=subsidiary_scope,
-            external_id_field=external_id_field
+            external_id_field=external_id_field,
+            entity_id_field=entity_id_field
         )
 
         if reference:
