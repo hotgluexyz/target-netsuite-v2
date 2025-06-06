@@ -312,6 +312,39 @@ class SuiteTalkRestClient:
 
         return True, None, all_items
 
+    def get_purchase_order_items(self, purchase_order_ids):
+        if not purchase_order_ids:
+            return True, None, {}
+
+        purchase_order_ids_string = ",".join(f"'{id}'" for id in purchase_order_ids)
+
+        query = f"SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T' AND t.type = 'PurchOrd' AND t.id IN ({purchase_order_ids_string})"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, {}
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+        result = defaultdict(lambda: {"lineItems": []})
+
+        for item in items:
+            transaction_id = item["transaction"]
+            result[transaction_id]["lineItems"].append(item)
+
+        return True, None, dict(result)
+
     def get_invoice_items(self, invoice_ids: List[str]):
         if invoice_ids is not None and not invoice_ids:
             return True, None, {}
@@ -365,6 +398,40 @@ class SuiteTalkRestClient:
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:
             query += f" {where_clause}"
+
+        query_data = {"q": query}
+        headers = {"Prefer": "transient"}
+
+        response = self._make_request(
+            url=self.suiteql_url,
+            method="POST",
+            data=query_data,
+            params={},
+            headers=headers
+        )
+
+        success, error_message = self._validate_response(response)
+        if not success:
+            return success, error_message, {}
+
+        resp_json = response.json()
+        items = resp_json.get("items", [])
+        result = defaultdict(lambda: {"lineItems": [], "expenses": []})
+
+        for item in items:
+            transaction_id = item["transaction"]
+            category = "lineItems" if item.get("accountinglinetype") == "ASSET" else "expenses"
+            result[transaction_id][category].append(item)
+
+        return True, None, dict(result)
+
+    def get_vendor_credit_items(self, vendor_credit_ids):
+        if not vendor_credit_ids:
+            return True, None, {}
+
+        vendor_credit_ids_string = ",".join(f"'{id}'" for id in vendor_credit_ids)
+
+        query = f"SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T' AND t.recordtype = 'vendorcredit' AND t.id IN ({vendor_credit_ids_string})"
 
         query_data = {"q": query}
         headers = {"Prefer": "transient"}
