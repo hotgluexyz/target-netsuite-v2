@@ -11,37 +11,44 @@ class InvoiceSink(NetSuiteBatchSink):
         raw_records = context["records"]
 
         external_ids = {record["externalId"] for record in raw_records if record.get("externalId")}
+        tran_ids = {record["invoiceNumber"] for record in raw_records if record.get("invoiceNumber")}
         ids = {record["id"] for record in raw_records if record.get("id")}
         _, _, invoices = self.suite_talk_client.get_transaction_data(
             transaction_type="CustInvc",
             external_ids=external_ids,
-            record_ids=ids
+            record_ids=ids,
+            tran_ids=tran_ids
         )
 
         customer_ids = {record["customerId"] for record in raw_records if record.get("customerId")}
+        customer_entity_ids = {record["customerNumber"] for record in raw_records if record.get("customerNumber")}
         customer_names = {record["customerName"] for record in raw_records if record.get("customerName")}
         _, _, customers = self.suite_talk_client.get_reference_data(
             "customer",
             record_ids=customer_ids,
-            names=customer_names
+            names=customer_names,
+            entity_ids=customer_entity_ids
         )
 
+        item_record_ids = set()
         item_ids = set()
         item_names = set()
         for record in raw_records:
-            item_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_record_ids.update(line_item["itemId"] for line_item in record.get("lineItems", []) if line_item.get("itemId"))
+            item_ids.update(line_item["itemNumber"] for line_item in record.get("lineItems", []) if line_item.get("itemNumber"))
             item_names.update(line_item["itemName"] for line_item in record.get("lineItems", []) if line_item.get("itemName"))
         _, _, items = self.suite_talk_client.get_reference_data(
             "item",
-            record_ids = item_ids,
-            names = item_names
-        )
-
-        _, _, invoice_items = self.suite_talk_client.get_invoice_items(
-            external_ids=external_ids
+            record_ids = item_record_ids,
+            names = item_names,
+            item_ids=item_ids
         )
 
         invoice_ids = {invoice["internalId"] for invoice in invoices}
+        _, _, invoice_items = self.suite_talk_client.get_invoice_items(
+            invoice_ids
+        )
+
         _, _, invoice_payments = self.suite_talk_client.get_invoice_payments(
             invoice_ids=invoice_ids
         )

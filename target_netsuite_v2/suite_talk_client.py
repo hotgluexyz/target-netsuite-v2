@@ -345,15 +345,15 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_invoice_items(self, external_ids=None):
-        if external_ids is not None and not external_ids:
+    def get_invoice_items(self, invoice_ids: List[str]):
+        if invoice_ids is not None and not invoice_ids:
             return True, None, {}
 
         where_clause = ""
 
-        if external_ids:
-            external_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND t.externalid IN ({external_id_string})"
+        if invoice_ids:
+            invoice_id_string = ",".join(f"'{id}'" for id in invoice_ids)
+            where_clause = f"AND t.id IN ({invoice_id_string})"
 
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:
@@ -385,15 +385,15 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_bill_items(self, external_ids=None):
-        if external_ids is not None and not external_ids:
+    def get_bill_items(self, bill_ids: List[str]):
+        if bill_ids is not None and not bill_ids:
             return True, None, {}
 
         where_clause = ""
 
-        if external_ids:
-            external_id_string = ",".join(f"'{id}'" for id in external_ids)
-            where_clause = f"AND t.externalid IN ({external_id_string})"
+        if bill_ids:
+            bill_id_string = ",".join(f"'{id}'" for id in bill_ids)
+            where_clause = f"AND t.id IN ({bill_id_string})"
 
         query = "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine tl on tl.transaction = t.id WHERE mainline <> 'T'"
         if where_clause:
@@ -459,8 +459,8 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_invoice_payments(self, invoice_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
-        if invoice_ids is not None and not invoice_ids:
+    def get_invoice_payments(self, invoice_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, tran_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
+        if invoice_ids is not None and not invoice_ids and not tran_ids:
             return True, None, {}
 
         where_clauses = []
@@ -468,6 +468,10 @@ class SuiteTalkRestClient:
         if invoice_ids:
             external_id_string = ",".join(f"'{id}'" for id in invoice_ids)
             where_clauses.append(f"NTLL.PreviousDoc in ({external_id_string})")
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clauses.append(f"NT.tranid in ({tran_id_string})")
 
         if ids:
             ids_string = ",".join(f"{id}" for id in ids)
@@ -506,6 +510,8 @@ class SuiteTalkRestClient:
                     payment["internalId"] = payment.pop("internalid")
                 if "externalid" in payment:
                     payment["externalId"] = payment.pop("externalid")
+                if "tranid" in payment:
+                    payment["tranId"] = payment.pop("tranid")
 
             return True, None, payments
 
@@ -517,8 +523,8 @@ class SuiteTalkRestClient:
 
         return True, None, dict(result)
 
-    def get_bill_payments(self, bill_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
-        if bill_ids is not None and not bill_ids:
+    def get_bill_payments(self, bill_ids: Optional[Set]=None, ids: Optional[Set]=None, external_ids: Optional[Set]=None, tran_ids: Optional[Set]=None, aggregate_payments: Optional[bool]=True):
+        if bill_ids is not None and not bill_ids and not tran_ids:
             return True, None, {}
 
         where_clauses = []
@@ -530,6 +536,10 @@ class SuiteTalkRestClient:
         if ids:
             ids_string = ",".join(f"{id}" for id in ids)
             where_clauses.append(f"NT.ID in ({ids_string})")
+
+        if tran_ids:
+            tran_id_string = ",".join(f"'{id}'" for id in tran_ids)
+            where_clauses.append(f"NT.tranid in ({tran_id_string})")
 
         if external_ids:
             external_ids_string = ",".join(f"'{id}'" for id in external_ids)
@@ -564,6 +574,8 @@ class SuiteTalkRestClient:
                     payment["internalId"] = payment.pop("internalid")
                 if "externalid" in payment:
                     payment["externalId"] = payment.pop("externalid")
+                if "tranid" in payment:
+                    payment["tranId"] = payment.pop("tranid")
 
             return True, None, payments
 

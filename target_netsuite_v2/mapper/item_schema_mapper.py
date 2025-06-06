@@ -2,9 +2,12 @@ from target_netsuite_v2.mapper.base_mapper import BaseMapper, InvalidAccountErro
 
 class ItemSchemaMapper(BaseMapper):
     """A class responsible for mapping an item record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "itemNumber", "netsuite_field": "itemId"}
+    ]
 
     field_mappings = {
-        "code": "itemId",
+        "itemNumber": "itemId",
         "displayName": "displayName",
         "type": "type",
         "category": "category",

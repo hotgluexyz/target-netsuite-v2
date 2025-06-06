@@ -2,8 +2,13 @@ from target_netsuite_v2.mapper.base_mapper import BaseMapper
 
 class VendorSchemaMapper(BaseMapper):
     """A class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "vendorNumber", "netsuite_field": "entityId"}
+    ]
+
     field_mappings = {
         "externalId": "externalId",
+        "vendorNumber": "entityId",
         "vendorName": "companyName",
         "prefix": "salutation",
         "firstName": "firstName",

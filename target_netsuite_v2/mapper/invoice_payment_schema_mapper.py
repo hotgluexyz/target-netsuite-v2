@@ -1,8 +1,13 @@
 from target_netsuite_v2.mapper.base_mapper import BaseMapper, InvalidInputError
 
 class InvoicePaymentSchemaMapper(BaseMapper):
+    record_extra_pk_mappings = [
+        {"record_field": "paymentNumber", "netsuite_field": "tranId"}
+    ]
+
     field_mappings = {
         "externalId": "externalId",
+        "paymentNumber": "tranId",
         "exchangeRate": "exchangeRate",
         "paymentDate": "tranDate"
     }
@@ -48,7 +53,8 @@ class InvoicePaymentSchemaMapper(BaseMapper):
             self.reference_data["Invoices"],
             "invoiceId",
             None,
-            external_id_field="invoiceExternalId"
+            external_id_field="invoiceExternalId",
+            tran_id_field="invoiceNumber"
         )
 
         if reference:
@@ -69,7 +75,8 @@ class InvoicePaymentSchemaMapper(BaseMapper):
             self.reference_data["Customers"],
             "customerId",
             "customerName",
-            external_id_field="customerExternalId"
+            external_id_field="customerExternalId",
+            entity_id_field="customerNumber"
         )
 
         if reference:

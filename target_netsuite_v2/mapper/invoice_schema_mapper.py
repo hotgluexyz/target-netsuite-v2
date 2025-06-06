@@ -3,8 +3,13 @@ from target_netsuite_v2.mapper.invoice_line_item_schema_mapper import InvoiceLin
 
 class InvoiceSchemaMapper(BaseMapper):
     """A class responsible for mapping an account record ingested in the unified schema format to a payload for NetSuite"""
+    record_extra_pk_mappings = [
+        {"record_field": "invoiceNumber", "netsuite_field": "tranId"}
+    ]
+
     field_mappings = {
-        "externalId": ["externalId", "tranId"],
+        "externalId": "externalId",
+        "invoiceNumber": "tranId",
         "dueDate": "dueDate",
         "issueDate": "tranDate",
         "shipDate": "shipDate",
@@ -46,7 +51,8 @@ class InvoiceSchemaMapper(BaseMapper):
         reference = self._find_reference_by_id_or_ref(
             self.reference_data["Customers"],
             "customerId",
-            "customerName"
+            "customerName",
+            entity_id_field="customerNumber"
         )
 
         if reference:
