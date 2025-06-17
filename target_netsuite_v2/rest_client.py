@@ -1,5 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
+
 from singer_sdk.sinks import BatchSink
 import requests
 from oauthlib import oauth1
@@ -11,20 +12,18 @@ from lxml import etree
 
 def get_clean_error_message(response: requests.models.Response) -> str:
     """Extract clean error message from NetSuite API response."""
-    error_message = lambda resp: f"Rrespquest to url {resp.url} failed with response: {resp}"
     try:
         error_details = response.json().get("o:errorDetails", [])
         if error_details and len(error_details) > 0:
             detail = error_details[0].get("detail", "")
             if detail:
-                return error_message(detail)
+                return detail
         
         # Fallback to full JSON if we can't extract the detail
-        return error_message(json.dumps(error_details))
+        return json.dumps(error_details)
     except (json.JSONDecodeError, AttributeError, KeyError):
         # Fallback if JSON parsing fails or response structure is unexpected
-        return error_message(response.text)
-
+        return response.text
 
 def validate_response(response: requests.models.Response) -> None:
     try:
