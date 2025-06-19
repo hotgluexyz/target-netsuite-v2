@@ -1,5 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
+
 from singer_sdk.sinks import BatchSink
 import requests
 from oauthlib import oauth1
@@ -9,11 +10,27 @@ import json
 from lxml import etree
 
 
+def get_clean_error_message(response: requests.models.Response) -> str:
+    """Extract clean error message from NetSuite API response."""
+    try:
+        error_details = response.json().get("o:errorDetails", [])
+        if error_details and len(error_details) > 0:
+            detail = error_details[0].get("detail", "")
+            if detail:
+                return detail
+        
+        # Fallback to full JSON if we can't extract the detail
+        return json.dumps(error_details)
+    except (json.JSONDecodeError, AttributeError, KeyError):
+        # Fallback if JSON parsing fails or response structure is unexpected
+        return response.text
+
 def validate_response(response: requests.models.Response) -> None:
     try:
         response.raise_for_status()
     except Exception as exc:
-        raise Exception(f"Error {response.status_code} for url={response.url}. Error={response.json()}") from exc
+        clean_error = get_clean_error_message(response)
+        raise Exception(f"Request to url {response.url} failed with response: {clean_error}") from exc
 
 
 class netsuiteRestV2Sink(BatchSink):
@@ -75,7 +92,8 @@ class netsuiteRestV2Sink(BatchSink):
         if response.status_code >= 400:
             try:
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
+                clean_error = get_clean_error_message(response)
+                self.logger.error(f"NetSuite API Error: {clean_error}")
                 validate_response(response)
             except:
                 raise Exception(f"Request to url {kwarg['url']} failed with response: {response.text}")
@@ -96,7 +114,8 @@ class netsuiteRestV2Sink(BatchSink):
         self.logger.info(response.text)
         if response.status_code >= 400:
             try:
-                self.logger.error(json.dumps(response.json().get("o:errorDetails")))
+                clean_error = get_clean_error_message(response)
+                self.logger.error(f"NetSuite API Error: {clean_error}")
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
                 validate_response(response)
             except:
