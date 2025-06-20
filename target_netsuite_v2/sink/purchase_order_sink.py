@@ -1,3 +1,4 @@
+from hotglue_models_accounting.accounting import PurchaseOrder
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.purchase_order_schema_mapper import PurchaseOrderSchemaMapper
 from target_netsuite_v2.mapper.base_mapper import InvalidInputError
@@ -5,6 +6,8 @@ from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 class PurchaseOrderSink(NetSuiteBatchSink):
     name = "PurchaseOrders"
     record_type = "purchaseOrder"
+    unified_schema = PurchaseOrder
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
