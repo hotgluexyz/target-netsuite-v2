@@ -4,7 +4,7 @@ class InvoiceLineItemSchemaMapper(BaseMapper):
     field_mappings = {
         "quantity": "quantity",
         "unitPrice": "rate",
-        "totalPrice": "amount",
+        "amount": "amount",
         "description": "description"
     }
 
