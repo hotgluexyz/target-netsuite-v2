@@ -655,7 +655,7 @@ class SuiteTalkRestClient:
 
         json_data = json.dumps(data, cls=HGJSONEncoder) if data else None
 
-        return requests.request(
+        res = requests.request(
             method=method,
             url=url,
             params=request_params,
@@ -664,6 +664,11 @@ class SuiteTalkRestClient:
             verify=True,
             auth=oauth
         )
+
+        if res.status_code >= 400:
+            self.logger.error(f"Error when making request: {res.request.method} {res.request.url} {res.request.body}: {res.status_code} {res.reason} {res.text}")
+
+        return res
 
     def _validate_response(self, response: requests.Response) -> tuple[bool, str | None]:
         if response.status_code >= 400:
