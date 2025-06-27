@@ -66,7 +66,7 @@ class TargetNetsuiteV2(TargetHotglue):
             "ns_token_secret": self.config["ns_token_secret"],
             "ns_account": self.config["ns_account"]
         }
-        return SuiteTalkRestClient(netsuite_config)
+        return SuiteTalkRestClient(netsuite_config, self.logger)
 
     def get_reference_data(self):
         if self.config.get("snapshot_hours"):
@@ -84,28 +84,28 @@ class TargetNetsuiteV2(TargetHotglue):
         self.logger.info(f"Reading data from API...")
         reference_data = {}
 
-        _, _, subsidiaries = self.suite_talk_client.get_reference_data("subsidiary")
+        _, _, subsidiaries = self.suite_talk_client.get_reference_data("subsidiary", allow_empty_filters=True)
         reference_data["Subsidiaries"] = subsidiaries
 
-        _, _, classifications = self.suite_talk_client.get_reference_data("classification")
+        _, _, classifications = self.suite_talk_client.get_reference_data("classification", allow_empty_filters=True)
         reference_data["Classifications"] = classifications
 
-        _, _, currencies = self.suite_talk_client.get_reference_data("currency")
+        _, _, currencies = self.suite_talk_client.get_reference_data("currency", allow_empty_filters=True)
         reference_data["Currencies"] = currencies
 
-        _, _, departments = self.suite_talk_client.get_reference_data("department")
+        _, _, departments = self.suite_talk_client.get_reference_data("department", allow_empty_filters=True)
         reference_data["Departments"] = departments
 
-        _, _, locations = self.suite_talk_client.get_reference_data("location")
+        _, _, locations = self.suite_talk_client.get_reference_data("location", allow_empty_filters=True)
         reference_data["Locations"] = locations
 
-        _, _, accounts = self.suite_talk_client.get_reference_data("account")
+        _, _, accounts = self.suite_talk_client.get_reference_data("account", allow_empty_filters=True)
         reference_data["Accounts"] = accounts
 
-        _, _, customer_categories = self.suite_talk_client.get_reference_data("customercategory")
+        _, _, customer_categories = self.suite_talk_client.get_reference_data("customercategory", allow_empty_filters=True)
         reference_data["CustomerCategory"] = customer_categories
 
-        _, _, vendor_categories = self.suite_talk_client.get_reference_data("vendorcategory")
+        _, _, vendor_categories = self.suite_talk_client.get_reference_data("vendorcategory", allow_empty_filters=True)
         reference_data["VendorCategory"] = vendor_categories
 
         # Batch specific reference data is not currently being written to the snapshot since it is not fetched here

@@ -37,8 +37,9 @@ class SuiteTalkRestClient:
         "item": "item.fullName"
     }
 
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.config = config
+        self.logger = logger
 
     @property
     def url_account(self) -> str:
@@ -213,14 +214,13 @@ class SuiteTalkRestClient:
         names: Optional[List[str]] = None,
         entity_ids: Optional[List[str]] = None,
         item_ids: Optional[List[str]] = None,
-        page_size=1000
+        page_size=1000,
+        allow_empty_filters=False
     ) -> List[Dict]:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if record_ids is not None and not record_ids and external_ids is not None and not external_ids \
-            and names is not None and not names and entity_ids is not None and not entity_ids \
-            and item_ids is not None and not item_ids:
+        if not record_ids and not external_ids and not names and not entity_ids and not item_ids and allow_empty_filters == False:
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
@@ -655,7 +655,7 @@ class SuiteTalkRestClient:
 
         json_data = json.dumps(data, cls=HGJSONEncoder) if data else None
 
-        return requests.request(
+        res = requests.request(
             method=method,
             url=url,
             params=request_params,
@@ -664,6 +664,11 @@ class SuiteTalkRestClient:
             verify=True,
             auth=oauth
         )
+
+        if res.status_code >= 400:
+            self.logger.error(f"Error when making request: {res.request.method} {res.request.url} {res.request.body}: {res.status_code} {res.reason} {res.text}")
+
+        return res
 
     def _validate_response(self, response: requests.Response) -> tuple[bool, str | None]:
         if response.status_code >= 400:

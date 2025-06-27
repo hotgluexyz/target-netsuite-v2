@@ -1,3 +1,4 @@
+from hotglue_models_accounting.accounting import PurchaseOrder
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.purchase_order_schema_mapper import PurchaseOrderSchemaMapper
 from target_netsuite_v2.mapper.base_mapper import InvalidInputError
@@ -5,6 +6,8 @@ from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 class PurchaseOrderSink(NetSuiteBatchSink):
     name = "PurchaseOrders"
     record_type = "purchaseOrder"
+    unified_schema = PurchaseOrder
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
@@ -31,9 +34,13 @@ class PurchaseOrderSink(NetSuiteBatchSink):
             entity_ids=vendor_numbers
         )
 
-        employee_ids = {record["employeeId"] for record in raw_records if record.get("employeeId")}
-        employee_external_ids = {record["employeeExternalId"] for record in raw_records if record.get("employeeExternalId")}
-        employee_names = {record["employeeName"] for record in raw_records if record.get("employeeName")}
+        employee_ids = set()
+        employee_external_ids = set()
+        employee_names = set()
+        for record in raw_records:
+            employee_ids.update(line_item["employeeId"] for line_item in record.get("lineItems", []) if line_item.get("employeeId"))
+            employee_external_ids.update(line_item["employeeNumber"] for line_item in record.get("lineItems", []) if line_item.get("employeeNumber"))
+            employee_names.update(line_item["employeeName"] for line_item in record.get("lineItems", []) if line_item.get("employeeName"))
         _, _, employees = self.suite_talk_client.get_reference_data(
             "employee",
             record_ids=employee_ids,

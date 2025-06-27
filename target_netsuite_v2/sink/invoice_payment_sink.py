@@ -1,9 +1,12 @@
+from hotglue_models_accounting.accounting import InvoicePayment
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.invoice_payment_schema_mapper import InvoicePaymentSchemaMapper
 
 class InvoicePaymentSink(NetSuiteBatchSink):
     name = "InvoicePayments"
     record_type = "customerPayment"
+    unified_schema = InvoicePayment
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]

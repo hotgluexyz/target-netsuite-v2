@@ -1,9 +1,12 @@
+from hotglue_models_accounting.accounting import Customer
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.customer_schema_mapper import CustomerSchemaMapper
 
 class CustomerSink(NetSuiteBatchSink):
     name = "Customers"
     record_type = "customer"
+    unified_schema = Customer
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]

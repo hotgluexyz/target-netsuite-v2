@@ -35,9 +35,12 @@ class PurchaseOrderSchemaMapper(BaseMapper):
             **self._map_currency(),
             **self._map_custom_fields(),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
-            **self._map_subrecord("Employees", "employeeId", "employeeName", "employee", subsidiary_scope=subsidiary_id, external_id_field="employeeExternalId"),
             **self._map_line_items(subsidiary_id)
         }
+
+
+        if employee := self._map_employee(payload):
+            payload["employee"] = employee
 
         self._map_fields(payload)
 
@@ -69,3 +72,16 @@ class PurchaseOrderSchemaMapper(BaseMapper):
             return { "item": { "items": mapped_line_items } }
         else:
             return {}
+        
+    def _map_employee(self, payload):
+        line_items = payload.get("item", {}).get("items", [])
+        found_employee = {}
+
+        for line_item in line_items:
+            if employee := line_item.pop("employee", None):
+                if not found_employee:
+                    found_employee = employee
+                
+        return found_employee
+            
+

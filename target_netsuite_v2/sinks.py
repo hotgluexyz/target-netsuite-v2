@@ -51,7 +51,9 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         if not self.latest_state:
             self.init_state()
 
-        batch_records = context["records"]
+        batch_records = context.get("records", [])
+        if not batch_records:
+            return
 
         reference_data = self.get_batch_reference_data(context)
 
@@ -153,11 +155,14 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         if netsuite_date is None or unified_date is None:
             return False
         try:
-            if not DATE_REGEX.match(unified_date):
-                raise InvalidDateError(f"Invalid ISO-8601 date format: {unified_date}")
-
+            if isinstance(unified_date, str):
+                if not DATE_REGEX.match(unified_date):
+                    raise InvalidDateError(f"Invalid ISO-8601 date format: {unified_date}")
+                dt1 = datetime.strptime(unified_date[:10], "%Y-%m-%d")
+            else:
+                dt1 = unified_date
+                
             # Parse the dates
-            dt1 = datetime.strptime(unified_date[:10], "%Y-%m-%d")
             dt2 = datetime.strptime(netsuite_date, "%m/%d/%Y")
 
             # Compare dates

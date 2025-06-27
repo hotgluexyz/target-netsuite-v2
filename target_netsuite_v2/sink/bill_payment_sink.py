@@ -1,3 +1,4 @@
+from hotglue_models_accounting.accounting import BillPayment
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.bill_payment_schema_mapper import BillPaymentSchemaMapper
 from target_netsuite_v2.mapper.base_mapper import InvalidInputError
@@ -5,6 +6,8 @@ from target_netsuite_v2.mapper.base_mapper import InvalidInputError
 class BillPaymentSink(NetSuiteBatchSink):
     name = "BillPayments"
     record_type = "vendorPayment"
+    unified_schema = BillPayment
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]

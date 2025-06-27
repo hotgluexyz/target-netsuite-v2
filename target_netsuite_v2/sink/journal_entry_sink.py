@@ -1,9 +1,12 @@
+from hotglue_models_accounting.accounting import JournalEntry
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.journal_entry_schema_mapper import JournalEntrySchemaMapper
 
 class JournalEntrySink(NetSuiteBatchSink):
     name = "JournalEntries"
     record_type = "journalEntry"
+    unified_schema = JournalEntry
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]

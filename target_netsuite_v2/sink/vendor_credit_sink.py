@@ -1,9 +1,12 @@
+from hotglue_models_accounting.accounting import VendorCredit
 from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.vendor_credit_schema_mapper import VendorCreditSchemaMapper
 
 class VendorCreditSink(NetSuiteBatchSink):
     name = "VendorCredits"
     record_type = "vendorCredit"
+    unified_schema = VendorCredit
+    auto_validate_unified_schema = True
 
     def get_batch_reference_data(self, context) -> dict:
         raw_records = context["records"]
