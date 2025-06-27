@@ -66,7 +66,7 @@ class TargetNetsuiteV2(TargetHotglue):
             "ns_token_secret": self.config["ns_token_secret"],
             "ns_account": self.config["ns_account"]
         }
-        return SuiteTalkRestClient(netsuite_config)
+        return SuiteTalkRestClient(netsuite_config, self.logger)
 
     def get_reference_data(self):
         if self.config.get("snapshot_hours"):

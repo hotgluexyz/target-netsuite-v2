@@ -37,8 +37,9 @@ class SuiteTalkRestClient:
         "item": "item.fullName"
     }
 
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.config = config
+        self.logger = logger
 
     @property
     def url_account(self) -> str:
