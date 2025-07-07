@@ -140,6 +140,7 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             did_update = True
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
+            reference_data.get(self.name, []).append({"internalId": id, "externalId": record.get("externalId"), "entityId": record.get("entityId"), "tranId": record.get("tranId"), "itemId": record.get("itemId")})
 
         if error_message:
             state["error"] = error_message
