@@ -34,7 +34,8 @@ class PurchaseOrderLineItemSchemaMapper(BaseMapper):
             **self._map_subrecord("Classifications", "classId", "className", "class", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Departments", "departmentId", "departmentName", "department", subsidiary_scope=subsidiary_id),
             **self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary"),
-            **self._map_subrecord("Employees", "employeeId", "employeeName", "employee", subsidiary_scope=self.subsidiary_id, external_id_field="employeeNumber")
+            **self._map_subrecord("Employees", "employeeId", "employeeName", "employee", subsidiary_scope=self.subsidiary_id, external_id_field="employeeNumber"),
+            **self._map_subrecord("Locations", "locationId", "locationName", "location", subsidiary_scope=self.subsidiary_id),
         }
 
         self._map_fields(payload)
