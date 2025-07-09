@@ -9,7 +9,7 @@ from target_hotglue.client import HotglueBaseSink
 from target_hotglue.common import HGJSONEncoder
 from typing import Dict, List, Optional
 from target_netsuite_v2.suite_talk_client import SuiteTalkRestClient
-from target_netsuite_v2.mapper.base_mapper import InvalidInputError, InvalidDateError, DATE_REGEX
+from target_netsuite_v2.mapper.base_mapper import extract_addresses_from_record, InvalidInputError, InvalidDateError, DATE_REGEX
 
 class NetSuiteBaseSink(HotglueBaseSink):
     def __init__(
@@ -140,7 +140,10 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
             did_update = True
         else:
             id, success, error_message = self.suite_talk_client.create_record(self.record_type, record)
-            reference_data.get(self.name, []).append({"internalId": id, "externalId": record.get("externalId"), "entityId": record.get("entityId"), "tranId": record.get("tranId"), "itemId": record.get("itemId")})
+            if not error_message:
+                reference_data.get(self.name, []).append({"internalId": id, "externalId": record.get("externalId"), "entityId": record.get("entityId"), "tranId": record.get("tranId"), "itemId": record.get("itemId")})
+                if addresses := extract_addresses_from_record(record):
+                    reference_data.get("Addresses", {})[id] = addresses
 
         if error_message:
             state["error"] = error_message
