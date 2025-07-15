@@ -53,7 +53,7 @@ class BaseMapper:
             # Try matching internal ID first
             found_record = next(
                 (record for record in reference_list
-                if record["internalId"] == record_id),
+                if str(record["internalId"]) == str(record_id)),
                 None
             )
             if found_record:
