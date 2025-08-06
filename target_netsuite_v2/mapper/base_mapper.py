@@ -21,6 +21,30 @@ class InvalidAccountError(InvalidInputError):
 # Regex to ensure the string starts with 'YYYY-MM-DD', but allows anything after
 DATE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
+def extract_addresses_from_record(record):
+    record_addresses = record.get("addressbook", {}).get("items", [])
+    addresses = {}
+    
+    billing_address = next((addr for addr in record_addresses if addr.get("defaultBilling") == True), None)
+    shipping_address = next((addr for addr in record_addresses if addr.get("defaultShipping") == True), None)
+
+    if billing_address:
+        addresses["billing"] = {
+            **billing_address.get("addressbookaddress", {}),
+            "addrtext": billing_address.get("addressbookaddress", {}).get("addrText"),
+            "defaultShipping": False,
+            "defaultBilling": True
+        }
+    if shipping_address:
+        addresses["shipping"] = {
+            **shipping_address.get("addressbookaddress", {}),
+            "addrtext": shipping_address.get("addressbookaddress", {}).get("addrText"),
+            "defaultShipping": True,
+            "defaultBilling": False
+        }
+
+    return addresses
+
 class BaseMapper:
     """A base class responsible for mapping a record ingested in the unified schema format to a payload for NetSuite"""
 
