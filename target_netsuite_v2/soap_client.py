@@ -1,6 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-from singer_sdk.sinks import BatchSink
+from target_hotglue.sinks import HotglueSink
 from target_netsuite_v2.netsuite import NetSuite
 from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
 
@@ -13,7 +13,7 @@ from heapq import nlargest as _nlargest
 from pendulum import parse
 from datetime import datetime
 
-class netsuiteSoapV2Sink(BatchSink):
+class netsuiteSoapV2Sink(HotglueSink):
     """netsuite-v2 target sink class."""
 
     def get_close_matches(self, word, possibilities, n=20, cutoff=0.7):
@@ -122,9 +122,9 @@ class netsuiteSoapV2Sink(BatchSink):
         subsidiaries = {}
         line_items = []
         for line in record.get("lines"):
-            if context["reference_data"].get("Accounts") and line.get("accountNumber"):
+            if self.reference_data.get("Accounts") and line.get("accountNumber"):
                 acct_num = str(line["accountNumber"])
-                acct_data = [a for a in context["reference_data"]["Accounts"] if a["acctNumber"] == acct_num]
+                acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
                 if not acct_data:
                     self.logger.warning(f"{acct_num} is not valid for this netsuite account, skipping line")
                     continue
@@ -152,12 +152,12 @@ class netsuiteSoapV2Sink(BatchSink):
                         raise('Posting Type must be "credit" or "debit"')
 
             # Get the NetSuite Class Ref
-            if context["reference_data"].get("Classifications") and line.get("className"):
-                class_names = [c["name"] for c in context["reference_data"]["Classifications"]]
+            if self.reference_data.get("Classifications") and line.get("className"):
+                class_names = [c["name"] for c in self.reference_data["Classifications"]]
                 class_name = self.get_close_matches(line["className"], class_names)
                 if class_name:
                     class_name = max(class_name, key=class_name.get)
-                    class_data = [c for c in context["reference_data"]["Classifications"] if c["name"]==class_name]
+                    class_data = [c for c in self.reference_data["Classifications"] if c["name"]==class_name]
                     if class_data:
                         class_data = class_data[0]
                         journal_entry_line["class"] = {
@@ -167,12 +167,12 @@ class netsuiteSoapV2Sink(BatchSink):
                         }
 
             # Get the NetSuite Department Ref
-            if context["reference_data"].get("Departments") and line.get("department"):
-                dept_names = [d["name"] for d in context["reference_data"]["Departments"]]
+            if self.reference_data.get("Departments") and line.get("department"):
+                dept_names = [d["name"] for d in self.reference_data["Departments"]]
                 dept_name = self.get_close_matches(line["department"], dept_names)
                 if dept_name:
                     dept_name = max(dept_name, key=dept_name.get)
-                    dept_data = [d for d in context["reference_data"]["Departments"] if d["name"] == dept_name]
+                    dept_data = [d for d in self.reference_data["Departments"] if d["name"] == dept_name]
                     if dept_data:
                         dept_data = dept_data[0]
                         journal_entry_line["department"] = {
@@ -184,8 +184,8 @@ class netsuiteSoapV2Sink(BatchSink):
             # Get the NetSuite Location Ref
             if line.get("locationId"):
                 journal_entry_line["location"] = {"internalId": line.get("locationId")}
-            elif context["reference_data"].get("Locations") and line.get("location"):
-                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
+            elif self.reference_data.get("Locations") and line.get("location"):
+                loc_data = [l for l in self.reference_data["Locations"] if l["name"] == line["location"]]
                 if loc_data:
                     loc_data = loc_data[0]
                     journal_entry_line["location"] = {
@@ -228,9 +228,9 @@ class netsuiteSoapV2Sink(BatchSink):
             line_items.append(journal_entry_line)
 
         # Get the currency ID
-        if context["reference_data"].get("Currencies") and record.get("currency"):
+        if self.reference_data.get("Currencies") and record.get("currency"):
             currency_data = [
-                c for c in context["reference_data"]["Currencies"] if c["symbol"] == record["currency"]
+                c for c in self.reference_data["Currencies"] if c["symbol"] == record["currency"]
                 ]
             if currency_data:
                 currency_data = currency_data[0]
@@ -272,9 +272,9 @@ class netsuiteSoapV2Sink(BatchSink):
 
     def process_customer_payment(self, context, record):
         # Get the currency ID
-        if context["reference_data"].get("Currencies") and record.get("currency"):
+        if self.reference_data.get("Currencies") and record.get("currency"):
             currency_data = [
-                c for c in context["reference_data"]["Currencies"] if c["symbol"] == record["currency"]
+                c for c in self.reference_data["Currencies"] if c["symbol"] == record["currency"]
                 ]
             if currency_data:
                 currency_data = currency_data[0]
