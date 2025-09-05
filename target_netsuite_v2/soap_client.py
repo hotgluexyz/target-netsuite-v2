@@ -66,6 +66,9 @@ class netsuiteSoapV2Sink(HotglueSink):
         raise exception
 
     def get_reference_data(self):
+        if self._target.reference_data:
+            return self._target.reference_data
+        
         if self.config.get("snapshot_hours"):
             try:
                 with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json') as json_file:
@@ -116,6 +119,9 @@ class netsuiteSoapV2Sink(HotglueSink):
             with open('snapshots/reference_data.json', 'w') as outfile:
                 json.dump(reference_data, outfile)
 
+
+        # Cache reference data in target
+        self._target.reference_data = reference_data
         return reference_data
 
     def process_journal_entry(self, context, record):

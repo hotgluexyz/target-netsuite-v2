@@ -20,6 +20,10 @@ class TargetNetsuiteV2(TargetHotglue):
         th.Property("ns_account", th.StringType)
     ).to_dict()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reference_data = None
+
     SINK_TYPES = [netsuiteV2Sink]
     def get_sink_class(self, stream_name: str):
         return netsuiteV2Sink
