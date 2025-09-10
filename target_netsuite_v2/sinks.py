@@ -77,11 +77,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             vendor_bill = self.process_vendor_bill(context, record)
             return vendor_bill
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
-            invoice_payment = self.invoice_payment(context, record)
-            return invoice_payment
+            return record
         elif self.stream_name.lower() in ["vendorpayments","vendorpayment","billpayments","billpayment"]:
-            vendor_payment = self.vendor_payment(context, record)
-            return vendor_payment
+            # vendor_payment = self.vendor_payment(context, record)
+            return record
         elif self.stream_name.lower() in ["PurchaseOrderToVendorBill"]:
             return record
         elif self.stream_name.lower() in ['item','items']:
@@ -133,9 +132,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}vendorbill"
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
-            response = self.push_payments(record)
+            payload = self.invoice_payment(context, record)
+            response = self.push_payments(payload)
         elif self.stream_name.lower() in ["vendorpayment","vendorpayments","billpayment","billpayments"]:
-            response = self.push_vendor_payments(record)
+            payload = self.vendor_payment(context, record)
+            response = self.push_vendor_payments(payload)
         elif self.stream_name in ["PurchaseOrderToVendorBill"]:
             response = self.po_to_vb(record)
         elif self.stream_name.lower() in ['inboundshipment','inboundshipments']:
