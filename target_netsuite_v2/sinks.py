@@ -79,7 +79,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
             invoice_payment = self.invoice_payment(context, record)
             return invoice_payment
-        elif self.stream_name.lower() in ["vendorpayments","vendorpayment"]:
+        elif self.stream_name.lower() in ["vendorpayments","vendorpayment","billpayments","billpayment"]:
             vendor_payment = self.vendor_payment(context, record)
             return vendor_payment
         elif self.stream_name.lower() in ["PurchaseOrderToVendorBill"]:
@@ -134,7 +134,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
             response = self.push_payments(record)
-        elif self.stream_name.lower() in ["vendorpayment","vendorpayments"]:
+        elif self.stream_name.lower() in ["vendorpayment","vendorpayments","billpayment","billpayments"]:
             response = self.push_vendor_payments(record)
         elif self.stream_name in ["PurchaseOrderToVendorBill"]:
             response = self.po_to_vb(record)
