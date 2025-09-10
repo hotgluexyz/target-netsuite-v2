@@ -548,7 +548,7 @@ class netsuiteRestV2Sink(BatchSink):
         return etree.tostring(record, pretty_print=True)
 
     def vendor_payment(self, context, record):
-        vendor_bill_id = record.get("id")
+        vendor_bill_id = record.get("billId", record.get("id"))
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2025_1"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
