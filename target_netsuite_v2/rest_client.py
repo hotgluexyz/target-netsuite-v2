@@ -1,7 +1,7 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
 
-from singer_sdk.sinks import BatchSink
+from target_hotglue.sinks import HotglueSink
 import requests
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1
@@ -33,8 +33,14 @@ def validate_response(response: requests.models.Response) -> None:
         raise Exception(f"Request to url {response.url} failed with response: {clean_error}") from exc
 
 
-class netsuiteRestV2Sink(BatchSink):
+class netsuiteRestV2Sink(HotglueSink):
     """netsuite-v2 target sink class."""
+
+    def _extract_id_from_response_header(self, headers):
+        location = headers.get("Location")
+        if not location:
+            return None
+        return location.split("/")[-1]
 
     @property
     def url_base(self) -> str:
@@ -202,8 +208,8 @@ class netsuiteRestV2Sink(BatchSink):
         if record.get('location_id'):
             sale_order["location"] = {"id": str(record.get('location_id'))}
         
-        if not sale_order.get("location") and record.get('subsidiary_id') and context["reference_data"].get("Locations"):
-            for location in context["reference_data"]["Locations"]:
+        if not sale_order.get("location") and record.get('subsidiary_id') and self.reference_data.get("Locations"):
+            for location in self.reference_data["Locations"]:
                 for subsidiary in location.get("subsidiaryList", []):
                     if str(record.get('subsidiary_id')) == subsidiary["internalId"]:
                         sale_order["location"] = {"id": location["internalId"]}
@@ -264,10 +270,10 @@ class netsuiteRestV2Sink(BatchSink):
         location = None
         if record.get("locationId"):
             location = {"id": record["locationId"]}
-        elif context["reference_data"].get("Locations") and record.get("location"):
+        elif self.reference_data.get("Locations") and record.get("location"):
             loc_data = [
                 l
-                for l in context["reference_data"]["Locations"]
+                for l in self.reference_data["Locations"]
                 if l["name"] == record["location"]
             ]
             if loc_data:
@@ -277,10 +283,10 @@ class netsuiteRestV2Sink(BatchSink):
         department = None
         if record.get("departmentId"):
             department = {"id": record["departmentId"]}
-        elif context["reference_data"].get("Departments") and record.get("department"):
+        elif self.reference_data.get("Departments") and record.get("department"):
             dep_data = [
                 d
-                for d in context["reference_data"]["Departments"]
+                for d in self.reference_data["Departments"]
                 if d["name"] == record["department"]
             ]
             if dep_data:
@@ -338,17 +344,20 @@ class netsuiteRestV2Sink(BatchSink):
             order_item["amount"] = round(
                 line.get("quantity") * line.get("unitPrice"), 3
             )
+
+            if line.get("locationId"):
+                order_item["Location"] = {"id": line.get("locationId")}
             if department:
                 order_item["Department"] = department
             elif line.get("departmentId"):
                 department = {"id": line["departmentId"]}
                 order_item["Department"] = department
-            elif context["reference_data"].get("Departments") and line.get(
+            elif self.reference_data.get("Departments") and line.get(
                 "department"
             ):
                 dep_data = [
                     d
-                    for d in context["reference_data"]["Departments"]
+                    for d in self.reference_data["Departments"]
                     if d["name"] == line["department"]
                 ]
                 if dep_data:
@@ -373,13 +382,13 @@ class netsuiteRestV2Sink(BatchSink):
             # Get the account Id
             if line.get("accountId"):
                 expense["account"] = {"id": line.get("accountId")}
-            elif context["reference_data"].get("Accounts") and line.get(
+            elif self.reference_data.get("Accounts") and line.get(
                 "accountNumber"
             ):
                 acct_num = str(line["accountNumber"])
                 acct_data = [
                     a
-                    for a in context["reference_data"]["Accounts"]
+                    for a in self.reference_data["Accounts"]
                     if a["acctNumber"] == acct_num
                 ]
                 if acct_data:
@@ -401,10 +410,10 @@ class netsuiteRestV2Sink(BatchSink):
             location = None
             if line.get("locationId"):
                 location = {"id": line["locationId"]}
-            elif context["reference_data"].get("Locations") and line.get("location"):
+            elif self.reference_data.get("Locations") and line.get("location"):
                 loc_data = [
                     l
-                    for l in context["reference_data"]["Locations"]
+                    for l in self.reference_data["Locations"]
                     if l["name"] == line["location"]
                 ]
                 if loc_data:
@@ -442,10 +451,10 @@ class netsuiteRestV2Sink(BatchSink):
                 invoice["entity"] = {"id": matching_customers[0]}
 
         # Get the NetSuite Location Ref
-        if context["reference_data"].get("Locations") and record.get("location"):
+        if self.reference_data.get("Locations") and record.get("location"):
             loc_data = [
                 l
-                for l in context["reference_data"]["Locations"]
+                for l in self.reference_data["Locations"]
                 if l["name"] == record["location"]
             ]
             if loc_data:
@@ -837,7 +846,7 @@ class netsuiteRestV2Sink(BatchSink):
             account = list(
                 filter(
                     lambda x: get_account_by_name_or_id(x, accountName, id),
-                    context["reference_data"]["Accounts"],
+                    self.reference_data["Accounts"],
                 )
             )[0]
             payload["cogsAccount"] = {"id": account["internalId"]}
@@ -852,7 +861,7 @@ class netsuiteRestV2Sink(BatchSink):
                 account = list(
                     filter(
                         lambda x: get_account_by_name_or_id(x, accountName, id),
-                        context["reference_data"]["Accounts"],
+                        self.reference_data["Accounts"],
                     )
                 )[0]
                 payload["incomeAccount"] = {"id": account["internalId"]}
@@ -901,8 +910,8 @@ class netsuiteRestV2Sink(BatchSink):
         location = None
         if record.get("locationId"):
             location = {"id": record["locationId"]}
-        elif context["reference_data"].get("Locations") and record.get("location"):
-            loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == record["location"]]
+        elif self.reference_data.get("Locations") and record.get("location"):
+            loc_data = [l for l in self.reference_data["Locations"] if l["name"] == record["location"]]
             if loc_data:
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
