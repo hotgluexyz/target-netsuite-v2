@@ -21,7 +21,7 @@ class SuiteTalkRestClient:
         "vendorcategory": "vendorcategory.id as internalId, vendorcategory.externalId as externalId, vendorcategory.name",
         "employee": "employee.id as internalid, employee.externalId as externalid, employee.firstname || ' ' || employee.lastname AS name, subsidiary as subsidiaryId",
         "item": "item.id as internalid, item.externalId as externalId, item.fullName as name, item.itemid as itemId",
-        "salestaxitem": "salestaxitem.id as internalid, salestaxitem.name as name"
+        "salestaxitem": "salestaxitem.id as internalid, salestaxitem.name as name, salestaxitem.taxtype, customrecord_ste_taxrate.custrecord_ste_taxrate_rate as taxrate"
     }
 
     ref_name_where_clauses = {
@@ -36,6 +36,10 @@ class SuiteTalkRestClient:
         "vendorcategory": "vendorcategory.name",
         "employee": "employee.firstname || ' ' || employee.lastname",
         "item": "item.fullName"
+    }
+
+    ref_join_clauses = {
+        "salestaxitem": "inner join customrecord_ste_taxrate on customrecord_ste_taxrate.custrecord_ste_taxrate_taxcode = salestaxitem.id"
     }
 
     def __init__(self, config, logger):
@@ -264,6 +268,10 @@ class SuiteTalkRestClient:
                 where_clause = f"WHERE itemId IN ({item_ids_str})"
 
         query = f"SELECT {select_clause} FROM {record_type}"
+
+        if record_type in self.ref_join_clauses:
+            query += f" {self.ref_join_clauses[record_type]}"
+
         if where_clause:
             query += f" {where_clause}"
 
@@ -305,6 +313,10 @@ class SuiteTalkRestClient:
                     item["entityId"] = item.pop("entityid")
                 if "itemid" in item:
                     item["itemId"] = item.pop("itemid")
+                if "taxtype" in item:
+                    item["taxType"] = item.pop("taxtype")
+                if "taxrate" in item:
+                    item["taxRate"] = item.pop("taxrate")
 
             all_items.extend(items)
 
