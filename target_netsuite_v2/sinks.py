@@ -135,7 +135,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             payload = self.invoice_payment(context, record)
             response = self.push_payments(payload)
         elif self.stream_name.lower() in ["vendorpayment","vendorpayments","billpayment","billpayments"]:
-            payload = self.vendor_payment(context, record)
+            payload = self.vendor_payment(context, record, self.reference_data)
             response = self.push_vendor_payments(payload)
         elif self.stream_name in ["PurchaseOrderToVendorBill"]:
             response = self.po_to_vb(record)
@@ -162,4 +162,3 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return record_id, True, {}
         else:
             return None, True, {}
-

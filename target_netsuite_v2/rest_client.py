@@ -556,55 +556,136 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return etree.tostring(record, pretty_print=True)
 
-    def vendor_payment(self, context, record):
+    def vendor_payment(self, context, record, reference_data):
+        NS = {
+            "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+            "msg": "urn:messages_2025_1.platform.webservices.netsuite.com",
+            "tranPurch": "urn:purchases_2025_1.transactions.webservices.netsuite.com",
+            "core": "urn:core_2025_1.platform.webservices.netsuite.com",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        }
+
+        QN = etree.QName
+
         vendor_bill_id = record.get("billId", record.get("id"))
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2025_1"
+        pay_amount = str(record["amount"])
+        apply_date = record.get('paymentDate')
+        
+        account_id = None
+        account_number = record.get("accountNumber")
+        account_data = [
+            a
+            for a in reference_data["Accounts"]
+            if a["acctNumber"] == account_number
+        ]
+        if account_data:
+            account_data = account_data[0]
+            account_id = account_data.get("internalId")
 
-        oauth_creds = self.ns_client.ns_client._build_soap_headers()
-        oauth_creds = oauth_creds["tokenPassport"]
 
-        base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2025_1.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <soap:Header>
-        <tokenPassport>
-            <account>{oauth_creds["account"]}</account>
-            <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
-            <token>{oauth_creds["token"]}</token>
-            <nonce>{oauth_creds["nonce"]}</nonce>
-            <timestamp>{oauth_creds["timestamp"]}</timestamp>
-            <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
-        </tokenPassport>
-    </soap:Header>
-    <soap:Body>
-        <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2025_1.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com">
-            <platformMsgs:initializeRecord>
-                <platformCore:type>vendorPayment</platformCore:type>
-                <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
-                </platformCore:reference>
-            </platformMsgs:initializeRecord>
-        </platformMsgs:initialize>
-    </soap:Body>
-</soap:Envelope>"""
+
+        # Assume _build_soap_headers is correct and returns the dict
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()["tokenPassport"]
+
+        # 1) Initialize the VendorPayment record from the VendorBill ---
+        initialize_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2025_1.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <platformMsgs:initialize xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:platformCoreTyp="urn:types.core_2025_1.platform.webservices.netsuite.com" xmlns:platformCore="urn:core_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com">
+                    <platformMsgs:initializeRecord>
+                        <platformCore:type>vendorPayment</platformCore:type>
+                        <platformCore:reference internalId="{vendor_bill_id}" type="vendorBill">
+                        </platformCore:reference>
+                    </platformMsgs:initializeRecord>
+                </platformMsgs:initialize>
+            </soap:Body>
+        </soap:Envelope>"""
 
         headers = {"SOAPAction": "initialize", "Content-Type": "text/xml"}
-        res = requests.post(url, headers=headers, data=base_request)
+        res = requests.post(url, headers=headers, data=initialize_request)
         if res.status_code >= 400:
             raise ConnectionError(res.text)
-        res_xml = etree.fromstring(res.text.encode())
-        record = res_xml[1][0][0][-1]
 
-        for r in record:
+        root = etree.fromstring(res.content)
+        # 2) get the <record xsi:type="tranPurch:VendorPayment">
+        rec = root.find(".//msg:record", namespaces=NS)
+        if rec is None:
+            raise ValueError("initialize response has no <record>")
+        if rec.get(QN(NS["xsi"], "type")) != "tranPurch:VendorPayment":
+            raise ValueError("initialize did not return VendorPayment")
+
+        # 3) clean decorations: remove <core:name> nodes under refs
+        for nm in rec.xpath(".//core:name", namespaces=NS):
+            parent = nm.getparent()
+            if parent is not None:
+                parent.remove(nm)
+
+        # 4) set bank/cash account (RecordRef) - internalId
+        account = rec.find("tranPurch:account", namespaces=NS)
+        if account is None:
+            account = etree.SubElement(rec, QN(NS["tranPurch"], "account"))
+        if account_id:
+            account.set("internalId", account_id)
+
+        # 5) get the first apply line and set amount
+        apply_list = rec.find("tranPurch:applyList", namespaces=NS)
+        if apply_list is None:
+            apply_list = etree.SubElement(rec, QN(NS["tranPurch"], "applyList"))
+
+        apply = apply_list.find("tranPurch:apply", namespaces=NS)
+        if apply is None:
+            apply = etree.SubElement(apply_list, QN(NS["tranPurch"], "apply"))
+
+        # Keep/ensure <apply>true</apply>
+        el_apply = apply.find("tranPurch:apply", namespaces=NS)
+        if el_apply is None:
+            el_apply = etree.SubElement(apply, QN(NS["tranPurch"], "apply"))
+        el_apply.text = "true"
+
+        # Remove read-only fields in apply that can conflict with amount
+        for bad in ("total", "due", "currency", "disc", "type"):
+            bad_el = apply.find(f"tranPurch:{bad}", namespaces=NS)
+            if bad_el is not None:
+                apply.remove(bad_el)
+
+        # Set <applyDate>
+        apply_date_el = apply.find("tranPurch:applyDate", namespaces=NS)
+        if apply_date_el is None:
+            apply_date_el = etree.SubElement(apply, QN(NS["tranPurch"], "applyDate"))
+        apply_date_el.text = apply_date
+
+        # Set <amount>
+        amt_el = apply.find("tranPurch:amount", namespaces=NS)
+        if amt_el is None:
+            amt_el = etree.SubElement(apply, QN(NS["tranPurch"], "amount"))
+        amt_el.text = pay_amount
+        
+        for r in rec:
             if isinstance(r.text, str):
                 r.getparent().remove(r)
 
-        return etree.tostring(record, pretty_print=True)
+        return etree.tostring(rec, pretty_print=True)
+
 
     def push_vendor_payments(self, payload):
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2025_1"
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
         oauth_creds = oauth_creds["tokenPassport"]
 
-        payload = payload.decode()
-        payload = "\n".join(payload.split("\n")[1:-2])
+        # Handle both bytes and string payloads
+        if isinstance(payload, bytes):
+            payload = payload.decode()
+            payload = "\n".join(payload.split("\n")[1:-2])
 
         base_request = f"""<soap:Envelope xmlns:platformFaults="urn:faults_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2025_1.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <soap:Header>
@@ -953,4 +1034,3 @@ class netsuiteRestV2Sink(HotglueSink):
             purchase_order["item"] = {"items": items}
             
         return purchase_order
-
