@@ -572,3 +572,50 @@ class BaseMapper:
             return { target_field: { "id": reference["internalId"] } }
 
         return {}
+
+    def _map_tax_line(self, tax_details_reference, tax_code, amount, tax_amount=None):
+        """Create the tax details line for Invoices / Bills / Vendor Credits
+        Args:
+            tax_details_reference: The reference that points to a item or expense line
+            tax_code: map to a tax name
+            amount: total amount for that item or expense line
+            tax_amount: total tax amount for that item or expense line (if this is null
+                        we'll calculate it based on the rate for the given taxCode)
+
+        Returns:
+            A dict containing the tax details line
+        """
+        tax = next(
+                (
+                    item
+                    for item in self.reference_data["Taxes"]
+                    if item.get("name") == tax_code
+                ),
+                None
+            )
+        if not tax:
+            raise InvalidReferenceError(f"Unable to find tax code: {tax_code}")
+
+        # if tax_amount is not provided, we'll calculate it based on the rate for the given taxCode
+        # else we'll calculate the tax rate based on the tax_amount and amount
+        if not tax_amount:
+            tax_rate = float(tax["taxRate"])
+            tax_amount = amount * tax_rate
+        else:
+            tax_amount = float(tax_amount)
+            tax_rate = tax_amount / amount
+        
+        tax_line = {
+            "taxAmount": tax_amount,
+            "taxRate": tax_rate * 100,
+            "taxBasis": amount,
+            "taxCode": {
+                "id": tax["internalId"]
+            },
+            "taxDetailsReference": {
+                "id": tax_details_reference
+            },
+            "taxType": tax["taxType"]
+        }
+
+        return tax_line
