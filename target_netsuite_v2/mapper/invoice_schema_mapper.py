@@ -63,13 +63,23 @@ class InvoiceSchemaMapper(BaseMapper):
     def _map_invoice_line_items(self, subsidiary_id):
         line_items = self.record.get("lineItems", [])
         mapped_line_items = []
+        mapped_tax_lines = []
 
-        for line_item in line_items:
+        for index, line_item in enumerate(line_items):
             payload = InvoiceLineItemSchemaMapper(line_item, self.reference_data, subsidiary_id).to_netsuite()
+            if tax_code := line_item.get("taxCode"):
+                tax_details_reference = f"NEW_ITEM_{index}"
+                payload["taxDetailsReference"] = tax_details_reference
+                tax_line = self._map_tax_line(tax_details_reference, tax_code, line_item.get("amount"), line_item.get("taxAmount"))
+                mapped_tax_lines.append(tax_line)
             mapped_line_items.append(payload)
 
         if mapped_line_items:
-            return { "item": { "items": mapped_line_items } }
+            mapped_items = { "item": { "items": mapped_line_items } }
+            if mapped_tax_lines:
+                mapped_items["taxDetailsOverride"] = True
+                mapped_items["taxDetails"] = { "items": mapped_tax_lines }
+            return mapped_items
         else:
             return {}
 
