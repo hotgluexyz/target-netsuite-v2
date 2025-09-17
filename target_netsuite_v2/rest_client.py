@@ -641,16 +641,15 @@ class netsuiteRestV2Sink(HotglueSink):
         apply_list = rec.find("tranPurch:applyList", namespaces=NS)
         if apply_list is None:
             apply_list = etree.SubElement(rec, QN(NS["tranPurch"], "applyList"))
+            
+        # Remove all apply lines except the one with apply true
+        for apply in apply_list.findall("tranPurch:apply", namespaces=NS):
+            if apply.find("tranPurch:apply", namespaces=NS).text != "true":
+                apply_list.remove(apply)
 
         apply = apply_list.find("tranPurch:apply", namespaces=NS)
         if apply is None:
-            apply = etree.SubElement(apply_list, QN(NS["tranPurch"], "apply"))
-
-        # Keep/ensure <apply>true</apply>
-        el_apply = apply.find("tranPurch:apply", namespaces=NS)
-        if el_apply is None:
-            el_apply = etree.SubElement(apply, QN(NS["tranPurch"], "apply"))
-        el_apply.text = "true"
+            raise ValueError("Bill is already fully paid.")
 
         # Remove read-only fields in apply that can conflict with amount
         for bad in ("total", "due", "currency", "disc", "type"):
