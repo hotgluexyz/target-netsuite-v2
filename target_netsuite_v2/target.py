@@ -108,6 +108,9 @@ class TargetNetsuiteV2(TargetHotglue):
         _, _, vendor_categories = self.suite_talk_client.get_reference_data("vendorcategory", allow_empty_filters=True)
         reference_data["VendorCategory"] = vendor_categories
 
+        _, _, tax_codes = self.suite_talk_client.get_reference_data("salestaxitem", allow_empty_filters=True)
+        reference_data["Taxes"] = tax_codes
+
         # Batch specific reference data is not currently being written to the snapshot since it is not fetched here
         # But is instead lazily fetched per batch
         if self.config.get("snapshot_hours"):

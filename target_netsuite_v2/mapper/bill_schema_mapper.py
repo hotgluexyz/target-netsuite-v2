@@ -47,6 +47,7 @@ class BillSchemaMapper(BaseMapper):
             **self._map_bill_expenses(subsidiary_id)
         }
 
+        self._map_tax_details(payload)
         self._map_fields(payload)
 
         return payload
@@ -68,25 +69,46 @@ class BillSchemaMapper(BaseMapper):
     def _map_bill_line_items(self, subsidiary_id):
         line_items = self.record.get("lineItems", [])
         mapped_line_items = []
+        mapped_tax_lines = []
 
-        for line_item in line_items:
+        for index, line_item in enumerate(line_items):
             payload = BillLineItemSchemaMapper(line_item, self.reference_data, subsidiary_id).to_netsuite()
+            if tax_code := line_item.get("taxCode"):
+                tax_details_reference = f"NEW_ITEM_{index}"
+                payload["taxDetailsReference"] = tax_details_reference
+                tax_line = self._map_tax_line(tax_details_reference, tax_code, line_item.get("amount"), line_item.get("taxAmount"))
+                mapped_tax_lines.append(tax_line)
             mapped_line_items.append(payload)
 
         if mapped_line_items:
-            return { "item": { "items": mapped_line_items } }
+            return { "item": { "items": mapped_line_items }, "itemsTaxDetails": mapped_tax_lines }
         else:
             return {}
 
     def _map_bill_expenses(self, subsidiary_id):
         expenses = self.record.get("expenses", [])
         mapped_expenses = []
+        mapped_tax_lines = []
 
-        for expense in expenses:
+        for index, expense in enumerate(expenses):
             payload =  BillExpenseSchemaMapper(expense, self.reference_data, subsidiary_id).to_netsuite()
+            if tax_code := expense.get("taxCode"):
+                tax_details_reference = f"NEW_EXPENSE_{index}"
+                payload["taxDetailsReference"] = tax_details_reference
+                tax_line = self._map_tax_line(tax_details_reference, tax_code, expense.get("amount"), expense.get("taxAmount"))
+                mapped_tax_lines.append(tax_line)
             mapped_expenses.append(payload)
 
         if mapped_expenses:
-            return { "expense": { "items": mapped_expenses } }
+            return { "expense": { "items": mapped_expenses }, "expensesTaxDetails": mapped_tax_lines }
         else:
             return {}
+
+    def _map_tax_details(self, payload):
+        items_tax_details = payload.pop("itemsTaxDetails", [])
+        expenses_tax_details = payload.pop("expensesTaxDetails", [])
+        tax_details = items_tax_details + expenses_tax_details
+
+        if tax_details:
+            payload["taxDetailsOverride"] = True
+            payload["taxDetails"] = { "items": tax_details }

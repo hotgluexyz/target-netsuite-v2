@@ -105,11 +105,21 @@ class BillSink(NetSuiteBatchSink):
 
     def post_processing_for_update(self, record, reference_data):
         items = record.get("item", {}).get("items", [])
+        tax_details = record.get("taxDetails", {}).get("items", [])
         new_items = []
+        new_tax_details = []
+
         for item in items:
             exists = self.check_item_exists(record['internalId'], item, reference_data)
-            if not exists:
-                new_items.append(item)
+            if exists:
+                continue
+
+            new_items.append(item)
+            
+            if item_tax_details_reference := item.get("taxDetailsReference"):
+                item_tax_details = next((tax_detail for tax_detail in tax_details if tax_detail.get("taxDetailsReference", {}).get("id") == item_tax_details_reference), None)
+                if item_tax_details:
+                    new_tax_details.append(item_tax_details)
 
         if new_items:
             new_item_payload = {
@@ -123,8 +133,15 @@ class BillSink(NetSuiteBatchSink):
         new_expenses = []
         for expense in expenses:
             exists = self.check_expense_exists(record['internalId'], expense, reference_data)
-            if not exists:
-                new_expenses.append(expense)
+            if exists:
+                continue
+
+            new_expenses.append(expense)
+
+            if expense_tax_details_reference := item.get("taxDetailsReference"):
+                expense_tax_details = next((tax_detail for tax_detail in tax_details if tax_detail.get("taxDetailsReference", {}).get("id") == expense_tax_details_reference), None)
+                if expense_tax_details:
+                    new_tax_details.append(expense_tax_details)
 
         if new_expenses:
             new_expense_payload = {
@@ -133,6 +150,13 @@ class BillSink(NetSuiteBatchSink):
             record["expense"] = new_expense_payload
         else:
             record = self._omit_key(record, "expense")
+
+        if new_tax_details:
+            record["taxDetails"] = { "items": new_tax_details }
+            record["taxDetailsOverride"] = True
+        else:
+            record = self._omit_key(record, "taxDetails")
+            record = self._omit_key(record, "taxDetailsOverride")
 
         return record
 
