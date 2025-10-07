@@ -9,6 +9,8 @@ from pendulum import parse
 import json
 from lxml import etree
 
+from target_netsuite_v2.utils import safe_round
+
 
 def get_clean_error_message(response: requests.models.Response) -> str:
     """Extract clean error message from NetSuite API response."""
@@ -335,7 +337,7 @@ class netsuiteRestV2Sink(BatchSink):
                     order_item["item"] = {"id": matching_items[0]}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = round(
+            order_item["amount"] = safe_round(
                 line.get("quantity") * line.get("unitPrice"), 3
             )
             if department:
@@ -386,7 +388,7 @@ class netsuiteRestV2Sink(BatchSink):
                     self.logger.info(f"Account found for acctNumber {acct_num} -> {acct_data}")
                     acct_data = acct_data[0]
                     expense["account"] = {"id": acct_data.get("internalId")}
-            expense["amount"] = round(line.get("amount"), 3)
+            expense["amount"] = safe_round(line.get("amount"), 3)
             # Get the project id
             # project should be linked through customer HGI-6300
             if line.get("projectId"):
@@ -937,7 +939,7 @@ class netsuiteRestV2Sink(BatchSink):
                     order_item["item"] = {"id": matching_items[0]}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = round(line.get("quantity") * line.get("unit_price"), 3)
+            order_item["amount"] = safe_round(line.get("quantity") * line.get("unit_price"), 3)
              
             items.append(order_item)
         if items:
