@@ -2,6 +2,7 @@
 
 from singer_sdk.sinks import BatchSink
 from target_netsuite_v2.netsuite import NetSuite
+from target_netsuite_v2.utils import safe_round
 from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
 
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
@@ -212,7 +213,7 @@ class netsuiteSoapV2Sink(BatchSink):
                     }
 
             # Check the Posting Type and insert the Amount
-            amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
+            amount = 0 if not line["amount"] else abs(safe_round(line["amount"], 2))
             if line["postingType"].lower() == "credit":
                 journal_entry_line["credit"] = amount
             elif line["postingType"].lower() == "debit":
