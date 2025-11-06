@@ -8,6 +8,7 @@ from requests_oauthlib import OAuth1
 from pendulum import parse
 import json
 from lxml import etree
+from target_netsuite_v2.utils import coerce_numeric_value, format_date
 
 
 def get_clean_error_message(response: requests.models.Response) -> str:
@@ -869,15 +870,20 @@ class netsuiteRestV2Sink(HotglueSink):
         return payload
 
     def process_purchase_order(self, context, record):
-        purchase_order = {}
-        if record.get("order_number"):
-            purchase_order['externalId'] = record['order_number']
-        elif record.get("invoiceNumber"):
-            purchase_order["externalId"] = record["invoiceNumber"]
-        elif record.get("externalId"):
-            purchase_order["externalId"] = record["externalId"].get("value")
-        
-        purchase_order["memo"] = record.get("description")
+        purchase_order = {
+            "memo": record.get("description"),
+            "tranid": record.get("order_number", record.get("number"))
+        }
+
+        external_id = (
+            record.get("order_number")
+            or record.get("invoiceNumber")
+            or (record.get("externalId") or {}).get("value")
+            or record.get("referenceNumber")
+        )
+        if external_id:
+            purchase_order["externalId"] = external_id
+
 
         if record.get("customFormId"):
             purchase_order["customForm"] = {"id": record["customFormId"]}
@@ -895,16 +901,15 @@ class netsuiteRestV2Sink(HotglueSink):
         #Prevent parse function from failing on empty date
         duedate = record.get("dueDate")
         if duedate:
-            if isinstance(duedate, str):
-                duedate = parse(duedate)
-                purchase_order["duedate"] = duedate.strftime("%Y-%m-%d")
+            purchase_order["duedate"] = format_date(duedate)
+        
+        issue_date = record.get("issueDate") or record.get("transactionDate")
+        if issue_date:
+            purchase_order["tranDate"] = format_date(issue_date)
         
         enddate = record.get("paidDate")
         if enddate:
-            if isinstance(enddate, str):
-                enddate = parse(enddate)
-            if enddate:
-                purchase_order["endDate"] = enddate.strftime("%Y-%m-%d")
+            purchase_order["endDate"] = format_date(enddate)
         
         # Get the NetSuite Location Ref
         location = None
@@ -918,26 +923,41 @@ class netsuiteRestV2Sink(HotglueSink):
 
         if location:
             purchase_order["Location"] = location
-        purchase_order["tranid"] = record.get("order_number")
+
+        currency = record.get("currency")
+        if currency:
+            # check currency in reference data
+            currency_data = [c for c in self.reference_data["Currencies"] if c["symbol"] == currency]
+            if currency_data:
+                currency_data = currency_data[0]
+                purchase_order["currency"] = {"id": currency_data.get("internalId")}
 
         items = []
-        for line in record.get("line_items", []):
-            order_item = {}
+        for line in record.get("line_items", record.get("lineItems", [])):
+            # coerce numeric values
+            line = coerce_numeric_value(line, ["unitPrice", "quantity"])
 
+            unit_price = line.get("unit_price") or line.get("unitPrice")
+            order_item = {
+                "quantity": line.get("quantity"),
+                "amount": round(line.get("quantity") * unit_price, 3),
+                "rate": unit_price,
+            }
+
+            # map line items to purchase order lines
             if record.get("order_number"):
                 order_item["orderDoc"] = {"id": record["order_number"]}
 
             order_item["description"] = line.get("description")
             
             # Get the product Id
-            if line.get("product_id"):
-                order_item["item"] = {"id": line.get("product_id")}
-            elif line.get("product_name"):
-                product_name = line.get("product_name")
-                matching_items = self.rest_search("inventoryItem", f'itemId IS "{product_name}"')
-
-                if len(matching_items) == 0:
-                    matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
+            product_id = line.get("product_id") or line.get("productId")
+            product_name = line.get("product_name") or line.get("productName")
+            if product_id:
+                order_item["item"] = {"id": product_id}
+            elif product_name:
+                # try to find product by name using REST API
+                matching_items = self.rest_search("inventoryItem", f'displayName IS "{product_name}"')
 
                 if len(matching_items) == 0:
                     matching_items = self.rest_search("nonInventorySaleItem", f'itemId IS "{product_name}"')
@@ -945,9 +965,47 @@ class netsuiteRestV2Sink(HotglueSink):
                 if len(matching_items) > 0:
                     order_item["item"] = {"id": matching_items[0]}
 
-            order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = round(line.get("quantity") * line.get("unit_price"), 3)
-             
+            project_id = line.get("project_id") or line.get("projectId")
+            if project_id:
+                order_item["customer"] = {"id": project_id}
+            
+            # add locations
+            location_id = line.get("locationId")
+            location_name = line.get("locationName")
+            if location_id:
+                order_item["Location"] = {"id": location_id}
+            elif location_name:
+                loc_data = [l for l in self.reference_data["Locations"] if l["name"] == location_name]
+                if loc_data:
+                    loc_data = loc_data[0]
+                    order_item["Location"] = {"id": loc_data.get("internalId")}
+            
+            # add departments
+            department_id = line.get("departmentId")
+            department_name = line.get("departmentName")
+            if department_id:
+                order_item["Department"] = {"id": department_id}
+            elif department_name:
+                dep_data = [d for d in self.reference_data["Departments"] if d["name"] == department_name]
+                if dep_data:
+                    dep_data = dep_data[0]
+                    order_item["Department"] = {"id": dep_data.get("internalId")}
+            
+            # add classes
+            class_id = line.get("classId")
+            class_name = line.get("className")
+            if class_id:
+                order_item["Class"] = {"id": class_id}
+            elif class_name:
+                class_data = [c for c in self.reference_data["Classifications"] if c["name"] == class_name]
+                if class_data:
+                    class_data = class_data[0]
+            
+            # add employeeid
+            employee_id = line.get("employeeId")
+            if employee_id:
+                order_item["employee"] = {"id": employee_id}
+
             items.append(order_item)
         if items:
             purchase_order["item"] = {"items": items}
