@@ -872,7 +872,7 @@ class netsuiteRestV2Sink(HotglueSink):
     def process_purchase_order(self, context, record):
         purchase_order = {
             "memo": record.get("description"),
-            "tranid": record.get("order_number")
+            "tranid": record.get("order_number", record.get("number"))
         }
 
         external_id = (
