@@ -8,7 +8,7 @@ from requests_oauthlib import OAuth1
 from pendulum import parse
 import json
 from lxml import etree
-from utils import coerce_numeric_value, format_date
+from target_netsuite_v2.utils import coerce_numeric_value, format_date
 
 
 def get_clean_error_message(response: requests.models.Response) -> str:
