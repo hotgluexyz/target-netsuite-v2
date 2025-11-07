@@ -75,6 +75,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return vendor
         elif self.stream_name.lower() in ["vendorbill", "vendorbills", "purchaseinvoices","purchaseinvoice", "bill", "bills"]:
             vendor_bill = self.process_vendor_bill(context, record)
+            vendor_bill["attachment_ids"] = self.process_file(record.get("attachments", []), vendor_bill["externalId"])
             return vendor_bill
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
             invoice_payment = self.invoice_payment(context, record)
@@ -89,6 +90,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return item
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             order = self.process_purchase_order(context,record)
+            order["attachment_ids"] = self.process_file(record.get("attachments", []), order["externalId"])
             return order
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
             sale_order = self.process_order(context, record)
@@ -131,7 +133,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["vendorbill","vendorbills","bill","bills","purchaseinvoices","purchaseinvoice"]:
             url = f"{self.url_base}vendorbill"
+
+            attachment_ids = record.pop("attachment_ids", [])
             response = self.rest_post(url=url, json=record)
+            new_record_id = self._extract_id_from_response_header(response.headers)
+
+            for attachment_id in attachment_ids:
+                self.attach_entities(attachment_id, "vendorBill", new_record_id)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
             response = self.push_payments(record)
         elif self.stream_name.lower() in ["vendorpayment","vendorpayments","billpayment","billpayments"]:
@@ -154,7 +162,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
-            response = self.rest_post(url=url,json=record)
+
+            attachment_ids = record.pop("attachment_ids", [])
+            response = self.rest_post(url=url, json=record)
+            new_record_id = self._extract_id_from_response_header(response.headers)
+
+            for attachment_id in attachment_ids:
+                self.attach_entities(attachment_id, "purchaseOrder", new_record_id)
 
         if response:
             record_id = self._extract_id_from_response_header(response.headers)

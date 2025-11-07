@@ -7,6 +7,8 @@ from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 import json
 import os
+import requests
+import base64
 
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
@@ -64,6 +66,46 @@ class netsuiteSoapV2Sink(HotglueSink):
             return
 
         raise exception
+
+    def process_file(self, attachments, record_id):
+        if not attachments:
+            return []
+        
+        created_folder = self.ns_client.entities["Folders"].post(
+            {
+                "externalId": record_id,
+                "name": record_id
+            }
+        )
+        created_folder = dict(created_folder)
+        attachments_ids = []
+
+        for attachment in attachments:
+            url = attachment.get("url")
+            name = attachment.get("name")
+            if url and name:
+                self.logger.info(f"Downloading file {url}")
+                response = requests.get(url)
+                content = base64.b64encode(response.content)
+                content = content.decode()
+                self.logger.info(f"Uploading file {name}")
+                uploaded_file = self.ns_client.entities["Files"].post({
+                    "externalId": name,
+                    "name": name,
+                    "content": content,
+                    "folder": {
+                            "name": record_id,
+                            "internalId": created_folder.get("internalId"),
+                            "externalId": record_id,
+                            "type": "folder"
+                        }
+                    }
+                )
+
+                uploaded_file = dict(uploaded_file)
+                attachments_ids.append(uploaded_file.get("internalId"))
+        
+        return attachments_ids
 
     def get_reference_data(self):
         if self._target.reference_data:
