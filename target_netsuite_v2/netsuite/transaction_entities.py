@@ -246,22 +246,7 @@ class JournalEntries(ApiBase):
                 break
             except ValueError:
                 continue
-        
-        if parsed_time is None:
-            # If no format worked, try to handle some edge cases
-            try:
-                # Handle single digit hours without leading zero: 9:30
-                if ":" in time_value and not any(x in time_value.upper() for x in ["AM", "PM"]):
-                    parts = time_value.split(":")
-                    if len(parts) == 2:
-                        hours = int(parts[0])
-                        minutes = int(parts[1])
-                        if 0 <= hours <= 23 and 0 <= minutes <= 59:
-                            # Create a time object from the parsed values
-                            parsed_time = datetime.strptime(f"{hours:02d}:{minutes:02d}", "%H:%M")
-            except (ValueError, IndexError):
-                pass
-        
+
         if parsed_time is None:
             raise ValueError(f"Unable to parse time value: '{time_value}'. Expected formats: HH:MM (24h) or H:MM AM/PM (12h)")
         
