@@ -67,14 +67,18 @@ class netsuiteSoapV2Sink(HotglueSink):
 
         raise exception
 
-    def process_file(self, attachments, record_id):
-        if not attachments or not record_id:
+    def process_file(self, attachments, record):
+        if not attachments:
             return []
+
+        attachments_folder_name = record.get("attachments_folder")
+        if not attachments_folder_name:
+            raise Exception(f"Failed to send attachments for record {record}, unable to find a field that can be used as an external ID.")
         
         created_folder = self.ns_client.entities["Folders"].post(
             {
-                "externalId": record_id,
-                "name": record_id
+                "externalId": attachments_folder_name,
+                "name": attachments_folder_name
             }
         )
         created_folder = dict(created_folder)
@@ -94,9 +98,9 @@ class netsuiteSoapV2Sink(HotglueSink):
                     "name": name,
                     "content": content,
                     "folder": {
-                            "name": record_id,
+                            "name": attachments_folder_name,
                             "internalId": created_folder.get("internalId"),
-                            "externalId": record_id,
+                            "externalId": attachments_folder_name,
                             "type": "folder"
                         }
                     }

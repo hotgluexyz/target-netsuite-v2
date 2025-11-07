@@ -236,7 +236,11 @@ class netsuiteRestV2Sink(HotglueSink):
         elif record.get("externalId"):
             vendor_bill["externalId"] = record["externalId"].get("value")
 
+        if vendor_bill.get("externalId"):
+            vendor_bill["attachments_folder"] = vendor_bill["externalId"]
+
         vendor_bill["memo"] = record.get("description")
+        vendor_bill["attachments"] = record.get("attachments", [])
 
         if record.get("customFormId"):
             vendor_bill["customForm"] = {"id": record["customFormId"]}
@@ -883,7 +887,9 @@ class netsuiteRestV2Sink(HotglueSink):
         )
         if external_id:
             purchase_order["externalId"] = external_id
+            purchase_order["attachments_folder"] = external_id
 
+        purchase_order["attachments"] = record.get("attachments", [])
 
         if record.get("customFormId"):
             purchase_order["customForm"] = {"id": record["customFormId"]}
