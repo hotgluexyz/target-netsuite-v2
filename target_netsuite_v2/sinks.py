@@ -12,6 +12,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
         self.get_ns_client()
         context["reference_data"] = self.get_reference_data()
+        context["reference_data"]["CustomFields"] = self._fetch_all_custom_fields()
         context["JournalEntry"] = []
         context["SalesOrder"] = []
         context["Invoice"] = []
@@ -239,10 +240,3 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             url = f"{self.url_base}purchaseOrder"
             for record in context.get("PurchaseOrder",[]):
                 response = self.rest_post(url=url,json=record)
-
-
-
-
-
-
-
