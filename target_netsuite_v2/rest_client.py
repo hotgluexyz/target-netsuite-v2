@@ -96,6 +96,38 @@ class netsuiteRestV2Sink(BatchSink):
                 response.raise_for_status()
         return response
     
+    def _fetch_all_custom_fields(self):
+        """
+        Fetch all custom fields metadata from NetSuite using SuiteQL.
+        Returns a dictionary keyed by scriptId with field type information.
+        """
+        try:
+            url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
+            custom_fields_response = self.rest_post(url=url, json={
+                "q": "SELECT scriptid, name, fieldvaluetype FROM customfield"
+            }).json()
+            
+            custom_fields_lookup = {}
+            
+            custom_fields_count = custom_fields_response.get("count", 0)
+
+            if custom_fields_count == 0:
+                self.logger.info("No custom fields found")
+                return {}
+            
+            self.logger.info(f"Found {custom_fields_count} custom fields")
+
+            for field_data in custom_fields_response.get("items", []):
+                script_id = field_data.get("scriptid").upper()
+                custom_fields_lookup[script_id] = {
+                    "fieldValueType": field_data.get("fieldvaluetype"),
+                    "fieldName": field_data.get("name"),
+                }
+            return custom_fields_lookup
+        except Exception as e:
+            self.logger.exception(f"Failed to fetch custom fields metadata: {e}")
+            return {}
+    
 
     def check_custom_field(self, script_id):
         # validates if a custom field is valid using SuiteQL

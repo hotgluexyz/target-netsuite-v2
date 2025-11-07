@@ -33,6 +33,29 @@ class netsuiteSoapV2Sink(BatchSink):
 
         return {v: k for (k, v) in result}
 
+    def _get_custom_field_type(self, script_id, context):
+        """
+        Get custom field type from reference data.
+        Returns the mapped field type or 'String' as default.
+        """
+        
+        # Netsuite has some format limitations on following field types, rest can be passed as it is.
+        FIELD_TYPE_MAP = {
+            "Check Box": "Boolean",
+            "Date": "Date",
+            "Date/Time": "DateTime",
+            "Time Of Day": "Time",
+            "List/Record": "Select"
+        }
+        custom_fields = context.get("reference_data", {}).get("CustomFields", {})
+        custom_field = custom_fields.get(script_id.upper())
+        
+        if not custom_field:
+            raise Exception(f"Error parsing custom field, scriptid '{script_id}' is not valid.")
+
+        field_type = custom_field.get("fieldValueType", "")
+        return FIELD_TYPE_MAP.get(field_type, "String") # Default to String if not found in mapping
+
     def get_ns_client(self):
         ns_account = self.config.get("ns_account", "").replace("-", "_").upper()
         ns_consumer_key = self.config.get("ns_consumer_key")
@@ -246,8 +269,14 @@ class netsuiteSoapV2Sink(BatchSink):
             for entry in custom_fields:
                 value = entry.get("value")
                 ns_id = entry.get("name")
-                if value:
-                    custom_field_values.append({"type": "Select", "scriptId": ns_id, "value": value})
+                
+                if value is not None:
+                    # Get field type from reference data
+                    field_type = entry.get("type")
+                    if not field_type:
+                        field_type = self._get_custom_field_type(ns_id, context)
+                    
+                    custom_field_values.append({"type": field_type, "scriptId": ns_id, "value": value})
 
             if custom_field_values:
                 journal_entry_line["customFieldList"] = custom_field_values
@@ -315,9 +344,14 @@ class netsuiteSoapV2Sink(BatchSink):
         for entry in custom_fields:
             value = entry.get("value")
             ns_id = entry.get("name")
-            if value:
-                record_custom_fields.append({"type": "Select", "scriptId": ns_id, "value": value})
-
+            
+            if value is not None:
+                # Get field type from reference data
+                field_type = entry.get("type")
+                if not field_type:
+                    field_type = self._get_custom_field_type(ns_id, context)
+                
+                record_custom_fields.append({"type": field_type, "scriptId": ns_id, "value": value})
         if record_custom_fields:
             journal_entry["customFieldList"] = record_custom_fields
 
