@@ -68,7 +68,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         raise exception
 
     def process_file(self, attachments, record_id):
-        if not attachments:
+        if not attachments or not record_id:
             return []
         
         created_folder = self.ns_client.entities["Folders"].post(

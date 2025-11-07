@@ -75,7 +75,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return vendor
         elif self.stream_name.lower() in ["vendorbill", "vendorbills", "purchaseinvoices","purchaseinvoice", "bill", "bills"]:
             vendor_bill = self.process_vendor_bill(context, record)
-            vendor_bill["attachment_ids"] = self.process_file(record.get("attachments", []), vendor_bill["externalId"])
+            vendor_bill["attachment_ids"] = self.process_file(record.get("attachments", []), vendor_bill.get("externalId"))
             return vendor_bill
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
             invoice_payment = self.invoice_payment(context, record)
@@ -90,7 +90,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             return item
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             order = self.process_purchase_order(context,record)
-            order["attachment_ids"] = self.process_file(record.get("attachments", []), order["externalId"])
+            order["attachment_ids"] = self.process_file(record.get("attachments", []), order.get("externalId"))
             return order
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
             sale_order = self.process_order(context, record)
