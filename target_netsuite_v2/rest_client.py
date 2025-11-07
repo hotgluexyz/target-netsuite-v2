@@ -236,7 +236,11 @@ class netsuiteRestV2Sink(HotglueSink):
         elif record.get("externalId"):
             vendor_bill["externalId"] = record["externalId"].get("value")
 
+        if vendor_bill.get("externalId"):
+            vendor_bill["attachments_folder"] = vendor_bill["externalId"]
+
         vendor_bill["memo"] = record.get("description")
+        vendor_bill["attachments"] = record.get("attachments", [])
 
         if record.get("customFormId"):
             vendor_bill["customForm"] = {"id": record["customFormId"]}
@@ -883,7 +887,9 @@ class netsuiteRestV2Sink(HotglueSink):
         )
         if external_id:
             purchase_order["externalId"] = external_id
+            purchase_order["attachments_folder"] = external_id
 
+        purchase_order["attachments"] = record.get("attachments", [])
 
         if record.get("customFormId"):
             purchase_order["customForm"] = {"id": record["customFormId"]}
@@ -1012,3 +1018,35 @@ class netsuiteRestV2Sink(HotglueSink):
             
         return purchase_order
 
+
+    def attach_entities(self, attachment_id, record_type, record_id):
+        url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2025_1"
+        oauth_creds = self.ns_client.ns_client._build_soap_headers()
+        oauth_creds = oauth_creds["tokenPassport"]
+
+        base_request = f"""<soap:Envelope xmlns:platformCore="urn:core_2025_1.platform.webservices.netsuite.com" xmlns:platformMsgs="urn:messages_2025_1.platform.webservices.netsuite.com" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:platform_2025_1.webservices.netsuite.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <soap:Header>
+                <tokenPassport>
+                    <account>{oauth_creds["account"]}</account>
+                    <consumerKey>{oauth_creds["consumerKey"]}</consumerKey>
+                    <token>{oauth_creds["token"]}</token>
+                    <nonce>{oauth_creds["nonce"]}</nonce>
+                    <timestamp>{oauth_creds["timestamp"]}</timestamp>
+                    <signature algorithm="HMAC-SHA256">{oauth_creds["signature"]["_value_1"]}</signature>
+                </tokenPassport>
+            </soap:Header>
+            <soap:Body>
+                <attach xmlns="urn:core_2025_1.platform.webservices.netsuite.com">
+                    <attachReference xsi:type="ns1:AttachBasicReference" xmlns:ns1="urn:core_2025_1.platform.webservices.netsuite.com">
+                        <attachTo xsi:type='platformCore:RecordRef' internalId='{record_id}' type='{record_type}'></attachTo> 
+                        <attachedRecord xsi:type='platformCore:RecordRef' internalId='{attachment_id}' type='file'></attachedRecord>
+                    </attachReference>
+                </attach>
+            </soap:Body> 
+        </soap:Envelope>"""
+
+        headers = {"SOAPAction":"attach", "Content-Type": "text/xml"}
+        res = requests.post(url, headers=headers, data=base_request)
+        if res.status_code>=400:
+            raise ConnectionError(res.text)
+        return res
