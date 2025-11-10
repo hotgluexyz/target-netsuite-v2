@@ -100,29 +100,52 @@ class netsuiteRestV2Sink(BatchSink):
         """
         Fetch all custom fields metadata from NetSuite using SuiteQL.
         Returns a dictionary keyed by scriptId with field type information.
+        Handles pagination to fetch all custom fields.
         """
         try:
-            url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
-            custom_fields_response = self.rest_post(url=url, json={
-                "q": "SELECT scriptid, name, fieldvaluetype FROM customfield"
-            }).json()
-            
             custom_fields_lookup = {}
+            offset = 0
+            limit = 1000
+            total_fetched = 0
+            has_more = True
             
-            custom_fields_count = custom_fields_response.get("count", 0)
-
-            if custom_fields_count == 0:
+            while has_more:
+                url = self.url_base.replace(
+                    "/rest/record/v1/", 
+                    f"/rest/query/v1/suiteql?limit={limit}&offset={offset}"
+                )
+                custom_fields_response = self.rest_post(url=url, json={
+                    "q": "SELECT scriptid, name, fieldvaluetype FROM customfield"
+                }).json()
+                
+                items = custom_fields_response.get("items", [])
+                
+                if not items:
+                    has_more = False
+                    break
+                
+                for field_data in items:
+                    script_id = field_data.get("scriptid").upper()
+                    custom_fields_lookup[script_id] = {
+                        "fieldValueType": field_data.get("fieldvaluetype"),
+                        "fieldName": field_data.get("name"),
+                    }
+                
+                total_fetched += len(items)
+                
+                # Check if there are more records to fetch
+                # If we got fewer items than the limit, we've reached the end
+                if len(items) < limit:
+                    has_more = False
+                else:
+                    offset += limit
+                    self.logger.info(f"Fetched {total_fetched} custom fields so far, continuing pagination...")
+            
+            if total_fetched == 0:
                 self.logger.info("No custom fields found")
-                return {}
+            else:
+                self.logger.info(f"Successfully fetched all {total_fetched} custom fields")
             
-            self.logger.info(f"Found {custom_fields_count} custom fields")
-
-            for field_data in custom_fields_response.get("items", []):
-                script_id = field_data.get("scriptid").upper()
-                custom_fields_lookup[script_id] = {
-                    "fieldValueType": field_data.get("fieldvaluetype"),
-                    "fieldName": field_data.get("name"),
-                }
             return custom_fields_lookup
         except Exception as e:
             self.logger.exception(f"Failed to fetch custom fields metadata: {e}")
