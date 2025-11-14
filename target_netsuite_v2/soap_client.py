@@ -2,7 +2,7 @@
 
 from singer_sdk.sinks import BatchSink
 from target_netsuite_v2.netsuite import NetSuite
-
+from target_netsuite_v2.constants import STANDARD_NETSUITE_OBJECTS_MAP, STANDARD_NETSUITE_OBJECTS_SELECT_MAP
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
 import json
 import os
@@ -33,7 +33,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
         return {v: k for (k, v) in result}
 
-    def _get_custom_field_type(self, script_id, context):
+    def _get_custom_field_type_and_value(self, script_id, value, context, rest_post_method):
         """
         Get custom field type from reference data.
         Returns the mapped field type or 'String' as default.
@@ -54,7 +54,40 @@ class netsuiteSoapV2Sink(BatchSink):
             raise Exception(f"Error parsing custom field, scriptid '{script_id}' is not valid.")
 
         field_type = custom_field.get("fieldValueType", "")
-        return FIELD_TYPE_MAP.get(field_type, "String") # Default to String if not found in mapping
+        
+        if field_type == "List/Record":
+            fieldValueTypeRecordName = custom_field.get("fieldValueTypeRecordName")
+            if fieldValueTypeRecordName in STANDARD_NETSUITE_OBJECTS_MAP:
+                table_name = STANDARD_NETSUITE_OBJECTS_MAP[fieldValueTypeRecordName]
+            elif fieldValueTypeRecordName in context["reference_data"]["CustomLists"]:
+                table_name = context["reference_data"]["CustomLists"][fieldValueTypeRecordName]["scriptid"]
+            elif fieldValueTypeRecordName in context["reference_data"]["CustomRecordTypes"]:
+                table_name = context["reference_data"]["CustomRecordTypes"][fieldValueTypeRecordName]["scriptid"]
+            else:
+                # Not a netsuite object, so we can't fetch the id, just return the value as is
+                return "Select", value
+            
+            select = STANDARD_NETSUITE_OBJECTS_SELECT_MAP.get(table_name, "id, name")
+            url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
+            name_field = select.split(",")[1].split("as")[0].strip()
+            response = rest_post_method(url=url, json={
+                "q": f"SELECT {select} FROM {table_name} WHERE {name_field} LIKE '%{value}%'"
+            }, raw_response=True)
+            
+            if response.status_code == 400:
+                self.logger.warning(f"Missing permission to fetch {table_name}.")
+                return "Select", value
+            response.raise_for_status()
+
+            records = response.json().get("items", [])
+            if records:
+                record = records[0]
+                return "Select", record["id"]
+            else:
+                # Assuming it's already an id
+                return "Select", value
+
+        return FIELD_TYPE_MAP.get(field_type, "String"), value # Default to String if not found in mapping
 
     def get_ns_client(self):
         ns_account = self.config.get("ns_account", "").replace("-", "_").upper()
@@ -115,7 +148,7 @@ class netsuiteSoapV2Sink(BatchSink):
 
         return reference_data
 
-    def process_journal_entry(self, context, record):
+    def process_journal_entry(self, context, record, rest_post_method):
         subsidiaries = {}
         line_items = []
         for line in record.get("journalLines", record.get("lines", [])):
@@ -274,7 +307,7 @@ class netsuiteSoapV2Sink(BatchSink):
                     # Get field type from reference data
                     field_type = entry.get("type")
                     if not field_type:
-                        field_type = self._get_custom_field_type(ns_id, context)
+                        field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, rest_post_method)
                     
                     custom_field_values.append({"type": field_type, "scriptId": ns_id, "value": value})
 
@@ -349,7 +382,7 @@ class netsuiteSoapV2Sink(BatchSink):
                 # Get field type from reference data
                 field_type = entry.get("type")
                 if not field_type:
-                    field_type = self._get_custom_field_type(ns_id, context)
+                    field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, rest_post_method)
                 
                 record_custom_fields.append({"type": field_type, "scriptId": ns_id, "value": value})
         if record_custom_fields:
