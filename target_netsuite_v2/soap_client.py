@@ -71,7 +71,7 @@ class netsuiteSoapV2Sink(BatchSink):
             url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
             name_field = select.split(",")[1].split("as")[0].strip()
             response = rest_post_method(url=url, json={
-                "q": f"SELECT {select} FROM {table_name} WHERE {name_field} LIKE '%{value}%'"
+                "q": f"SELECT {select} FROM {table_name} WHERE {name_field} = '{value}'"
             }, raw_response=True)
             
             if response.status_code == 400:
