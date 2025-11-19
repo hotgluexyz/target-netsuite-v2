@@ -13,6 +13,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         self.get_ns_client()
         context["reference_data"] = self.get_reference_data()
         context["reference_data"]["CustomFields"] = self._fetch_all_custom_fields()
+        context["reference_data"]["CustomLists"] = self._fetch_custom_lists()
+        context["reference_data"]["CustomRecordTypes"] = self._fetch_custom_record_types()
         context["JournalEntry"] = []
         context["SalesOrder"] = []
         context["Invoice"] = []
@@ -35,7 +37,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             self.logger.info(f"Record is empty for {self.stream_name}")
             return
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
-            journal_entry = self.process_journal_entry(context, record)
+            journal_entry = self.process_journal_entry(context, record, self.rest_post)
             # do final validation
             for line in journal_entry.get('lineList', []):
                 for cf in line.get('customFieldList', []):
