@@ -10,7 +10,6 @@ def real_time_handler(
     logger: Logger,
     input_path: Optional[str] = None,
 ):
-    print(f"real_time_handler {input_path}")
     try:
         mod = importlib.import_module("target_hotglue.lambda")
 
