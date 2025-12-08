@@ -123,7 +123,7 @@ class VendorCreditSink(NetSuiteBatchSink):
 
             new_expenses.append(expense)
 
-            if expense_tax_details_reference := item.get("taxDetailsReference"):
+            if expense_tax_details_reference := expense.get("taxDetailsReference"):
                 expense_tax_details = next((tax_detail for tax_detail in tax_details if tax_detail.get("taxDetailsReference", {}).get("id") == expense_tax_details_reference), None)
                 if expense_tax_details:
                     new_tax_details.append(expense_tax_details)
