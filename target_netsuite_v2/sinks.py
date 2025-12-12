@@ -101,7 +101,7 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         external_id = preprocessed.get("externalId")
 
         if existing_state:
-            self.update_state(existing_state, is_duplicate=True)
+            self.update_state(existing_state, is_duplicate=True, record=record)
             return
 
         id, success, state = self.upsert_record(preprocessed, reference_data)
@@ -117,7 +117,7 @@ class NetSuiteBatchSink(NetSuiteBaseSink, BatchSink):
         if external_id:
             state["externalId"] = external_id
 
-        self.update_state(state)
+        self.update_state(state, record=record)
 
     @abc.abstractmethod
     def preprocess_batch_record(self, record: dict) -> dict:
