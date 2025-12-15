@@ -8,6 +8,8 @@ from netsuitesdk.api.currencies import Currencies
 from target_netsuite_v2.netsuite.exceptions import AccountDocumentPermissionError
 from zeep.exceptions import Fault
 
+from datetime import datetime
+from dateutil import parser
 import singer
 
 logger = singer.get_logger()
@@ -215,6 +217,49 @@ class JournalEntries(ApiBase):
                                            pageSize=page_size)
 
         return self._paginated_search_to_generator(paginated_search=paginated_search)
+
+    def _format_time_value(self, time_value):
+        """
+        Convert time value to NetSuite expected 12-hour AM/PM format.
+        Supports both 24-hour (15:00) and 12-hour (3:00 PM) input formats.
+        """
+        if not isinstance(time_value, str):
+            time_value = str(time_value)
+        
+        time_value = time_value.strip()
+        
+        # List of possible input formats to try
+        input_formats = [
+            "%H:%M",        # 24-hour format: 15:00, 09:30
+            "%I:%M %p",     # 12-hour format: 3:00 PM, 9:30 AM  
+            "%I:%M%p",      # 12-hour format without space: 3:00PM, 9:30AM
+            "%H:%M:%S",     # 24-hour with seconds: 15:00:00
+            "%I:%M:%S %p",  # 12-hour with seconds: 3:00:00 PM
+        ]
+        
+        parsed_time = None
+        
+        # Try each format until one works
+        for time_format in input_formats:
+            try:
+                parsed_time = datetime.strptime(time_value, time_format)
+                break
+            except ValueError:
+                continue
+
+        if parsed_time is None:
+            raise ValueError(f"Unable to parse time value: '{time_value}'. Expected formats: HH:MM (24h) or H:MM AM/PM (12h)")
+        
+        # Always return in 12-hour AM/PM format for NetSuite
+        return parsed_time.strftime("%I:%M %p").lstrip('0')
+    
+    def _parse_dates_for_netsuite(self, date_str: str) -> str:
+        try:
+            dt = parser.parse(date_str)  # automatically detects many formats
+            return dt.strftime("%Y-%m-%dT%H:%M:%S")
+        except Exception as e:
+            logger.error(f"Error parsing date value: '{date_str}': {e}")
+            raise e
     
     def prepare_custom_fields(self, eod):
         if 'customFieldList' in eod and eod['customFieldList']:
@@ -236,6 +281,51 @@ class JournalEntries(ApiBase):
                             value=self.ns_client.ListOrRecordRef(
                                 internalId=field['value']
                             )
+                        )
+                    )
+                elif field['type'] == 'Time':
+                    value = self._format_time_value(field['value'])
+                    custom_fields.append(
+                        self.ns_client.StringCustomFieldRef(
+                            scriptId=field['scriptId'] if 'scriptId' in field else None,
+                            internalId=field['internalId'] if 'internalId' in field else None,
+                            value=value
+                        )
+                    )
+                elif field['type'] == 'Date':
+                    value = self._parse_dates_for_netsuite(field['value'])
+                    custom_fields.append(
+                        self.ns_client.DateCustomFieldRef(
+                            scriptId=field['scriptId'] if 'scriptId' in field else None,
+                            internalId=field['internalId'] if 'internalId' in field else None,
+                            value=value
+                        )
+                    )
+                elif field['type'] == 'DateTime':
+                    value = parser.parse(field['value']).isoformat()
+                    custom_fields.append(
+                        self.ns_client.DateCustomFieldRef(
+                            scriptId=field['scriptId'] if 'scriptId' in field else None,
+                            internalId=field['internalId'] if 'internalId' in field else None,
+                            value=value
+                        )
+                    )
+                elif field['type'] == 'Boolean':
+                    # Need to pass `T` or `F` for Boolean custom fields
+                    TRUE_VALUES = ['true', 'True', 'TRUE', 't', 'T', True]
+                    FALSE_VALUES = ['false', 'False', 'FALSE', 'f', 'F', False]
+                    if field['value'] in TRUE_VALUES:
+                        value = 'T'
+                    elif field['value'] in FALSE_VALUES:
+                        value = 'F'
+                    else:
+                        raise ValueError(f"Invalid Boolean value: '{field['value']}'. Expected: {TRUE_VALUES} or {FALSE_VALUES}")
+
+                    custom_fields.append(
+                        self.ns_client.StringCustomFieldRef(
+                            scriptId=field['scriptId'] if 'scriptId' in field else None,
+                            internalId=field['internalId'] if 'internalId' in field else None,
+                            value=value
                         )
                     )
             return self.ns_client.CustomFieldList(custom_fields)

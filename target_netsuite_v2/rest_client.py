@@ -40,9 +40,13 @@ class netsuiteRestV2Sink(BatchSink):
             realm=ns_account,
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
-
+        raw_response = kwarg.pop('raw_response', False)
         headers = {"Content-Type": "application/json", "Prefer": "transient"}
         response = requests.post(**kwarg, headers=headers, auth=oauth)
+        
+        if raw_response:
+            return response
+
         if response.status_code >= 400:
             try:
                 self.logger.error(f"Failed request payload: {json.dumps(kwarg['json'])}")
@@ -95,6 +99,117 @@ class netsuiteRestV2Sink(BatchSink):
             except:
                 response.raise_for_status()
         return response
+    
+    def _fetch_custom_lists(self) -> None:
+        custom_lists_map = {}
+        has_more = True
+        offset = 0
+        limit = 1000
+        while has_more:
+            url = self.url_base.replace(
+                "/rest/record/v1/", 
+                f"/rest/query/v1/suiteql?limit={limit}&offset={offset}"
+            )
+            response = self.rest_post(url=url, json={
+                "q": "SELECT * FROM customlist WHERE isinactive = 'F'"
+            }, raw_response=True)
+            
+            if response.status_code == 400:
+                self.logger.warning(f"Unable to fetch custom lists: {response.text}, Missing custom list permission. Skipping...")
+                break
+
+            response.raise_for_status()
+            custom_lists = response.json().get("items", [])
+            custom_lists_map.update({custom_list['name']: custom_list for custom_list in custom_lists})
+            if len(custom_lists) < 1000:
+                has_more = False
+            else:
+                offset += 1000
+        return custom_lists_map
+
+    def _fetch_custom_record_types(self) -> None:
+        custom_record_types_map = {}
+
+        has_more = True
+        offset = 0
+        limit = 1000
+        while has_more:
+            url = self.url_base.replace(
+                "/rest/record/v1/", 
+                f"/rest/query/v1/suiteql?limit={limit}&offset={offset}"
+            )
+            response = self.rest_post(url=url, json={
+                "q": "SELECT internalid, name, scriptid FROM CustomRecordType WHERE isinactive = 'F'"
+            }, raw_response=True)
+            if response.status_code == 400:
+                self.logger.warning(f"Unable to fetch custom record record types: {response.text}, Missing custom record type permission. Skipping...")
+                break
+
+            response.raise_for_status()
+            custom_record_types = response.json().get("items", [])
+            self.logger.info(f"Fetched {len(custom_record_types)} custom record types")
+            custom_record_types_map.update({custom_record_type['name']: custom_record_type for custom_record_type in custom_record_types})
+            if len(custom_record_types) < 1000:
+                has_more = False
+            else:
+                offset += 1000
+        return custom_record_types_map
+
+    def _fetch_all_custom_fields(self):
+        """
+        Fetch all custom fields metadata from NetSuite using SuiteQL.
+        Returns a dictionary keyed by scriptId with field type information.
+        Handles pagination to fetch all custom fields.
+        """
+        try:
+            custom_fields_lookup = {}
+            offset = 0
+            limit = 1000
+            total_fetched = 0
+            has_more = True
+            
+            while has_more:
+                url = self.url_base.replace(
+                    "/rest/record/v1/", 
+                    f"/rest/query/v1/suiteql?limit={limit}&offset={offset}"
+                )
+                custom_fields_response = self.rest_post(url=url, json={
+                    "q": "SELECT scriptid, name, fieldvaluetype, BUILTIN.DF(FieldValueTypeRecord) AS fieldvaluetyperecordname FROM customfield"
+                }).json()
+                
+                items = custom_fields_response.get("items", [])
+                
+                if not items:
+                    has_more = False
+                    break
+                
+                for field_data in items:
+                    script_id = field_data.get("scriptid").upper()
+                    custom_fields_lookup[script_id] = {
+                        "fieldValueType": field_data.get("fieldvaluetype"),
+                        "fieldName": field_data.get("name"),
+                        "fieldValueTypeRecordName": field_data.get("fieldvaluetyperecordname"),
+                    }
+                
+                total_fetched += len(items)
+                
+                # Check if there are more records to fetch
+                # If we got fewer items than the limit, we've reached the end
+                if len(items) < limit:
+                    has_more = False
+                else:
+                    offset += limit
+                    self.logger.info(f"Fetched {total_fetched} custom fields so far, continuing pagination...")
+            
+            if total_fetched == 0:
+                self.logger.info("No custom fields found")
+            else:
+                self.logger.info(f"Successfully fetched all {total_fetched} custom fields")
+            
+            return custom_fields_lookup
+        except Exception as e:
+            self.logger.exception(f"Failed to fetch custom fields metadata: {e}")
+            return {}
     
 
     def check_custom_field(self, script_id):
@@ -1097,12 +1212,13 @@ class netsuiteRestV2Sink(BatchSink):
             if address
             else None,
             "externalId": record.get("id"),
+            "entityId": record.get("id")
         }
 
         # If this companyName already exists, we should do a PATCH instead, just need to set id
-        existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId")]
+        existing_customer = [c for c in customers if c.get("entityId") == customer.get("entityId") and c.get("entityId")]
         if not existing_customer:
-            existing_customer = [ c for c in customers if c.get("companyName") == customer.get("companyName")]
+            existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId") and c.get("externalId")]
         if existing_customer:
             customer["id"] = existing_customer[0]["internalId"]
 
@@ -1110,8 +1226,15 @@ class netsuiteRestV2Sink(BatchSink):
             customer["firstName"] = first_name
             customer["lastName"] = last_name
 
+        # this is the primary subsidiary
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
+        
+        if record.get("additionalSubsidiaries"):
+            new_subsidiaries = [s for s in record["additionalSubsidiaries"]]
+            customer["customerSubsidiaryRelationships"] = [{"subsidiary": {"id": s}} for s in new_subsidiaries]
+
+            
         if sales_rep:
             customer["salesRep"] = {"id": sales_rep}
         if record.get("currency"):
@@ -1126,6 +1249,9 @@ class netsuiteRestV2Sink(BatchSink):
                     customer[field["name"]] = field["value"]
                 else:
                     self.logger.info(f"Skipping custom field {field} because name is empty")
+
+        if "externalId" in customer and customer.get("externalId") == None:
+            customer.pop("externalId")
 
         return customer
 
