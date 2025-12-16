@@ -117,7 +117,7 @@ STANDARD_NETSUITE_OBJECTS_MAP = {
 STANDARD_NETSUITE_OBJECTS_SELECT_MAP = {
     "Account": "id, displaynamewithhierarchy as name",
     "Accounting Period": "id, periodname as name",
-    "Account Type": "id, longname as name",
+    "Account Type": "internalid as id, longname as name",
     "Address Book": "internalid as id, label as name",
     "Approval Status": "key as id, name",
     "Consolidated Exchange Rate": "id, averagerate as name",
