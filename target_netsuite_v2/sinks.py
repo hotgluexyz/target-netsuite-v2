@@ -130,7 +130,15 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["vendorbill","vendorbills","bill","bills","purchaseinvoices","purchaseinvoice"]:
             url = f"{self.url_base}vendorbill"
+
+            attachments = record.pop("attachments", [])
+            attachment_ids = self.process_file(attachments, record)
+
             response = self.rest_post(url=url, json=record)
+            new_record_id = self._extract_id_from_response_header(response.headers)
+
+            for attachment_id in attachment_ids:
+                self.attach_entities(attachment_id, "vendorBill", new_record_id)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
             payload = self.invoice_payment(context, record)
             response = self.push_payments(payload)
@@ -155,7 +163,15 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
-            response = self.rest_post(url=url,json=record)
+
+            attachments = record.pop("attachments", [])
+            attachment_ids = self.process_file(attachments, record)
+
+            response = self.rest_post(url=url, json=record)
+            new_record_id = self._extract_id_from_response_header(response.headers)
+
+            for attachment_id in attachment_ids:
+                self.attach_entities(attachment_id, "purchaseOrder", new_record_id)
 
         if response:
             record_id = self._extract_id_from_response_header(response.headers)

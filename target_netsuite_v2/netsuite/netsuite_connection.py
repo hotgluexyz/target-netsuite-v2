@@ -3,6 +3,8 @@ from netsuitesdk.api.currencies import Currencies
 import time
 import json
 import singer
+from netsuitesdk.api.files import Files
+from netsuitesdk.api.folders import Folders
 from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices
 from .netsuite_client import ExtendedNetSuiteClient
 
@@ -35,7 +37,9 @@ class ExtendedNetSuiteConnection:
             'Subsidiaries': Subsidiaries(self.ns_client),
             'Vendors': Vendors(self.ns_client),
             'PurchaseOrder': PurchaseOrder(self.ns_client),
-            'Invoices': Invoices(self.ns_client)
+            'Invoices': Invoices(self.ns_client),
+            'Folders': Folders(self.ns_client),
+            'Files': Files(self.ns_client),
         }
 
     def _query_entity(self, data, entity, stream):
