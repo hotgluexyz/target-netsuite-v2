@@ -132,6 +132,12 @@ class SuiteTalkRestClient:
         if endpoint:
             return f"{self.record_url}/{endpoint}"
 
+    def safe_int_convert(self, s: str, default_value: int) -> int:
+        try:
+            return int(s)
+        except ValueError:
+            return default_value
+
     def get_transaction_data(
         self,
         transaction_type,
@@ -152,7 +158,11 @@ class SuiteTalkRestClient:
         where_clauses = []
 
         if record_ids:
-            id_string = ",".join(str(id) for id in record_ids)
+            # id has to be integer or the query will fail
+            # so we convert to integer if possible, otherwise we use 0
+            # this is a workaround for it not to break the query for
+            # other ids or other filters
+            id_string = ",".join(str(self.safe_int_convert(id, 0)) for id in record_ids)
             where_clauses.append(f"id IN ({id_string})")
 
         if tran_ids:
