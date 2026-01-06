@@ -10,7 +10,7 @@ class JournalEntrySchemaMapper(BaseMapper):
     def to_netsuite(self) -> dict:
         """Transforms the unified record into a NetSuite-compatible payload."""
         subsidiary = self._map_subrecord("Subsidiaries", "subsidiaryId", "subsidiaryName", "subsidiary")
-        subsidiary_id = subsidiary.get("subsidiary").get("id")
+        subsidiary_id = subsidiary.get("subsidiary", {}).get("id")
 
         payload = {
             **self._map_internal_id(),
