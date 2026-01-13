@@ -138,7 +138,8 @@ class netsuiteRestV2Sink(HotglueSink):
             realm=self.config["ns_account"],
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
-        response = requests.get(f"https://rest.netsuite.com/rest/datacenterurls?account={self.config['ns_account']}", auth=oauth)
+        account = self.config['ns_account'].replace("-", "_")
+        response = requests.get(f"https://rest.netsuite.com/rest/datacenterurls?account={account}", auth=oauth)
         if response.status_code == 200:
             return response.json().get("systemDomain")
 
