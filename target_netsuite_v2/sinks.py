@@ -95,6 +95,41 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
         raise Exception(f"Stream {self.stream_name} not supported")
 
+    def get_record_url(self, record_id):
+        entity_mapping = {
+            "journalentries": "accounting/transactions/journal",
+            "journalentry": "accounting/transactions/journal",
+            "customer": "common/entity/custjob",
+            "customers": "common/entity/custjob",
+            "customerpayment": "accounting/transactions/custpymt",
+            "customerpayments": "accounting/transactions/custpymt",
+            "invoice": "accounting/transactions/custinvc",
+            "invoices": "accounting/transactions/custinvc",
+            "creditmemo": "accounting/transactions/custcred",
+            "creditmemos": "accounting/transactions/custcred",
+            "vendor": "common/entity/vendor",
+            "vendors": "common/entity/vendor",
+            "vendorbill": "accounting/transactions/vendbill",
+            "vendorbills": "accounting/transactions/vendbill",
+            "purchaseinvoice": "accounting/transactions/vendbill",
+            "purchaseinvoices": "accounting/transactions/vendbill",
+            "bill": "accounting/transactions/vendbill",
+            "bills": "accounting/transactions/vendbill",
+            "invoicepayments": "accounting/transactions/custpymt",
+            "invoicepayment": "accounting/transactions/custpymt",
+            "vendorpayments": "accounting/transactions/vendpymt",
+            "vendorpayment": "accounting/transactions/vendpymt",
+            "billpayments": "accounting/transactions/vendpymt",
+            "billpayment": "accounting/transactions/vendpymt",
+            "item": "common/entity/item",
+            "items": "common/entity/item",
+            "purchaseorder": "inventory/transactions/inboundShipment",
+            "purchaseorders": "inventory/transactions/inboundShipment",
+            "salesorder": "inventory/transactions/inboundShipment",
+            "salesorders": "inventory/transactions/inboundShipment",
+        }
+        entity = entity_mapping.get(self.stream_name.lower())
+        return f"https://{self.config.get('ns_account')}.app.netsuite.com/app/{entity}.nl?id={record_id}"
 
     def upsert_record(self, record, context):
         """Write out any prepped records and return once fully written."""
@@ -173,8 +208,12 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             for attachment_id in attachment_ids:
                 self.attach_entities(attachment_id, "purchaseOrder", new_record_id)
 
+        state_update = {}
         if response:
             record_id = self._extract_id_from_response_header(response.headers)
-            return record_id, True, {}
+            if self.config.get("output_record_url", False):
+                record_url = self.get_record_url(record_id)
+                state_update["record_url"] = record_url
+            return record_id, True, state_update
         else:
-            return None, True, {}
+            return None, True, state_update
