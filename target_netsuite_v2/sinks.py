@@ -129,7 +129,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             "salesorders": "inventory/transactions/inboundShipment",
         }
         entity = entity_mapping.get(self.stream_name.lower())
-        return f"https://{self.config.get('ns_account')}.app.netsuite.com/app/{entity}.nl?id={record_id}"
+
+        # get base url
+        base_url = self.get_base_url() or f"https://{self.config['ns_account']}.app.netsuite.com"
+        return f"{base_url}/app/{entity}.nl?id={record_id}"
 
     def upsert_record(self, record, context):
         """Write out any prepped records and return once fully written."""

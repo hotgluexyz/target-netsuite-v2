@@ -128,6 +128,19 @@ class netsuiteRestV2Sink(HotglueSink):
             except:
                 validate_response(response)
         return response
+    
+    def get_base_url(self):
+        oauth = OAuth1(
+            client_key=self.config["ns_consumer_key"],
+            client_secret=self.config["ns_consumer_secret"],
+            resource_owner_key=self.config["ns_token_key"],
+            resource_owner_secret=self.config["ns_token_secret"],
+            realm=self.config["ns_account"],
+            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
+        )
+        response = requests.get(f"https://rest.netsuite.com/rest/datacenterurls?account={self.config['ns_account']}", auth=oauth)
+        if response.status_code == 200:
+            return response.json().get("systemDomain")
 
     def process_order(self, context, record):
         sale_order = {}
