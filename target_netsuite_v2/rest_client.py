@@ -128,6 +128,18 @@ class netsuiteRestV2Sink(HotglueSink):
             except:
                 validate_response(response)
         return response
+    
+    def get_base_url(self):
+        if not hasattr(self._target, 'base_url'):
+            account = self.config['ns_account'].replace("-", "_")
+            response = requests.get(f"https://rest.netsuite.com/rest/datacenterurls?account={account}")
+            if response.status_code == 200:
+                url = response.json().get("systemDomain")
+            else:
+                url = f"https://{self.config['ns_account']}.app.netsuite.com"
+            
+            self._target.base_url = url
+        return self._target.base_url
 
     def process_order(self, context, record):
         sale_order = {}
