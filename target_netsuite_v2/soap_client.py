@@ -73,8 +73,13 @@ class netsuiteSoapV2Sink(BatchSink):
             )
             url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
             name_field = select.split(",")[1].split("as")[0].strip()
+            
+            value_for_query = value
+            if "'" in value:
+                value_for_query = value_for_query.replace("'", "''") # Escape single quotes
+
             response = rest_post_method(url=url, json={
-                "q": f"SELECT {select} FROM {table_name} WHERE {name_field} = '{value}'"
+                "q": f"SELECT {select} FROM {table_name} WHERE {name_field} = '{value_for_query}'"
             }, raw_response=True)
             
             if response.status_code == 400:
