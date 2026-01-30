@@ -75,7 +75,7 @@ class netsuiteSoapV2Sink(BatchSink):
             name_field = select.split(",")[1].split("as")[0].strip()
             
             value_for_query = value
-            if "'" in value:
+            if isinstance(value_for_query, str) and "'" in value_for_query:
                 value_for_query = value_for_query.replace("'", "''") # Escape single quotes
 
             response = rest_post_method(url=url, json={
@@ -283,9 +283,9 @@ class netsuiteSoapV2Sink(BatchSink):
 
             # Check the Posting Type and insert the Amount
             amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
-            if line["postingType"].lower() == "credit":
+            if line.get("postingType", "").lower() == "credit":
                 journal_entry_line["credit"] = amount
-            elif line["postingType"].lower() == "debit":
+            elif line.get("postingType", "").lower() == "debit":
                 journal_entry_line["debit"] = amount
 
             # Insert the Journal Entry to the memo field
