@@ -67,7 +67,10 @@ class netsuiteSoapV2Sink(BatchSink):
                 # Not a netsuite object, so we can't fetch the id, just return the value as is
                 return "Select", value
             
-            select = STANDARD_NETSUITE_OBJECTS_SELECT_MAP.get(table_name, "id, name")
+            select = STANDARD_NETSUITE_OBJECTS_SELECT_MAP.get(
+                table_name,
+                STANDARD_NETSUITE_OBJECTS_SELECT_MAP.get(fieldValueTypeRecordName, "id, name")
+            )
             url = self.url_base.replace("/rest/record/v1/", "/rest/query/v1/suiteql?limit=1000")
             name_field = select.split(",")[1].split("as")[0].strip()
             response = rest_post_method(url=url, json={
@@ -75,7 +78,7 @@ class netsuiteSoapV2Sink(BatchSink):
             }, raw_response=True)
             
             if response.status_code == 400:
-                self.logger.warning(f"Missing permission to fetch {table_name}.")
+                self.logger.warning(f"Missing permission to fetch {table_name}.", response.text)
                 return "Select", value
             response.raise_for_status()
 
