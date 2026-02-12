@@ -194,7 +194,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
         elif self.stream_name.lower() in ['customers','customer']:
             url = f"{self.url_base}{self.stream_name.lower()}"
-            subsidiaries = [sub['internalId'] for sub in context["reference_data"].get("Subsidiaries", [])]
+
             for record in context.get("Customer", []):
                 customer_subsidiary_relationships = record.pop("customerSubsidiaryRelationships", None)
                 id = record.pop("id", None)
