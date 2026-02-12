@@ -99,6 +99,11 @@ class netsuiteRestV2Sink(BatchSink):
             except:
                 response.raise_for_status()
         return response
+
+    def get_customer_subsidiary_relationships(self, customer_id):
+        query = f"SELECT * FROM customerSubsidiaryRelationship WHERE entity = '{customer_id}'"
+        response = self.rest_post(url=self.url_suiteql, json={"q": query}).json()
+        return response.get("items", [])
     
     def _fetch_custom_lists(self) -> None:
         custom_lists_map = {}

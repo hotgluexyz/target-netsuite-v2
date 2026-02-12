@@ -194,7 +194,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
         elif self.stream_name.lower() in ['customers','customer']:
             url = f"{self.url_base}{self.stream_name.lower()}"
-            subsidiaries = [sub['internalId'] for sub in context["reference_data"].get("Subsidiaries", [])]
+
             for record in context.get("Customer", []):
                 customer_subsidiary_relationships = record.pop("customerSubsidiaryRelationships", None)
                 id = record.pop("id", None)
@@ -208,19 +208,15 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 # add additional subsidiaries to the customer
                 if customer_subsidiary_relationships:
                     relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
+                    existing_relationship_objects = self.get_customer_subsidiary_relationships(id)
+                    subsidiaries_already_linked = [relationship.get('subsidiary') for relationship in existing_relationship_objects]
                     for relationship in customer_subsidiary_relationships:
+                        if relationship.get('subsidiary', {}).get('id') in subsidiaries_already_linked:
+                            continue
                         self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                         relationship["entity"] = {"id": id}
-                        try:
-                            response = self.rest_post(url=relationship_url, json=relationship)
-                            self.logger.info(response)
-                        except Exception as e:
-                            subsidiary_id = relationship.get('subsidiary', {}).get('id')
-                            # can't add the same subsidiary to a customer more than once
-                            if f"You have entered an Invalid Field Value {subsidiary_id} for the following field: subsidiary" in e.response.text and subsidiary_id in subsidiaries:
-                                self.logger.info(f"Customer subsidiary relationship already exists for customer {id} and subsidiary {relationship.get('subsidiary')}")
-                            else:
-                                raise e
+                        response = self.rest_post(url=relationship_url, json=relationship)
+                        self.logger.info(response)
 
 
         elif self.stream_name.lower() in ['item','items']:
