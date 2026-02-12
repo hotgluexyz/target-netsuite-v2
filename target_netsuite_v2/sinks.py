@@ -208,7 +208,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 # add additional subsidiaries to the customer
                 if customer_subsidiary_relationships:
                     relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
+                    existing_relationship_objects = self.get_customer_subsidiary_relationships(id)
+                    subsidiaries_already_linked = [relationship.get('subsidiary') for relationship in existing_relationship_objects]
                     for relationship in customer_subsidiary_relationships:
+                        if relationship.get('subsidiary', {}).get('id') in subsidiaries_already_linked:
+                            continue
                         self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                         relationship["entity"] = {"id": id}
                         try:
