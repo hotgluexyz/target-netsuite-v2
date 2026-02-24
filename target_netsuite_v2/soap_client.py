@@ -160,12 +160,12 @@ class netsuiteSoapV2Sink(HotglueSink):
             self._check_exception(e, "Locations")
 
         try:
-            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive"])
+            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive", "subsidiary"])
         except Exception as e:
             self._check_exception(e, "Customers")
 
         try:
-            reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName", "isInactive"])
+            reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName", "isInactive", "subsidiary"])
         except Exception as e:
             self._check_exception(e, "Vendors")
 

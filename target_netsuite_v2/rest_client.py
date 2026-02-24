@@ -55,6 +55,57 @@ class netsuiteRestV2Sink(HotglueSink):
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
 
+    def _resolve_field_ref_keys_and_labels(self, field: str) -> list:
+        """Resolve field name to list of (ref_data key, human-readable label)."""
+        mapping = _FIELD_TO_REF_KEY_AND_LABEL.get(
+            field, (None, field.replace("_", " ").title())
+        )
+        if isinstance(mapping, tuple):
+            return [mapping] if mapping[0] else []
+        return list(mapping) if mapping else []
+
+    def _find_ref_entry(self, ref_data: dict, ref_key: str, value_id: str):
+        """Find reference entry by internalId in ref_data[ref_key]. Returns entry dict or None."""
+        ref_list = ref_data.get(ref_key) or []
+        for item in ref_list:
+            if str(item.get("internalId")) == str(value_id):
+                return item
+        return None
+
+    def _format_invalid_field_message(
+        self, ref_entry: dict, value_id: str, label: str, ref_data: dict
+    ) -> str:
+        """Build enriched error message from a matched reference entry (inactive, subsidiary, or generic)."""
+        name = (
+            ref_entry.get("name")
+            or ref_entry.get("acctName")
+            or ref_entry.get("companyName")
+            or ref_entry.get("entityId")
+            or value_id
+        )
+        if ref_entry.get("isInactive"):
+            return f"{label} {value_id} [{name}] is inactive."
+        subsidiary_list = ref_entry.get("subsidiaryList") or []
+        if not subsidiary_list and ref_entry.get("subsidiary"):
+            subsidiary_list = [ref_entry["subsidiary"]]
+        if subsidiary_list:
+            subsidiaries = ref_data.get("Subsidiaries") or []
+            sub_id_to_name = {s["internalId"]: s["name"] for s in subsidiaries if s.get("name")}
+            allowed = []
+            for s in subsidiary_list:
+                sub_id = s.get("internalId") if isinstance(s, dict) else s
+                if sub_id is not None:
+                    display = sub_id_to_name.get(sub_id)
+                    if display is None and isinstance(s, dict) and s.get("name"):
+                        display = s["name"]
+                    allowed.append(display if display is not None else sub_id)
+            allowed_str = ", ".join(str(a) for a in allowed)
+            return (
+                f"{label} {value_id} [{name}] cannot be used for this transaction in this subsidiary. "
+                f"{label} {value_id} can only be used in subsidiaries: [{allowed_str}]."
+            )
+        return f"{label} {value_id} [{name}] is not a valid {label.lower()} in this Netsuite account."
+
     def _enrich_invalid_field_error(self, detail: str) -> str:
         """
         If detail matches 'Invalid Field Value <id> for the following field: <field>',
@@ -71,61 +122,23 @@ class netsuiteRestV2Sink(HotglueSink):
             return detail
         value_id = match.group(1)
         field = match.group(2).lower()
-        mapping = _FIELD_TO_REF_KEY_AND_LABEL.get(
-            field, (None, field.replace("_", " ").title())
-        )
-        # Normalize to list of (ref_key, label) so we support both single and multiple lookups
-        if isinstance(mapping, tuple):
-            ref_keys_and_labels = [mapping] if mapping[0] else []
-        else:
-            ref_keys_and_labels = list(mapping) if mapping else []
-
+        ref_keys_and_labels = self._resolve_field_ref_keys_and_labels(field)
         ref_data = getattr(self, "reference_data", None) or {}
         if not ref_keys_and_labels:
             return detail
 
-        # Try each (ref_key, label); use first ref_data that contains this field type
         labels_checked = []
         for ref_key, label in ref_keys_and_labels:
             if ref_key not in ref_data:
                 continue
             labels_checked.append(label.lower())
-            ref_list = ref_data[ref_key]
-            ref_entry = None
-            for item in ref_list:
-                if str(item.get("internalId")) == str(value_id):
-                    ref_entry = item
-                    break
+            ref_entry = self._find_ref_entry(ref_data, ref_key, value_id)
             if ref_entry is None:
                 continue
-
-            # Found in this ref_data; build message
-            name = (
-                ref_entry.get("name")
-                or ref_entry.get("acctName")
-                or ref_entry.get("companyName")
-                or ref_entry.get("entityId")
-                or value_id
+            return self._format_invalid_field_message(
+                ref_entry, value_id, label, ref_data
             )
-            if ref_entry.get("isInactive"):
-                return f"{label} {value_id} [{name}] is inactive."
-            subsidiary_list = ref_entry.get("subsidiaryList") or []
-            if subsidiary_list:
-                subsidiaries = ref_data.get("Subsidiaries") or []
-                sub_id_to_name = {s["internalId"]: s["name"] for s in subsidiaries if s.get("name")}
-                allowed = [
-                    sub_id_to_name.get(s.get("internalId"), s.get("internalId"))
-                    for s in subsidiary_list
-                    if s.get("internalId")
-                ]
-                allowed_str = ", ".join(str(a) for a in allowed)
-                return (
-                    f"{label} {value_id} [{name}] cannot be used for this transaction in this subsidiary. "
-                    f"{label} {value_id} can only be used in subsidiaries: [{allowed_str}]."
-                )
-            return f"{label} {value_id} [{name}] is not a valid {label.lower()} in this Netsuite account."
 
-        # Not found in any mapped ref_data
         if not labels_checked:
             return detail
         types_str = " or ".join(labels_checked)
