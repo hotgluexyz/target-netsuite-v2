@@ -5,7 +5,7 @@ import json
 import singer
 from netsuitesdk.api.files import Files
 from netsuitesdk.api.folders import Folders
-from .transaction_entities import Customers, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices
+from .transaction_entities import Customers, Jobs, JournalEntries, Locations, Departments, Accounts, Classifications, Items, Subsidiaries, Vendors, PurchaseOrder, InboundShipment, Invoices
 from .netsuite_client import ExtendedNetSuiteClient
 
 LOGGER = singer.get_logger()
@@ -26,6 +26,7 @@ class ExtendedNetSuiteConnection:
 
         self.entities = {
             'Customer': Customers,
+            'Jobs': Jobs,
             'Accounts': Accounts,
             'JournalEntry': JournalEntries(self.ns_client),
             'InboundShipment': InboundShipment(self.ns_client),
