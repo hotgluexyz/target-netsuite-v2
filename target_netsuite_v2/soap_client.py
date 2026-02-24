@@ -159,6 +159,16 @@ class netsuiteSoapV2Sink(HotglueSink):
         except Exception as e:
             self._check_exception(e, "Locations")
 
+        try:
+            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive"])
+        except Exception as e:
+            self._check_exception(e, "Customers")
+
+        try:
+            reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName", "isInactive"])
+        except Exception as e:
+            self._check_exception(e, "Vendors")
+
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
             os.makedirs("snapshots", exist_ok=True)

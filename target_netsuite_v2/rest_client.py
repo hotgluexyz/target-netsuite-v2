@@ -1,6 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-
+import re
 from target_hotglue.sinks import HotglueSink
 import requests
 from oauthlib import oauth1
@@ -10,28 +10,26 @@ import json
 from lxml import etree
 from target_netsuite_v2.utils import coerce_numeric_value, format_date
 
+# NetSuite "Invalid Field Value" pattern: e.g. "Invalid Field Value 20685 for the following field: customer"
+_INVALID_FIELD_VALUE_RE = re.compile(
+    r"Invalid\s+Field\s+Value\s+(\d+)\s+for\s+the\s+following\s+field:\s*(\w+)",
+    re.IGNORECASE,
+)
 
-def get_clean_error_message(response: requests.models.Response) -> str:
-    """Extract clean error message from NetSuite API response."""
-    try:
-        error_details = response.json().get("o:errorDetails", [])
-        if error_details and len(error_details) > 0:
-            detail = error_details[0].get("detail", "")
-            if detail:
-                return detail
-        
-        # Fallback to full JSON if we can't extract the detail
-        return json.dumps(error_details)
-    except (json.JSONDecodeError, AttributeError, KeyError):
-        # Fallback if JSON parsing fails or response structure is unexpected
-        return response.text
-
-def validate_response(response: requests.models.Response) -> None:
-    try:
-        response.raise_for_status()
-    except Exception as exc:
-        clean_error = get_clean_error_message(response)
-        raise Exception(f"Request to url {response.url} failed with response: {clean_error}") from exc
+# Map API field names to one or more (reference_data key, human-readable label).
+# Some fields accept multiple entity types (e.g. "customer" on bill expenses = Customer OR Job).
+# Use a list when the field can be validated against multiple lookup tables.
+_FIELD_TO_REF_KEY_AND_LABEL = {
+    "customer": [("Customers", "Customer"), ("Jobs", "Job")],
+    "entity": [("Customers", "Customer"), ("Jobs", "Job")],
+    "vendor": ("Vendors", "Vendor"),
+    "class": ("Classifications", "Project"),
+    "project": ("Classifications", "Project"),
+    "classification": ("Classifications", "Project"),
+    "department": ("Departments", "Department"),
+    "location": ("Locations", "Location"),
+    "account": ("Accounts", "Account"),
+}
 
 
 class netsuiteRestV2Sink(HotglueSink):
@@ -56,6 +54,101 @@ class netsuiteRestV2Sink(HotglueSink):
         """Return the API URL root, configurable via tap settings."""
         url_account = self.config["ns_account"].replace("_", "-").replace("SB", "sb")
         return f"https://{url_account}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
+
+    def _enrich_invalid_field_error(self, detail: str) -> str:
+        """
+        If detail matches 'Invalid Field Value <id> for the following field: <field>',
+        look up the id in reference_data and return a clearer message:
+        - not in reference_data -> invalid in this account
+        - in reference_data but inactive -> inactive
+        - in reference_data but subsidiary-restricted -> can only be used in subsidiaries [list]
+
+        Some fields accept multiple entity types (e.g. customer on bill expenses = Customer OR Job);
+        we check each mapped lookup table in order and use the first match.
+        """
+        match = _INVALID_FIELD_VALUE_RE.search(detail)
+        if not match:
+            return detail
+        value_id = match.group(1)
+        field = match.group(2).lower()
+        mapping = _FIELD_TO_REF_KEY_AND_LABEL.get(
+            field, (None, field.replace("_", " ").title())
+        )
+        # Normalize to list of (ref_key, label) so we support both single and multiple lookups
+        if isinstance(mapping, tuple):
+            ref_keys_and_labels = [mapping] if mapping[0] else []
+        else:
+            ref_keys_and_labels = list(mapping) if mapping else []
+
+        ref_data = getattr(self, "reference_data", None) or {}
+        if not ref_keys_and_labels:
+            return detail
+
+        # Try each (ref_key, label); use first ref_data that contains this field type
+        labels_checked = []
+        for ref_key, label in ref_keys_and_labels:
+            if ref_key not in ref_data:
+                continue
+            labels_checked.append(label.lower())
+            ref_list = ref_data[ref_key]
+            ref_entry = None
+            for item in ref_list:
+                if str(item.get("internalId")) == str(value_id):
+                    ref_entry = item
+                    break
+            if ref_entry is None:
+                continue
+
+            # Found in this ref_data; build message
+            name = (
+                ref_entry.get("name")
+                or ref_entry.get("acctName")
+                or ref_entry.get("companyName")
+                or ref_entry.get("entityId")
+                or value_id
+            )
+            if ref_entry.get("isInactive"):
+                return f"{label} {value_id} [{name}] is inactive."
+            subsidiary_list = ref_entry.get("subsidiaryList") or []
+            if subsidiary_list:
+                subsidiaries = ref_data.get("Subsidiaries") or []
+                sub_id_to_name = {s["internalId"]: s["name"] for s in subsidiaries if s.get("name")}
+                allowed = [
+                    sub_id_to_name.get(s.get("internalId"), s.get("internalId"))
+                    for s in subsidiary_list
+                    if s.get("internalId")
+                ]
+                allowed_str = ", ".join(str(a) for a in allowed)
+                return (
+                    f"{label} {value_id} [{name}] cannot be used for this transaction in this subsidiary. "
+                    f"{label} {value_id} can only be used in subsidiaries: [{allowed_str}]."
+                )
+            return f"{label} {value_id} [{name}] is not a valid {label.lower()} in this Netsuite account."
+
+        # Not found in any mapped ref_data
+        if not labels_checked:
+            return detail
+        types_str = " or ".join(labels_checked)
+        return f"{value_id} is not a valid {types_str} in this Netsuite account."
+
+    def get_clean_error_message(self, response: requests.models.Response) -> str:
+        """Extract clean error message from NetSuite API response."""
+        try:
+            error_details = response.json().get("o:errorDetails", [])
+            if error_details and len(error_details) > 0:
+                detail = error_details[0].get("detail", "")
+                if detail:
+                    return self._enrich_invalid_field_error(detail)
+            return json.dumps(error_details) if error_details else response.text
+        except (json.JSONDecodeError, AttributeError, KeyError):
+            return response.text
+
+    def validate_response(self, response: requests.models.Response) -> None:
+        try:
+            response.raise_for_status()
+        except Exception as exc:
+            clean_error = self.get_clean_error_message(response)
+            raise Exception(f"Request to url {response.url} failed with response: {clean_error}") from exc
 
     def rest_search(self, object, search, expand=False):
         oauth = OAuth1(
@@ -84,7 +177,7 @@ class netsuiteRestV2Sink(HotglueSink):
         return [r["id"] for r in search_response.get("items", [])]
 
 
-    def rest_post(self, **kwarg):
+    def _request(self, method: str, log_response_text: bool = False, **kwarg):
         oauth = OAuth1(
             client_key=self.config["ns_consumer_key"],
             client_secret=self.config["ns_consumer_secret"],
@@ -95,39 +188,25 @@ class netsuiteRestV2Sink(HotglueSink):
         )
 
         headers = {"Content-Type": "application/json"}
-        response = requests.post(**kwarg, headers=headers, auth=oauth)
+        response = requests.request(method=method.upper(), headers=headers, auth=oauth, **kwarg)
+
+        if log_response_text:
+            self.logger.info(response.text)
+
         if response.status_code >= 400:
-            try:
+            clean_error = self.get_clean_error_message(response)
+            self.logger.error(f"NetSuite API Error: {clean_error}")
+            if "json" in kwarg:
                 self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                clean_error = get_clean_error_message(response)
-                self.logger.error(f"NetSuite API Error: {clean_error}")
-                validate_response(response)
-            except:
-                raise Exception(f"Request to url {kwarg['url']} failed with response: {response.text}")
+            self.validate_response(response)
+
         return response
+
+    def rest_post(self, **kwarg):
+        return self._request("post", **kwarg)
 
     def rest_patch(self, **kwarg):
-        oauth = OAuth1(
-            client_key=self.config["ns_consumer_key"],
-            client_secret=self.config["ns_consumer_secret"],
-            resource_owner_key=self.config["ns_token_key"],
-            resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
-            signature_method=oauth1.SIGNATURE_HMAC_SHA256,
-        )
-
-        headers = {"Content-Type": "application/json"}
-        response = requests.patch(**kwarg, headers=headers, auth=oauth)
-        self.logger.info(response.text)
-        if response.status_code >= 400:
-            try:
-                clean_error = get_clean_error_message(response)
-                self.logger.error(f"NetSuite API Error: {clean_error}")
-                self.logger.error(f"INVALID PAYLOAD: {json.dumps(kwarg['json'])}")
-                validate_response(response)
-            except:
-                validate_response(response)
-        return response
+        return self._request("patch", log_response_text=True, **kwarg)
     
     def get_base_url(self):
         if not hasattr(self._target, 'base_url'):
