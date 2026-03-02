@@ -58,6 +58,26 @@ class Customers(BaseFilter):
         return None
 
 
+class Jobs(BaseFilter):
+    """NetSuite Job (subtype of Customer) for reference data and error enrichment."""
+
+    def __init__(self, ns_client):
+        ApiBase.__init__(self, ns_client=ns_client, type_name='Job')
+
+    def get_all_generator(self, page_size=1000, **kwargs):
+        search_record = self.ns_client.basic_search_factory(type_name="Job")
+        ps = PaginatedSearch(
+            client=self.ns_client,
+            type_name='Job',
+            pageSize=page_size,
+            search_record=search_record,
+        )
+        return self._paginated_search_generator(ps)
+
+    def post(self, data) -> OrderedDict:
+        return None
+
+
 class Locations(BaseFilter):
     def __init__(self, ns_client):
         ApiBase.__init__(self, ns_client=ns_client, type_name='Location')

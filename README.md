@@ -16,7 +16,7 @@ pipx install target-netsuite-v2
 
 ### Accepted Config Options
 
-- [ ] `Developer TODO:` Provide a list of config options accepted by the target.
+See [templates/README.md](templates/README.md) for a full list of config options and [templates/config.json](templates/config.json) for an example config.
 
 A full list of supported settings and capabilities for this
 target is available by running:

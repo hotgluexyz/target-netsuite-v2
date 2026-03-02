@@ -1,0 +1,9 @@
+{
+  "ns_consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "ns_consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "ns_token_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "ns_token_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "ns_account": "xxxxxxxxxxxx",
+  "snapshot_hours": 24,
+  "snapshot_dir": "snapshots"
+}
