@@ -222,7 +222,7 @@ class netsuiteRestV2Sink(HotglueSink):
                     "internalId": row.get("id"),
                     "entityId": row.get("entityid"),
                     "companyName": row.get("companyname"),
-                    "isInactive": row.get("isinactive"),
+                    "isInactive": row.get("isinactive") == "T",
                     "subsidiary": subsidiary,
                 }
             )
@@ -242,7 +242,7 @@ class netsuiteRestV2Sink(HotglueSink):
                     "internalId": row.get("id"),
                     "entityId": row.get("entityid"),
                     "companyName": row.get("companyname"),
-                    "isInactive": row.get("isinactive"),
+                    "isInactive": row.get("isinactive") == "T",
                     "subsidiary": subsidiary,
                 }
             )
