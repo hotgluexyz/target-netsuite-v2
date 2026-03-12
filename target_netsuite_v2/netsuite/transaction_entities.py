@@ -103,7 +103,7 @@ class Accounts(BaseFilter):
     
         ns_client._search_preferences = ns_client.SearchPreferences(
                 bodyFieldsOnly=False,
-                pageSize=1000,
+                pageSize=100,
                 returnSearchColumns=True
             )
 

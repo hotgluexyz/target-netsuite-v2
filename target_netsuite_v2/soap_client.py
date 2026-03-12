@@ -146,12 +146,12 @@ class netsuiteSoapV2Sink(HotglueSink):
             self._check_exception(e, "Departments")
 
         try:
-            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"])
+            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
         except Exception as e:
             self._check_exception(e, "Accounts")
         
         try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"])
+            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"], page_size=100)
             self.logger.info(f"Locations: {reference_data['Locations']}")
         except NetSuiteRequestError as e:
             message = e.message.replace("error", "failure").replace("Error", "")
@@ -160,22 +160,24 @@ class netsuiteSoapV2Sink(HotglueSink):
             self._check_exception(e, "Locations")
 
         try:
-            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive", "subsidiary"])
+            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive", "subsidiary"], page_size=100)
         except Exception as e:
             self._check_exception(e, "Customers")
 
         try:
-            reference_data["Jobs"] = self.ns_client.entities["Jobs"](self.ns_client.ns_client).get_all(["companyName", "entityId", "isInactive", "subsidiary"])
+            self.logger.info("Fetching Jobs via REST SuiteQL...")
+            reference_data["Jobs"] = self.get_reference_jobs_rest()
         except Exception as e:
             self._check_exception(e, "Jobs")
 
         try:
-            reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["entityId", "companyName", "isInactive", "subsidiary"])
+            self.logger.info("Fetching Vendors via REST SuiteQL...")
+            reference_data["Vendors"] = self.get_reference_vendors_rest()
         except Exception as e:
             self._check_exception(e, "Vendors")
 
         try:
-            reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"])
+            reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"], page_size=100)
         except Exception as e:
             self._check_exception(e, "Subsidiaries")
 

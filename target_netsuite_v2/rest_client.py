@@ -189,6 +189,65 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return [r["id"] for r in search_response.get("items", [])]
 
+    def rest_suiteql_query(self, query: str, limit: int = 1000) -> list:
+        """Execute a SuiteQL query and return all rows, handling pagination."""
+        rows = []
+        offset = 0
+        while True:
+            response = self._request(
+                "post",
+                url=self.url_suiteql,
+                params={"offset": offset, "limit": limit},
+                json={"q": query},
+            )
+            payload = response.json() if response is not None else {}
+            batch = payload.get("items") or payload.get("results") or []
+            rows.extend(batch)
+            if not batch or len(batch) < limit:
+                break
+            offset += limit
+        return rows
+
+    def get_reference_vendors_rest(self) -> list:
+        """Fetch vendor reference data via REST SuiteQL and normalize fields."""
+        query = "SELECT id, entityid, companyname, isinactive, subsidiary FROM vendor"
+        rows = self.rest_suiteql_query(query)
+        vendors = []
+        for row in rows:
+            subsidiary = row.get("subsidiary")
+            if subsidiary and not isinstance(subsidiary, (dict, list)):
+                subsidiary = {"internalId": str(subsidiary)}
+            vendors.append(
+                {
+                    "internalId": row.get("id"),
+                    "entityId": row.get("entityid"),
+                    "companyName": row.get("companyname"),
+                    "isInactive": row.get("isinactive") == "T",
+                    "subsidiary": subsidiary,
+                }
+            )
+        return vendors
+
+    def get_reference_jobs_rest(self) -> list:
+        """Fetch job reference data via REST SuiteQL and normalize fields."""
+        query = "SELECT id, entityid, companyname, isinactive, subsidiary FROM job"
+        rows = self.rest_suiteql_query(query)
+        jobs = []
+        for row in rows:
+            subsidiary = row.get("subsidiary")
+            if subsidiary and not isinstance(subsidiary, (dict, list)):
+                subsidiary = {"internalId": str(subsidiary)}
+            jobs.append(
+                {
+                    "internalId": row.get("id"),
+                    "entityId": row.get("entityid"),
+                    "companyName": row.get("companyname"),
+                    "isInactive": row.get("isinactive") == "T",
+                    "subsidiary": subsidiary,
+                }
+            )
+        return jobs
+
 
     def _request(self, method: str, log_response_text: bool = False, **kwarg):
         oauth = OAuth1(
@@ -201,6 +260,8 @@ class netsuiteRestV2Sink(HotglueSink):
         )
 
         headers = {"Content-Type": "application/json"}
+        if kwarg.get("url") == self.url_suiteql:
+            headers["Prefer"] = "transient"
         response = requests.request(method=method.upper(), headers=headers, auth=oauth, **kwarg)
 
         if log_response_text:
