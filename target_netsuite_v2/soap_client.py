@@ -145,10 +145,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         except Exception as e:
             self._check_exception(e, "Departments")
 
-        try:
-            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
-        except Exception as e:
-            self._check_exception(e, "Accounts")
+        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
         
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"], page_size=100)
@@ -208,8 +205,7 @@ class netsuiteSoapV2Sink(HotglueSink):
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
                 if not acct_data:
-                    self.logger.warning(f"{acct_num} is not valid for this netsuite account, skipping line")
-                    continue
+                    raise Exception(f"Account number '{acct_num}' is not valid for this netsuite account.")
                 acct_data = acct_data[0]
                 ref_acct = {
                     "name": acct_data.get("acctName"),
