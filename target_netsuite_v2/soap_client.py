@@ -196,6 +196,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         subsidiaries = {}
         line_items = []
         for line in record.get("lines"):
+            journal_entry_line = {}
             if self.reference_data.get("Accounts") and line.get("accountNumber"):
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
@@ -270,7 +271,7 @@ class netsuiteSoapV2Sink(HotglueSink):
 
             # Get the NetSuite Customer Ref
             if line.get("customerName"):
-                customer_name = record['customerName']
+                customer_name = line['customerName']
                 matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"', expand=True)
 
                 if len(matching_customers) == 0:
