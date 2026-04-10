@@ -60,8 +60,8 @@ class netsuiteSoapV2Sink(HotglueSink):
     
     def _check_exception(self, exception, stream_name):
         exception_string = exception.__str__()
-
-        if "INSUFFICIENT_PERMISSION" in exception_string:
+                
+        if "INSUFFICIENT_PERMISSION" in exception_string or "Your current role does not have permission to perform this action" in exception_string:
             self.logger.warning(f"Insufficient permissions to access content for {stream_name}. Skipping...")
             return
 
@@ -175,6 +175,13 @@ class netsuiteSoapV2Sink(HotglueSink):
             reference_data["Vendors"] = self.get_reference_vendors_rest()
         except Exception as e:
             self._check_exception(e, "Vendors")
+        
+        if "Vendors" not in reference_data:
+            try:
+                self.logger.info("Fetching Vendors via SOAP")
+                reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["companyName", "firstName", "lastName", "altName", "isInactive", "externalId","name", "subsidiary"], page_size=100)
+            except Exception as e:
+                self._check_exception(e, "Vendors")
 
         try:
             reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"], page_size=100)
@@ -196,6 +203,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         subsidiaries = {}
         line_items = []
         for line in record.get("lines"):
+            journal_entry_line = {}
             if self.reference_data.get("Accounts") and line.get("accountNumber"):
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
@@ -270,7 +278,7 @@ class netsuiteSoapV2Sink(HotglueSink):
 
             # Get the NetSuite Customer Ref
             if line.get("customerName"):
-                customer_name = record['customerName']
+                customer_name = line['customerName']
                 matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"', expand=True)
 
                 if len(matching_customers) == 0:
