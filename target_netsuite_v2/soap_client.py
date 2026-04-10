@@ -145,8 +145,11 @@ class netsuiteSoapV2Sink(HotglueSink):
         except Exception as e:
             self._check_exception(e, "Departments")
 
-        reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
-        
+        try:
+            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
+        except Exception as e:
+            self._check_exception(e, "Accounts")
+
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"], page_size=100)
             self.logger.info(f"Locations: {reference_data['Locations']}")
@@ -201,7 +204,9 @@ class netsuiteSoapV2Sink(HotglueSink):
         line_items = []
         for line in record.get("lines"):
             journal_entry_line = {}
-            if self.reference_data.get("Accounts") and line.get("accountNumber"):
+            if line.get("accountNumber"):
+                if not self.reference_data.get("Accounts"):
+                    raise Exception("Accounts reference data not found.")
                 acct_num = str(line["accountNumber"])
                 acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
                 if not acct_data:
