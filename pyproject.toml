@@ -42,3 +42,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 # CLI declaration
 target-netsuite-v2 = 'target_netsuite_v2.target:TargetNetsuiteV2.cli'
+target-netsuite = 'target_netsuite_v2.target:TargetNetsuiteV2.cli'
