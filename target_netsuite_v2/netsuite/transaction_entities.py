@@ -98,11 +98,11 @@ class Departments(BaseFilter):
 
 
 class Accounts(BaseFilter):
-    def __init__(self, ns_client):
+    def __init__(self, ns_client, body_fields_only=False):
         ApiBase.__init__(self, ns_client=ns_client, type_name='Account')
     
         ns_client._search_preferences = ns_client.SearchPreferences(
-                bodyFieldsOnly=False,
+                bodyFieldsOnly=body_fields_only,
                 pageSize=100,
                 returnSearchColumns=True
             )
