@@ -151,6 +151,7 @@ class netsuiteSoapV2Sink(HotglueSink):
             if "You need  the 'Lists -> Documents and Files' permission" in str(e):
                 self.logger.info(f"Permissions for Documents and Files missing. Attempting to get Accounts with body_fields_only=True")
                 reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client, body_fields_only=True).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
+                self.ns_client.ns_client._search_preferences.bodyFieldsOnly = False
             else:
                 self._check_exception(e, "Accounts")
 
