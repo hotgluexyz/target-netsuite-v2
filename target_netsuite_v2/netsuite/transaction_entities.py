@@ -224,7 +224,7 @@ class JournalEntries(ApiBase):
         return None
 
     def post(self, data) -> OrderedDict:
-        assert data.get('externalId'), 'missing external id'
+        assert data.get('externalId'), 'Missing externalId'
         je = self.ns_client.JournalEntry(externalId=data['externalId'])
         line_list = []
         for eod in data['lineList']:
