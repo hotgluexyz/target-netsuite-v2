@@ -16,8 +16,29 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
     @property
     def name(self) -> str:
         return self.stream_name
-    
-    allows_externalid = ["journalentries", "journalentry", "customerpayment","customerpayments", "vendorbill", "vendorbills", "purchaseinvoices","purchaseinvoice", "bill", "bills"]
+
+    allows_externalid = [
+        "JournalEntries",
+        "journalentries",
+        "JournalEntry",
+        "journalentry",
+        "CustomerPayment",
+        "customerpayment",
+        "CustomerPayments",
+        "customerpayments",
+        "VendorBill",
+        "vendorbill",
+        "VendorBills",
+        "vendorbills",
+        "PurchaseInvoice",
+        "purchaseinvoices",
+        "PurchaseInvoices",
+        "purchaseinvoice",
+        "Bill",
+        "bill",
+        "Bills",
+        "bills",
+    ]
 
     def __init__(
         self,
