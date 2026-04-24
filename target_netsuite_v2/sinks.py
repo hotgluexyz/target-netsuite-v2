@@ -161,6 +161,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         """Write out any prepped records and return once fully written."""
         self.logger.info(f"Posting data for entity {self.stream_name}")
         response = None
+        name = None
 
         if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment"]:
             if self.stream_name.lower() in ["journalentries", "journalentry"]:
@@ -236,7 +237,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
         state_update = {}
         if response:
-            record_id = self._extract_id_from_response_header(response.headers)
+            if name in ["JournalEntry", "CustomerPayment"]:
+                try:    
+                    record_id = response["internalId"]
+                except:
+                    raise Exception(f"Internal ID not found for {name}, response: {response}")
+            else:
+                record_id = self._extract_id_from_response_header(response.headers)
             if self.config.get("output_record_url", False):
                 record_url = self.get_record_url(record_id)
                 state_update["record_url"] = record_url
