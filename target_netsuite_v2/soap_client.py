@@ -151,6 +151,29 @@ class netsuiteSoapV2Sink(BatchSink):
 
         return reference_data
 
+    def _lookup_subsidiary(self, subsidiary_name, context):
+        """Look up a subsidiary by name from reference data.
+
+        Returns a subsidiary ref dict on match, or None if not found.
+        """
+        subsidiaries_ref = context.get("reference_data", {}).get("Subsidiaries") or []
+        if not subsidiaries_ref:
+            return None
+
+        match = next(
+            (s for s in subsidiaries_ref if s.get("name") == subsidiary_name),
+            None,
+        )
+        if not match:
+            return None
+
+        return {
+            "name": match.get("name"),
+            "externalId": match.get("externalId"),
+            "internalId": match.get("internalId"),
+            "type": None,
+        }
+
     def process_journal_entry(self, context, record, rest_post_method):
         subsidiaries = {}
         line_items = []
@@ -178,8 +201,13 @@ class netsuiteSoapV2Sink(BatchSink):
                 journal_entry_line = {"account": ref_acct}
 
                 # Extract the subsidiaries from Account
-                if line.get("subsidiary"):
-                    subsidiary = dict(name=None, internalId=line.get("subsidiary"), externalId=None, type=None)
+                subsidiary_internal_id = line.get("subsidiary") or line.get("subsidiaryId")
+                if subsidiary_internal_id:
+                    subsidiary = dict(name=None, internalId=subsidiary_internal_id, externalId=None, type=None)
+                elif line.get("subsidiaryName"):
+                    subsidiary = self._lookup_subsidiary(line["subsidiaryName"], context)
+                    if not subsidiary:
+                        raise Exception(f"Subsidiary with name '{line['subsidiaryName']}' was not found.")
                 else:
                     subsidiary = acct_data['subsidiaryList']
                     if subsidiary:
@@ -339,8 +367,13 @@ class netsuiteSoapV2Sink(BatchSink):
 
         # Check if subsidiary is duplicated and delete toSubsidiary if true
         subsidiary = None
-        if record.get("subsidiary"):
-            subsidiary = {"internalId": record["subsidiary"]}
+        record_subsidiary_internal_id = record.get("subsidiary") or record.get("subsidiaryId")
+        if record_subsidiary_internal_id:
+            subsidiary = {"internalId": record_subsidiary_internal_id}
+        elif record.get("subsidiaryName"):
+            subsidiary = self._lookup_subsidiary(record["subsidiaryName"], context)
+            if not subsidiary:
+                raise Exception(f"Subsidiary with name '{record['subsidiaryName']}' was not found.")
         elif len(subsidiaries)>1:
             if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
                 subsidiary = subsidiaries['subsidiary']
