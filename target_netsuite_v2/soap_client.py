@@ -240,9 +240,10 @@ class netsuiteSoapV2Sink(BatchSink):
                         }
 
             # Get the NetSuite Department Ref
-            if context["reference_data"].get("Departments") and line.get("department"):
+            department_name = line.get("departmentName") or line.get("department")
+            if context["reference_data"].get("Departments") and department_name:
                 dept_names = [d["name"] for d in context["reference_data"]["Departments"]]
-                dept_name = self.get_close_matches(line["department"], dept_names)
+                dept_name = self.get_close_matches(department_name, dept_names)
                 if dept_name:
                     dept_name = max(dept_name, key=dept_name.get)
                     dept_data = [d for d in context["reference_data"]["Departments"] if d["name"] == dept_name]
@@ -255,10 +256,11 @@ class netsuiteSoapV2Sink(BatchSink):
                         }
 
             # Get the NetSuite Location Ref
+            location_name = line.get("locationName") or line.get("location")
             if line.get("locationId"):
                 journal_entry_line["location"] = {"internalId": line.get("locationId")}
-            elif context["reference_data"].get("Locations") and line.get("location"):
-                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
+            elif context["reference_data"].get("Locations") and location_name:
+                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == location_name]
                 if loc_data:
                     loc_data = loc_data[0]
                     journal_entry_line["location"] = {
