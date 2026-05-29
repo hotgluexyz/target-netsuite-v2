@@ -32,6 +32,66 @@ class netsuiteSoapV2Sink(BatchSink):
         result = _nlargest(n, result)
 
         return {v: k for (k, v) in result}
+    
+    def get_by_fully_qualified_name(self, name, data):
+        """Get a record by fully qualified name.
+
+        Supports plain names and colon-separated hierarchies, e.g.
+        ``Operations and Support : TS Policy and Risk Mitigation`` or
+        ``parent 1 : parent 2 : department_name``. The last segment is matched
+        against ``name``; earlier segments must match the parent chain
+        (``parent.name``) from root to immediate parent.
+        """
+        if not name:
+            return None
+
+        parts = [part.strip() for part in name.split(":") if part.strip()]
+        if not parts:
+            return None
+
+        if len(parts) == 1:
+            for record in data:
+                if record.get("name") == parts[0]:
+                    return [record]
+            return None
+
+        by_internal_id = {
+            record["internalId"]: record
+            for record in data
+            if record.get("internalId")
+        }
+
+        def path_from_root(record):
+            path = []
+            current = record
+            visited = set()
+            while current:
+                internal_id = current.get("internalId")
+                if internal_id:
+                    if internal_id in visited:
+                        break
+                    visited.add(internal_id)
+                path.insert(0, current.get("name"))
+                parent = current.get("parent") or {}
+                if not isinstance(parent, dict):
+                    break
+                parent_id = parent.get("internalId")
+                if parent_id and parent_id in by_internal_id:
+                    current = by_internal_id[parent_id]
+                elif parent.get("name"):
+                    path.insert(0, parent.get("name"))
+                    break
+                else:
+                    break
+            return path
+
+        leaf_name = parts[-1]
+        for record in data:
+            if record.get("name") != leaf_name:
+                continue
+            if path_from_root(record) == parts:
+                return [record]
+        return None
 
     def _get_custom_field_type_and_value(self, script_id, value, context, rest_post_method):
         """
@@ -134,7 +194,7 @@ class netsuiteSoapV2Sink(BatchSink):
         reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
         reference_data["Items"] = self.ns_client.entities["Items"].get_all(["itemId"])
         reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
+        reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name", "parent"])
         reference_data["Customer"] = self.ns_client.entities["Customer"].get_all(["name", "companyName", "entityId"])
         try:
             reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name"])
@@ -240,25 +300,34 @@ class netsuiteSoapV2Sink(BatchSink):
                         }
 
             # Get the NetSuite Department Ref
-            if context["reference_data"].get("Departments") and line.get("department"):
-                dept_names = [d["name"] for d in context["reference_data"]["Departments"]]
-                dept_name = self.get_close_matches(line["department"], dept_names)
-                if dept_name:
-                    dept_name = max(dept_name, key=dept_name.get)
-                    dept_data = [d for d in context["reference_data"]["Departments"] if d["name"] == dept_name]
-                    if dept_data:
-                        dept_data = dept_data[0]
-                        journal_entry_line["department"] = {
-                            "name": dept_data.get("name"),
-                            "externalId": dept_data.get("externalId"),
-                            "internalId": dept_data.get("internalId"),
-                        }
+            department_name = line.get("departmentName") or line.get("department")
+            if context["reference_data"].get("Departments") and department_name:
+                dept_data = []
+                # look department name by fully qualified name
+                dept_data = self.get_by_fully_qualified_name(department_name, context["reference_data"]["Departments"])
+                
+                # look department name by name
+                if not dept_data:
+                    dept_names = [d["name"] for d in context["reference_data"]["Departments"]]
+                    dept_name = self.get_close_matches(department_name, dept_names)
+                    if dept_name:
+                        dept_name = max(dept_name, key=dept_name.get)
+                        dept_data = [d for d in context["reference_data"]["Departments"] if d["name"] == dept_name]
+
+                if dept_data:
+                    dept_data = dept_data[0]
+                    journal_entry_line["department"] = {
+                        "name": dept_data.get("name"),
+                        "externalId": dept_data.get("externalId"),
+                        "internalId": dept_data.get("internalId"),
+                    }
 
             # Get the NetSuite Location Ref
+            location_name = line.get("locationName") or line.get("location")
             if line.get("locationId"):
                 journal_entry_line["location"] = {"internalId": line.get("locationId")}
-            elif context["reference_data"].get("Locations") and line.get("location"):
-                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == line["location"]]
+            elif context["reference_data"].get("Locations") and location_name:
+                loc_data = [l for l in context["reference_data"]["Locations"] if l["name"] == location_name]
                 if loc_data:
                     loc_data = loc_data[0]
                     journal_entry_line["location"] = {
