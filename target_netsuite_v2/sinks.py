@@ -103,7 +103,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 try:
                     response = self.ns_client.entities[name].post(record)
                 except Exception as e:
-                    self.logger.error(f"Error posting JournalEntry. Payload: {record}")
+                    self.logger.error(f"Error posting {name}. Payload: {record}")
                     raise e
                 self.logger.info(response)
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
