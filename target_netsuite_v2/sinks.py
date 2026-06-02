@@ -100,7 +100,11 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             else:
                 name = "CustomerPayment"
             for record in context.get(name, []):
-                response = self.ns_client.entities[name].post(record)
+                try:
+                    response = self.ns_client.entities[name].post(record)
+                except Exception as e:
+                    self.logger.error(f"Error posting JournalEntry. Payload: {record}")
+                    raise e
                 self.logger.info(response)
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
             url = f"{self.url_base}salesOrder"
