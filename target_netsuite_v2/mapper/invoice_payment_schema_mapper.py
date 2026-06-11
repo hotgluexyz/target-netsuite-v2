@@ -61,7 +61,7 @@ class InvoicePaymentSchemaMapper(BaseMapper):
             if not self.entity:
                 self.entity = reference["entityid"]
             elif self.entity != reference["entityid"]:
-                raise InvalidInputError(f"The Customer supplied must be the same Invoice Customer")
+                raise InvalidInputError("The Customer supplied must be the same Invoice Customer")
 
             return { "id": reference["internalId"] }
 
@@ -97,4 +97,3 @@ class InvoicePaymentSchemaMapper(BaseMapper):
                 ]
             }
         }
-

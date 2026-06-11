@@ -144,7 +144,10 @@ class InvoiceSink(NetSuiteBatchSink):
         return False
 
     def compare_item(self, existing_item, new_item):
-        if existing_item.get("memo") == new_item.get("description") and existing_item.get("memo") != None:
+        if (
+            existing_item.get("memo") == new_item.get("description")
+            and existing_item.get("memo") is not None
+        ):
             return True
         return False
 

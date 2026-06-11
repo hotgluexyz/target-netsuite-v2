@@ -8,6 +8,25 @@ from requests_oauthlib import OAuth1
 from target_hotglue.common import HGJSONEncoder
 
 class SuiteTalkRestClient:
+    ITEM_ENDPOINTS = {
+        "invtpart": "inventoryItem",
+        "noninvtpart": {
+            "sale": "nonInventorySaleItem",
+            "purchase": "nonInventoryPurchaseItem",
+            "resale": "nonInventoryResaleItem",
+        },
+        "service": {
+            "sale": "serviceSaleItem",
+            "purchase": "servicePurchaseItem",
+            "resale": "serviceResaleItem",
+        },
+        "othercharge": {
+            "sale": "otherChargeSaleItem",
+            "purchase": "otherChargePurchaseItem",
+            "resale": "otherChargeResaleItem",
+        },
+    }
+
     ref_select_clauses = {
         "account": "account.id as internalId, account.acctName as name, account.acctNumber as number, account.externalId",
         "classification": "classification.id as internalId, classification.name, classification.externalId, subsidiary as subsidiaryId",
@@ -94,40 +113,92 @@ class SuiteTalkRestClient:
         record_id = self._extract_id_from_response_header(response.headers)
         return record_id, success, error_message
 
+    def _resolve_item_endpoint(self, item_type: str, item_subtype: str) -> Optional[str]:
+        endpoint = self.ITEM_ENDPOINTS.get(item_type)
+        if isinstance(endpoint, dict):
+            return endpoint.get(item_subtype)
+
+        return endpoint
+
+    def _normalize_suiteql_item_fields(self, item, field_map):
+        for source_field, target_field in field_map.items():
+            if source_field in item:
+                item[target_field] = item.pop(source_field)
+
+    def _run_suiteql_query(self, query, page_size, field_map):
+        all_items = []
+        offset = 0
+        limit = min(page_size, 1000)
+        has_more = True
+
+        while has_more:
+            query_data = {"q": query}
+            params = {"offset": offset, "limit": limit}
+            headers = {"Prefer": "transient"}
+
+            response = self._make_request(
+                url=self.suiteql_url,
+                method="POST",
+                data=query_data,
+                params=params,
+                headers=headers
+            )
+
+            success, error_message = self._validate_response(response)
+            if not success:
+                return success, error_message, []
+
+            resp_json = response.json()
+            items = resp_json.get("items", [])
+
+            for item in items:
+                self._normalize_suiteql_item_fields(item, field_map)
+
+            all_items.extend(items)
+
+            has_more = resp_json.get("hasMore", False)
+            offset += limit
+
+        return True, None, all_items
+
+    def _build_reference_filters(
+        self,
+        record_type,
+        record_ids,
+        external_ids,
+        names,
+        entity_ids,
+        item_ids
+    ):
+        filters = []
+
+        if record_ids:
+            id_string = ",".join(str(record_id) for record_id in record_ids)
+            filters.append(f"id IN ({id_string})")
+
+        if external_ids:
+            external_id_string = ",".join(f"'{external_id}'" for external_id in external_ids)
+            filters.append(f"externalId IN ({external_id_string})")
+
+        if names and record_type in self.ref_name_where_clauses:
+            names_string = ",".join(f"'{name}'" for name in names)
+            name_field = self.ref_name_where_clauses[record_type]
+            filters.append(f"{name_field} IN ({names_string})")
+
+        if entity_ids:
+            entity_id_string = ",".join(f"'{entity_id}'" for entity_id in entity_ids)
+            filters.append(f"entityId IN ({entity_id_string})")
+
+        if item_ids:
+            item_ids_str = ",".join(f"'{item_id}'" for item_id in item_ids)
+            filters.append(f"itemId IN ({item_ids_str})")
+
+        return filters
+
     def get_item_url(self, item: dict) -> str:
         item_type = item.get("type", "").lower()
         item_subtype = item.get("category", "").lower()
-        if item_type == "invtpart":
-            endpoint = "inventoryItem"
-        elif item_type == "noninvtpart":
-            if item_subtype == "sale":
-                endpoint = "nonInventorySaleItem"
-            elif item_subtype == "purchase":
-                endpoint = "nonInventoryPurchaseItem"
-            elif item_subtype == "resale":
-                endpoint = "nonInventoryResaleItem"
-            else:
-                endpoint = None
-        elif item_type == "service":
-            if item_subtype == "sale":
-                endpoint = "serviceSaleItem"
-            elif item_subtype == "purchase":
-                endpoint = "servicePurchaseItem"
-            elif item_subtype == "resale":
-                endpoint = "serviceResaleItem"
-            else:
-                endpoint = None
-        elif item_type == "othercharge":
-            if item_subtype == "sale":
-                endpoint = "otherChargeSaleItem"
-            elif item_subtype == "purchase":
-                endpoint = "otherChargePurchaseItem"
-            elif item_subtype == "resale":
-                endpoint = "otherChargeResaleItem"
-            else:
-                endpoint = None
-        else:
-            endpoint = None
+        endpoint = self._resolve_item_endpoint(item_type, item_subtype)
 
         if endpoint:
             return f"{self.record_url}/{endpoint}"
@@ -177,49 +248,16 @@ class SuiteTalkRestClient:
             where_statement = " OR ".join(where_clauses)
             query += f" AND ({where_statement})"
 
-        all_items = []
-        offset = 0
-        limit = min(page_size, 1000)
-        has_more = True
-
-        while has_more:
-            query_data = {"q": query}
-            params = {"offset": offset, "limit": limit}
-            headers = {"Prefer": "transient"}
-
-            response = self._make_request(
-                url=self.suiteql_url,
-                method="POST",
-                data=query_data,
-                params=params,
-                headers=headers
-            )
-
-            success, error_message = self._validate_response(response)
-            if not success:
-                return success, error_message, []
-
-            resp_json = response.json()
-            items = resp_json.get("items", [])
-
-            # SuiteQL response fields come in as lower case,
-            # even when using `AS` syntax that includes capital letters
-            for item in items:
-                if "internalid" in item:
-                    item["internalId"] = item.pop("internalid")
-                if "externalid" in item:
-                    item["externalId"] = item.pop("externalid")
-                if "subsidiaryid" in item:
-                    item["subsidiaryId"] = item.pop("subsidiaryid")
-                if "tranid" in item:
-                    item["tranId"] = item.pop("tranid")
-
-            all_items.extend(items)
-
-            has_more = resp_json.get("hasMore", False)
-            offset += limit
-
-        return True, None, all_items
+        return self._run_suiteql_query(
+            query,
+            page_size,
+            {
+                "internalid": "internalId",
+                "externalid": "externalId",
+                "subsidiaryid": "subsidiaryId",
+                "tranid": "tranId",
+            }
+        )
 
     def get_reference_data(
         self,
@@ -235,105 +273,47 @@ class SuiteTalkRestClient:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if not record_ids and not external_ids and not names and not entity_ids and not item_ids and allow_empty_filters == False:
+        if (
+            not record_ids
+            and not external_ids
+            and not names
+            and not entity_ids
+            and not item_ids
+            and not allow_empty_filters
+        ):
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
-        where_clause = ""
-
-        if record_ids:
-            id_string = ",".join(str(id) for id in record_ids)
-            where_clause = f"WHERE id IN ({id_string})"
-
-        if external_ids:
-            external_id_string = ",".join(f"'{id}'" for id in external_ids)
-
-            if where_clause:
-                where_clause = f"{where_clause} OR externalId IN ({external_id_string})"
-            else:
-                where_clause = f"WHERE externalId IN ({external_id_string})"
-
-        if names and record_type in self.ref_name_where_clauses:
-            names_string = ",".join(f"'{id}'" for id in names)
-
-            if where_clause:
-                where_clause = f"{where_clause} OR {self.ref_name_where_clauses[record_type]} IN ({names_string})"
-            else:
-                where_clause = f"WHERE {self.ref_name_where_clauses[record_type]} IN ({names_string})"
-
-        if entity_ids:
-            entity_id_string = ",".join(f"'{id}'" for id in entity_ids)
-
-            if where_clause:
-                where_clause = f"{where_clause} OR entityId IN ({entity_id_string})"
-            else:
-                where_clause = f"WHERE entityId IN ({entity_id_string})"
-
-        if item_ids:
-            item_ids_str = ",".join(f"'{id}'" for id in item_ids)
-
-            if where_clause:
-                where_clause = f"{where_clause} OR itemId IN ({item_ids_str})"
-            else:
-                where_clause = f"WHERE itemId IN ({item_ids_str})"
+        where_filters = self._build_reference_filters(
+            record_type,
+            record_ids,
+            external_ids,
+            names,
+            entity_ids,
+            item_ids
+        )
+        where_clause = f" WHERE {' OR '.join(where_filters)}" if where_filters else ""
 
         query = f"SELECT {select_clause} FROM {record_type}"
 
         if record_type in self.ref_join_clauses:
             query += f" {self.ref_join_clauses[record_type]}"
 
-        if where_clause:
-            query += f" {where_clause}"
+        query += where_clause
 
-        all_items = []
-        offset = 0
-        limit = min(page_size, 1000)
-        has_more = True
-
-        while has_more:
-            query_data = {"q": query}
-            params = {"offset": offset, "limit": limit}
-            headers = {"Prefer": "transient"}
-
-            response = self._make_request(
-                url=self.suiteql_url,
-                method="POST",
-                data=query_data,
-                params=params,
-                headers=headers
-            )
-
-            success, error_message = self._validate_response(response)
-            if not success:
-                return success, error_message, []
-
-            resp_json = response.json()
-            items = resp_json.get("items", [])
-
-            # SuiteQL response fields come in as lower case,
-            # even when using `AS` syntax that includes capital letters
-            for item in items:
-                if "internalid" in item:
-                    item["internalId"] = item.pop("internalid")
-                if "externalid" in item:
-                    item["externalId"] = item.pop("externalid")
-                if "subsidiaryid" in item:
-                    item["subsidiaryId"] = item.pop("subsidiaryid")
-                if "entityid" in item:
-                    item["entityId"] = item.pop("entityid")
-                if "itemid" in item:
-                    item["itemId"] = item.pop("itemid")
-                if "taxtype" in item:
-                    item["taxType"] = item.pop("taxtype")
-                if "taxrate" in item:
-                    item["taxRate"] = item.pop("taxrate")
-
-            all_items.extend(items)
-
-            has_more = resp_json.get("hasMore", False)
-            offset += limit
-
-        return True, None, all_items
+        return self._run_suiteql_query(
+            query,
+            page_size,
+            {
+                "internalid": "internalId",
+                "externalid": "externalId",
+                "subsidiaryid": "subsidiaryId",
+                "entityid": "entityId",
+                "itemid": "itemId",
+                "taxtype": "taxType",
+                "taxrate": "taxRate",
+            }
+        )
 
     def get_purchase_order_items(self, purchase_order_ids):
         if not purchase_order_ids:

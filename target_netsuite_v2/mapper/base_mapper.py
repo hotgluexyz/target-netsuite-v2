@@ -24,23 +24,23 @@ DATE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 def extract_addresses_from_record(record):
     record_addresses = record.get("addressbook", {}).get("items", [])
     addresses = {}
-    
-    billing_address = next((addr for addr in record_addresses if addr.get("defaultBilling") == True), None)
-    shipping_address = next((addr for addr in record_addresses if addr.get("defaultShipping") == True), None)
+
+    billing_address = next((addr for addr in record_addresses if addr.get("defaultBilling")), None)
+    shipping_address = next((addr for addr in record_addresses if addr.get("defaultShipping")), None)
 
     if billing_address:
         addresses["billing"] = {
             **billing_address.get("addressbookaddress", {}),
             "addrtext": billing_address.get("addressbookaddress", {}).get("addrText"),
             "defaultShipping": False,
-            "defaultBilling": True
+            "defaultBilling": True,
         }
     if shipping_address:
         addresses["shipping"] = {
             **shipping_address.get("addressbookaddress", {}),
             "addrtext": shipping_address.get("addressbookaddress", {}).get("addrText"),
             "defaultShipping": True,
-            "defaultBilling": False
+            "defaultBilling": False,
         }
 
     return addresses
@@ -65,6 +65,30 @@ class BaseMapper:
         self.sink_name = sink_name
         self.reference_data = reference_data
         self.existing_record = self._find_existing_record(self.reference_data[sink_name])
+
+    def _matches_subsidiary_scope(self, item, subsidiary_scope):
+        if subsidiary_scope is None:
+            return True
+
+        subsidiaries = item.get("subsidiaryId", "").replace(" ", "").split(",")
+        return subsidiary_scope in subsidiaries
+
+    def _find_reference_match(self, reference_list, reference_field, value, subsidiary_scope=None):
+        return next(
+            (
+                item
+                for item in reference_list
+                if item.get(reference_field) == value
+                and self._matches_subsidiary_scope(item, subsidiary_scope)
+            ),
+            None,
+        )
+
+    def _describe_reference_lookup(self, lookup_label, record_field, value):
+        if lookup_label == "entityId":
+            return f"by {record_field}={value}"
+
+        return f"by {lookup_label} {value}"
 
     def _find_existing_record(self, reference_list):
         """Finds an existing record in the reference data by matching internal or external ID.
@@ -162,120 +186,38 @@ class BaseMapper:
         Returns:
             dict|None: Matching reference object or None if not found
         """
-        found = None
-        ref_name = None
-        # Check for direct ID field first
-        if direct_id := self.record.get(id_field):
-            found = next(
-                (item for item in reference_list if item["internalId"] == direct_id),
-                None
+        lookup_attempts = []
+        lookup_specs = [
+            ("id", id_field, "internalId", None),
+            ("name", name_field, "name", subsidiary_scope),
+            ("itemId", item_id_field, "itemId", subsidiary_scope),
+            ("externalId", external_id_field, "externalId", None),
+            ("tranId", tran_id_field, "tranId", None),
+            ("entityId", entity_id_field, "entityId", None),
+            ("number", number_field, "number", subsidiary_scope),
+        ]
+
+        for lookup_label, record_field, reference_field, scoped_subsidiary in lookup_specs:
+            if not record_field:
+                continue
+
+            value = self.record.get(record_field)
+            if not value:
+                continue
+
+            lookup_attempts.append(
+                self._describe_reference_lookup(lookup_label, record_field, value)
             )
-
-        if found:
-            return found
-
-        # If no match by id, try to find by reference name and subsidiary scope if provided.
-        if name_field and (ref_name := self.record.get(name_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("name") == ref_name and
-                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
-                ),
-                None
+            found = self._find_reference_match(
+                reference_list,
+                reference_field,
+                value,
+                subsidiary_scope=scoped_subsidiary,
             )
+            if found:
+                return found
 
-        if found:
-            return found
-        
-        if item_id_field and (item_id := self.record.get(item_id_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("itemId") == item_id and
-                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
-                ),
-                None
-            )
-
-        if found:
-            return found
-        
-        # If no match by external id.
-        if external_id_field and (external_id := self.record.get(external_id_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("externalId") == external_id
-                ),
-                None
-            )
-
-        if found:
-            return found
-        
-        if tran_id_field and (tran_id := self.record.get(tran_id_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("tranId") == tran_id
-                ),
-                None
-            )
-
-        if found:
-            return found
-
-         # Find by entity id.
-        if entity_id_field and (entity_id := self.record.get(entity_id_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("entityId") == entity_id
-                ),
-                None
-            )
-
-        if found:
-            return found
-
-        # If no match by id or name, try to find by number
-        if number_field and (ref_number := self.record.get(number_field)):
-            found = next(
-                (
-                    item
-                    for item in reference_list
-                    if item.get("number") == ref_number and
-                    (subsidiary_scope is None or subsidiary_scope in item.get("subsidiaryId", "").replace(" ", "").split(","))
-                ),
-                None
-            )
-
-        if found:
-            return found
-
-        # Raise an `InvalidReferenceError` if either the id or the name was provided for a reference field, but it was not found
-        if direct_id or ref_name or external_id_field or entity_id_field or item_id_field or tran_id_field:
-            lookup_attempts = []
-            if direct_id:
-                lookup_attempts.append(f"by id {direct_id}")
-            if name_field and ref_name:
-                lookup_attempts.append(f"by name {ref_name}")
-            if tran_id_field and tran_id:
-                lookup_attempts.append(f"by tranId {tran_id}")
-            if item_id_field and item_id:
-                lookup_attempts.append(f"by itemId {item_id}")
-            if number_field and ref_number:
-                lookup_attempts.append(f"by number {ref_number}")
-            if external_id_field and external_id:
-                lookup_attempts.append(f"by externalId {external_id}")
-            if entity_id_field and entity_id:
-                lookup_attempts.append(f"by {entity_id_field}={entity_id}")
+        if lookup_attempts:
             if subsidiary_scope:
                 lookup_attempts.append(f"within subsidiary {subsidiary_scope}")
 
@@ -548,7 +490,7 @@ class BaseMapper:
 
     def _map_fields(self, payload):
         for record_key, payload_key in self.field_mappings.items():
-            if record_key in self.record and self.record.get(record_key) != None:
+            if record_key in self.record and self.record.get(record_key) is not None:
                 if isinstance(payload_key, list):
                     for key in payload_key:
                         payload[key] = self.record.get(record_key)
@@ -556,7 +498,7 @@ class BaseMapper:
                     payload[payload_key] = self.record.get(record_key)
 
     def _map_is_active(self, payload):
-        if "isActive" in self.record and self.record.get("isActive") != None:
+        if "isActive" in self.record and self.record.get("isActive") is not None:
             payload["isInactive"] = not self.record.get("isActive", True)
 
     def _map_account(self, reference_type, id_field, name_field, number_field, target_field):

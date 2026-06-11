@@ -1,7 +1,6 @@
 from hotglue_models_accounting.accounting import PurchaseOrder
-from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.purchase_order_schema_mapper import PurchaseOrderSchemaMapper
-from target_netsuite_v2.mapper.base_mapper import InvalidInputError
+from target_netsuite_v2.sinks import NetSuiteBatchSink
 
 class PurchaseOrderSink(NetSuiteBatchSink):
     name = "PurchaseOrders"
@@ -148,6 +147,9 @@ class PurchaseOrderSink(NetSuiteBatchSink):
         return False
 
     def compare_item(self, existing_item, new_item):
-        if existing_item.get("memo") == new_item.get("description") and existing_item.get("memo") != None:
+        if (
+            existing_item.get("memo") == new_item.get("description")
+            and existing_item.get("memo") is not None
+        ):
             return True
         return False
