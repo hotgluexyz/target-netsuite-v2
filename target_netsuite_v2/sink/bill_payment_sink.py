@@ -1,7 +1,6 @@
 from hotglue_models_accounting.accounting import BillPayment
-from target_netsuite_v2.sinks import NetSuiteBatchSink
 from target_netsuite_v2.mapper.bill_payment_schema_mapper import BillPaymentSchemaMapper
-from target_netsuite_v2.mapper.base_mapper import InvalidInputError
+from target_netsuite_v2.sinks import NetSuiteBatchSink
 
 class BillPaymentSink(NetSuiteBatchSink):
     name = "BillPayments"

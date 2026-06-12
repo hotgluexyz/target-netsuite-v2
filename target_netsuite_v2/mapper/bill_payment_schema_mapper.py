@@ -62,7 +62,7 @@ class BillPaymentSchemaMapper(BaseMapper):
             if not self.entity:
                 self.entity = reference["entityid"]
             elif self.entity != reference["entityid"]:
-                raise InvalidInputError(f"The Vendor supplied must be the same Bill Vendor")
+                raise InvalidInputError("The Vendor supplied must be the same Bill Vendor")
 
             return { "id": reference["internalId"] }
 
@@ -98,4 +98,3 @@ class BillPaymentSchemaMapper(BaseMapper):
                 ]
             }
         }
-

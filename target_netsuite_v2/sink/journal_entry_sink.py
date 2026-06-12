@@ -59,7 +59,6 @@ class JournalEntrySink(NetSuiteBatchSink):
     def upsert_record(self, record: dict, reference_data: dict):
         state = {}
 
-        did_update = False
         if self.record_exists(record):
             id, success, error_message = (None, False, "Record already exists")
         else:

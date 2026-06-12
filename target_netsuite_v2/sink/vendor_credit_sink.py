@@ -154,7 +154,10 @@ class VendorCreditSink(NetSuiteBatchSink):
         return False
 
     def compare_item(self, existing_item, new_item):
-        if existing_item.get("memo") == new_item.get("description") and existing_item.get("memo") != None:
+        if (
+            existing_item.get("memo") == new_item.get("description")
+            and existing_item.get("memo") is not None
+        ):
             return True
         return False
 
@@ -167,6 +170,9 @@ class VendorCreditSink(NetSuiteBatchSink):
         return False
 
     def compare_expense(self, existing_expense, new_expense):
-        if existing_expense.get("memo") == new_expense.get("memo") and existing_expense.get("memo") != None:
+        if (
+            existing_expense.get("memo") == new_expense.get("memo")
+            and existing_expense.get("memo") is not None
+        ):
             return True
         return False

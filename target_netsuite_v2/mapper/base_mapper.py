@@ -24,23 +24,23 @@ DATE_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 def extract_addresses_from_record(record):
     record_addresses = record.get("addressbook", {}).get("items", [])
     addresses = {}
-    
-    billing_address = next((addr for addr in record_addresses if addr.get("defaultBilling") == True), None)
-    shipping_address = next((addr for addr in record_addresses if addr.get("defaultShipping") == True), None)
+
+    billing_address = next((addr for addr in record_addresses if addr.get("defaultBilling")), None)
+    shipping_address = next((addr for addr in record_addresses if addr.get("defaultShipping")), None)
 
     if billing_address:
         addresses["billing"] = {
             **billing_address.get("addressbookaddress", {}),
             "addrtext": billing_address.get("addressbookaddress", {}).get("addrText"),
             "defaultShipping": False,
-            "defaultBilling": True
+            "defaultBilling": True,
         }
     if shipping_address:
         addresses["shipping"] = {
             **shipping_address.get("addressbookaddress", {}),
             "addrtext": shipping_address.get("addressbookaddress", {}).get("addrText"),
             "defaultShipping": True,
-            "defaultBilling": False
+            "defaultBilling": False,
         }
 
     return addresses
@@ -151,7 +151,7 @@ class BaseMapper:
 
         return [item for item in reference_list if item["internalId"] in matches]
 
-    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None, entity_id_field=None, tran_id_field=None, item_id_field=None):
+    def _find_reference_by_id_or_ref(self, reference_list, id_field, name_field, subsidiary_scope=None, number_field=None, external_id_field=None, entity_id_field=None, tran_id_field=None, item_id_field=None):  # noqa: C901
         """Generic method to find a reference either by direct ID or through a reference object
         Args:
             reference_list (list): List of reference data to search through (e.g. Accounts, Locations)
@@ -188,7 +188,7 @@ class BaseMapper:
 
         if found:
             return found
-        
+
         if item_id_field and (item_id := self.record.get(item_id_field)):
             found = next(
                 (
@@ -202,7 +202,7 @@ class BaseMapper:
 
         if found:
             return found
-        
+
         # If no match by external id.
         if external_id_field and (external_id := self.record.get(external_id_field)):
             found = next(
@@ -216,7 +216,7 @@ class BaseMapper:
 
         if found:
             return found
-        
+
         if tran_id_field and (tran_id := self.record.get(tran_id_field)):
             found = next(
                 (
@@ -548,7 +548,7 @@ class BaseMapper:
 
     def _map_fields(self, payload):
         for record_key, payload_key in self.field_mappings.items():
-            if record_key in self.record and self.record.get(record_key) != None:
+            if record_key in self.record and self.record.get(record_key) is not None:
                 if isinstance(payload_key, list):
                     for key in payload_key:
                         payload[key] = self.record.get(record_key)
@@ -556,7 +556,7 @@ class BaseMapper:
                     payload[payload_key] = self.record.get(record_key)
 
     def _map_is_active(self, payload):
-        if "isActive" in self.record and self.record.get("isActive") != None:
+        if "isActive" in self.record and self.record.get("isActive") is not None:
             payload["isInactive"] = not self.record.get("isActive", True)
 
     def _map_account(self, reference_type, id_field, name_field, number_field, target_field):

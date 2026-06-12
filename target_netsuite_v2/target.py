@@ -78,10 +78,10 @@ class TargetNetsuiteV2(TargetHotglue):
                         last_run = last_run.replace(tzinfo=None)
                         if (datetime.utcnow()-last_run).total_hours()<int(self.config.get("snapshot_hours")):
                             return reference_data
-            except:
-                self.logger.info(f"Snapshot not found or not readable.")
+            except Exception:
+                self.logger.info("Snapshot not found or not readable.")
 
-        self.logger.info(f"Reading data from API...")
+        self.logger.info("Reading data from API...")
         reference_data = {}
 
         _, _, subsidiaries = self.suite_talk_client.get_reference_data("subsidiary", allow_empty_filters=True)

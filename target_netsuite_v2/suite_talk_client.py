@@ -94,7 +94,7 @@ class SuiteTalkRestClient:
         record_id = self._extract_id_from_response_header(response.headers)
         return record_id, success, error_message
 
-    def get_item_url(self, item: dict) -> str:
+    def get_item_url(self, item: dict) -> str:  # noqa: C901
         item_type = item.get("type", "").lower()
         item_subtype = item.get("category", "").lower()
         if item_type == "invtpart":
@@ -221,7 +221,7 @@ class SuiteTalkRestClient:
 
         return True, None, all_items
 
-    def get_reference_data(
+    def get_reference_data(  # noqa: C901
         self,
         record_type,
         record_ids: Optional[List[str]] = None,
@@ -235,7 +235,14 @@ class SuiteTalkRestClient:
         # Early exit if record_ids, external_ids, and names are provided but are all empty
         # This is done for cases where we pass an empty list or set after processing a batch looking for ids/external ids/names
         # Otherwise, we would simply not construct where clauses, and pull back everything.
-        if not record_ids and not external_ids and not names and not entity_ids and not item_ids and allow_empty_filters == False:
+        if (
+            not record_ids
+            and not external_ids
+            and not names
+            and not entity_ids
+            and not item_ids
+            and not allow_empty_filters
+        ):
             return True, None, []
 
         select_clause = self.ref_select_clauses[record_type]
