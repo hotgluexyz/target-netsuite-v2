@@ -1345,6 +1345,17 @@ class netsuiteRestV2Sink(BatchSink):
         # if transactionNumber is provided, we should use it as the tranId
         if record.get("transactionNumber"):
             credit_memo_mapping["tranId"] = record["transactionNumber"]
+
+        # transactionNumber takes precedence over creditMemoId
+        if record.get("creditMemoId") and credit_memo_mapping.get("tranId") is None:
+            credit_memo_mapping["tranId"] = record["creditMemoId"]
+
+        # if invoiceId is provided, apply this credit memo to that invoice
+        if record.get("invoiceId"):
+            apply_line = {"apply": True, "doc": {"id": record["invoiceId"]}}
+            if record.get("total") is not None:
+                apply_line["amount"] = record["total"]
+            credit_memo_mapping["apply"] = {"items": [apply_line]}
         
         # currency is the symbol, we need to send the name
         currency = record.get("currency")
