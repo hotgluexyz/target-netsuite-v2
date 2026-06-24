@@ -254,7 +254,7 @@ class netsuiteRestV2Sink(HotglueSink):
             (accountName is not None and x["acctName"] == accountName)
         )
 
-    def process_order(self, context, record):
+    def process_order(self, record):
         sale_order = {}
         items = []
 
@@ -320,7 +320,7 @@ class netsuiteRestV2Sink(HotglueSink):
             sale_order["order_number"] = record.get("order_number")
         return sale_order
 
-    def process_vendor_bill(self, context, record):
+    def process_vendor_bill(self, record):
         vendor_bill = {}
 
         if record.get("vendorBillNumber"):
@@ -535,7 +535,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return vendor_bill
 
-    def process_invoice(self, context, record):
+    def process_invoice(self, record):
         invoice = {}
         items = []
         if record.get("invoiceNumber"):
@@ -659,7 +659,7 @@ class netsuiteRestV2Sink(HotglueSink):
         invoice["item"] = {"items": items}
         return invoice
 
-    def invoice_payment(self, context, record):
+    def invoice_payment(self, record):
         raw_record = record.copy()
         invoice_id = record.get("transactionId", record.get("id"))
         url = f"https://{self.url_account}.suitetalk.api.netsuite.com/services/NetSuitePort_2024_2"
@@ -788,7 +788,7 @@ class netsuiteRestV2Sink(HotglueSink):
             "raw_record": raw_record
         }
 
-    def vendor_payment(self, context, record):
+    def vendor_payment(self, record):
         """
         Initialize a Vendor Payment:
         The initialize operation in NetSuite is used to create a new record (in this case, a vendorPayment)
@@ -914,7 +914,7 @@ class netsuiteRestV2Sink(HotglueSink):
             "raw_record": raw_record
         }
 
-    def process_vendor_credit(self, context, record):
+    def process_vendor_credit(self, record):
         # Get the NetSuite Vendor Ref
         vendor_credit = {}
         if record.get("vendorId") or record.get("vendorNum"):
@@ -1170,7 +1170,7 @@ class netsuiteRestV2Sink(HotglueSink):
             raise ConnectionError(res.text)
         return res
 
-    def process_customer(self, context, record):
+    def process_customer(self, record):
         customers = self.reference_data["Customer"]
         subsidiary = record.get("subsidiary")
         sales_rep = record.get("ownerId")
@@ -1267,7 +1267,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return customer
 
-    def process_credit_memo(self, context, record):
+    def process_credit_memo(self, record):
         
         if not record.get("customerName") and not record.get("customerId"):
             raise Exception(f"Neither CustomerId nor customerName was provided and it's a required field for credit memo.")
@@ -1379,7 +1379,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return credit_memo_mapping
     
-    def process_refund(self, context, record):
+    def process_refund(self, record):
         
         # validate required field currency
         if not record.get("currency"):
@@ -1462,7 +1462,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return refund_mapping
 
-    def process_vendors(self, context, record):
+    def process_vendors(self, record):
         vendors = self.reference_data["Vendors"]
         vendor = None
         if record.get("id"):
@@ -1499,7 +1499,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return vendor_mapping
     
-    def process_service_sale_item(self, context, record):
+    def process_service_sale_item(self, record):
 
         payload = {
             "displayName": record.get("displayName") or record.get("name"),
@@ -1569,10 +1569,10 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return payload
 
-    def process_item(self, context, record):
+    def process_item(self, record):
 
         if record.get("type", "").lower() == "service for sale":
-            return self.process_service_sale_item(context, record)
+            return self.process_service_sale_item(record)
 
         payload = {
             "displayName": record.get("name"),
@@ -1625,7 +1625,7 @@ class netsuiteRestV2Sink(HotglueSink):
 
         return payload
 
-    def process_purchase_order(self, context, record):
+    def process_purchase_order(self, record):
         purchase_order = {}
         if record.get("order_number"):
             purchase_order["externalId"] = record["order_number"]

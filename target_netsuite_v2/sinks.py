@@ -37,7 +37,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             self.logger.info(f"Record is empty for {self.stream_name}")
             return
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
-            journal_entry = self.process_journal_entry(context, record, self.rest_post)
+            journal_entry = self.process_journal_entry(record, self.rest_post)
             # do final validation
             for line in journal_entry.get('lineList', []):
                 for cf in line.get('customFieldList', []):
@@ -47,48 +47,48 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
             return journal_entry
         if self.stream_name.lower() in ["customer"]:
-            customer = self.process_customer(context,record)
+            customer = self.process_customer(record)
             return customer
         if self.stream_name.lower() in ["inboundshipment","inboundshipments"]:
-            inbound_shipment = self.process_inbound_shipment(context, record)
+            inbound_shipment = self.process_inbound_shipment(record)
             return inbound_shipment
         elif self.stream_name.lower() in ["customerpayment","customerpayments"]:
-            customer_payment = self.process_customer_payment(context, record)
+            customer_payment = self.process_customer_payment(record)
             return customer_payment
         elif self.stream_name.lower() in ["salesorder","salesorders"]:
-            sale_order = self.process_order(context, record)
+            sale_order = self.process_order(record)
             return sale_order
         elif self.stream_name.lower() in ["invoice", "invoices"]:
-            invoice = self.process_invoice(context, record)
+            invoice = self.process_invoice(record)
             return invoice
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:
-            credit_memo = self.process_credit_memo(context, record)
+            credit_memo = self.process_credit_memo(record)
             return credit_memo
         elif self.stream_name.lower() in ["refund","refunds"]:
-            refund = self.process_refund(context, record)
+            refund = self.process_refund(record)
             return refund
         elif self.stream_name.lower() in ["vendor","vendors"]:
-            vendor = self.process_vendors(context, record)
+            vendor = self.process_vendors(record)
             return vendor
         elif self.stream_name.lower() in ["vendorbill", "vendorbills", "purchaseinvoices","purchaseinvoice", "bill", "bills"]:
-            vendor_bill = self.process_vendor_bill(context, record)
+            vendor_bill = self.process_vendor_bill(record)
             return vendor_bill
         elif self.stream_name.lower() in ["vendorcredit", "vendorcredits", "apadjustment", "apadjustments"]:
-            vendor_credit = self.process_vendor_credit(context, record)
+            vendor_credit = self.process_vendor_credit(record)
             return vendor_credit
         elif self.stream_name.lower() in ["invoicepayments","invoicepayment"]:
-            invoice_payment = self.invoice_payment(context, record)
+            invoice_payment = self.invoice_payment(record)
             return invoice_payment
         elif self.stream_name.lower() in ["vendorpayments","vendorpayment", "billpayment", "billpayments"]:
-            vendor_payment = self.vendor_payment(context, record)
+            vendor_payment = self.vendor_payment(record)
             return vendor_payment
         elif self.stream_name.lower() in ["PurchaseOrderToVendorBill"]:
             return record
         elif self.stream_name.lower() in ['item','items']:
-            item = self.process_item(context,record)
+            item = self.process_item(record)
             return item
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
-            order = self.process_purchase_order(context,record)
+            order = self.process_purchase_order(record)
             return order
 
     def upsert_record(self, record, context):

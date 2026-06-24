@@ -93,7 +93,7 @@ class netsuiteSoapV2Sink(HotglueSink):
                 return [record]
         return None
 
-    def _get_custom_field_type_and_value(self, script_id, value, context, rest_post_method):
+    def _get_custom_field_type_and_value(self, script_id, value, rest_post_method):
         """
         Get custom field type from reference data.
         Returns the mapped field type or 'String' as default.
@@ -107,7 +107,7 @@ class netsuiteSoapV2Sink(HotglueSink):
             "Time Of Day": "Time",
             "List/Record": "Select"
         }
-        custom_fields = context.get("reference_data", {}).get("CustomFields", {})
+        custom_fields = self.reference_data.get("CustomFields", {})
         custom_field = custom_fields.get(script_id.upper())
         
         if not custom_field:
@@ -211,12 +211,12 @@ class netsuiteSoapV2Sink(HotglueSink):
 
         return reference_data
 
-    def _lookup_subsidiary(self, subsidiary_name, context):
+    def _lookup_subsidiary(self, subsidiary_name):
         """Look up a subsidiary by name from reference data.
 
         Returns a subsidiary ref dict on match, or None if not found.
         """
-        subsidiaries_ref = context.get("reference_data", {}).get("Subsidiaries") or []
+        subsidiaries_ref = self.reference_data.get("Subsidiaries") or []
         if not subsidiaries_ref:
             return None
 
@@ -234,7 +234,7 @@ class netsuiteSoapV2Sink(HotglueSink):
             "type": None,
         }
 
-    def process_journal_entry(self, context, record, rest_post_method):
+    def process_journal_entry(self, record, rest_post_method):
         subsidiaries = {}
         line_items = []
         for line in record.get("journalLines", record.get("lines", [])):
@@ -265,7 +265,7 @@ class netsuiteSoapV2Sink(HotglueSink):
                 if subsidiary_internal_id:
                     subsidiary = dict(name=None, internalId=subsidiary_internal_id, externalId=None, type=None)
                 elif line.get("subsidiaryName"):
-                    subsidiary = self._lookup_subsidiary(line["subsidiaryName"], context)
+                    subsidiary = self._lookup_subsidiary(line["subsidiaryName"])
                     if not subsidiary:
                         raise Exception(f"Subsidiary with name '{line['subsidiaryName']}' was not found.")
                 else:
@@ -407,7 +407,7 @@ class netsuiteSoapV2Sink(HotglueSink):
                     # Get field type from reference data
                     field_type = entry.get("type")
                     if not field_type:
-                        field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, rest_post_method)
+                        field_type, value = self._get_custom_field_type_and_value(ns_id, value, rest_post_method)
                     
                     custom_field_values.append({"type": field_type, "scriptId": ns_id, "value": value})
 
@@ -440,7 +440,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         if record_subsidiary_internal_id:
             subsidiary = {"internalId": record_subsidiary_internal_id}
         elif record.get("subsidiaryName"):
-            subsidiary = self._lookup_subsidiary(record["subsidiaryName"], context)
+            subsidiary = self._lookup_subsidiary(record["subsidiaryName"])
             if not subsidiary:
                 raise Exception(f"Subsidiary with name '{record['subsidiaryName']}' was not found.")
         elif len(subsidiaries)>1:
@@ -487,7 +487,7 @@ class netsuiteSoapV2Sink(HotglueSink):
                 # Get field type from reference data
                 field_type = entry.get("type")
                 if not field_type:
-                    field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, rest_post_method)
+                    field_type, value = self._get_custom_field_type_and_value(ns_id, value, rest_post_method)
                 
                 record_custom_fields.append({"type": field_type, "scriptId": ns_id, "value": value})
         if record_custom_fields:
@@ -495,7 +495,7 @@ class netsuiteSoapV2Sink(HotglueSink):
 
         return journal_entry
 
-    def process_customer_payment(self, context, record):
+    def process_customer_payment(self, record):
         # Get the currency ID
         if self.reference_data.get("Currencies") and record.get("currency"):
             currency_data = [
@@ -529,7 +529,7 @@ class netsuiteSoapV2Sink(HotglueSink):
         return journal_entry
 
 
-    def process_inbound_shipment(self, context, record):
+    def process_inbound_shipment(self, record):
         inbound_shipment = record
         inbound_shipment["internalId"] = record["id"]
 
