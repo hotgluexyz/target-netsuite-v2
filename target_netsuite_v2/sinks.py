@@ -94,7 +94,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
     def upsert_record(self, record, context):
         """Write out any prepped records and return once fully written."""
         self.logger.info(f"Posting data for entity {self.stream_name}")
-        if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment"]:
+        name = None
+        if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment", "customerpayments"]:
             if self.stream_name.lower() in ["journalentries", "journalentry"]:
                 name = "JournalEntry"
             else:
@@ -182,6 +183,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 response = self.rest_patch(url=url, json=record)
             else:
                 response = self.ns_client.entities["InboundShipment"].post(record)
+                name = "InboundShipment"
 
             self.logger.info(response)
 
@@ -230,7 +232,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url,json=record)
 
         if response:
-            record_id = self._extract_id_from_response_header(response.headers)
+            if name in ["JournalEntry", "CustomerPayment", "InboundShipment"]:
+                try:    
+                    record_id = response["internalId"]
+                except:
+                    raise Exception(f"Internal ID not found for {name}, response: {response}")
+            else:
+                record_id = self._extract_id_from_response_header(response.headers)
             return record_id, True, {}
         else:
             return None, True, {}
