@@ -4,6 +4,7 @@ from typing import Any
 
 
 from singer_sdk.plugin_base import PluginBase
+from lxml import etree
 from target_netsuite_v2.soap_client import netsuiteSoapV2Sink
 from target_netsuite_v2.rest_client import netsuiteRestV2Sink
 from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
@@ -55,6 +56,22 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         self.get_ns_client()
         self.reference_data = self.get_reference_data()
 
+    def _context_with_reference_data(self, context):
+        context["reference_data"] = self.reference_data
+        return context
+
+    def _extract_id_from_soap_response(self, response):
+        content = getattr(response, "content", None) or getattr(response, "text", "")
+        if not content:
+            return None
+        if isinstance(content, str):
+            content = content.encode()
+        root = etree.fromstring(content)
+        for element in root.iter():
+            if element.tag.endswith("baseRef"):
+                return element.get("internalId")
+        return None
+
     
     def post_item(self, record):
         ns = NetsuiteSoapClient(self.config)
@@ -74,6 +91,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
 
     def preprocess_record(self, record: dict, context: dict) -> None:
         """Process the record."""
+        context = self._context_with_reference_data(context)
         if self.stream_name.lower() in ["journalentries", "journalentry"]:
             journal_entry = self.process_journal_entry(context, record)
             return journal_entry
@@ -162,6 +180,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         self.logger.info(f"Posting data for entity {self.stream_name}")
         response = None
         name = None
+        record_id = None
+        context = self._context_with_reference_data(context)
 
         if self.stream_name.lower() in ["journalentries", "journalentry", "customerpayment"]:
             if self.stream_name.lower() in ["journalentries", "journalentry"]:
@@ -181,6 +201,19 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 response = self.rest_patch(url=f"{url}/{record.pop('id')}", json=record)
         elif self.stream_name.lower() in ["invoice", "invoices"]:
             url = f"{self.url_base}invoice"
+            if record.get("tranId"):
+                existing = self.rest_get(url=f"{url}?q=tranid IS {record['tranId']}").json()
+                if existing.get("count") > 0:
+                    record_id = existing["items"][0]["id"]
+                    if "item" in record:
+                        del record["item"]
+                    if "currency" in record:
+                        del record["currency"]
+                    response = self.rest_patch(url=f"{url}/{record_id}", json=record)
+                    state_update = {"existing": True}
+                    if self.config.get("output_record_url", False):
+                        state_update["record_url"] = self.get_record_url(record_id)
+                    return record_id, True, state_update
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["creditmemo","creditmemos"]:   
             endpoint = self.stream_name.lower()
@@ -222,7 +255,32 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             self.logger.info(response)
         elif self.stream_name.lower() in ['customer','customers']:
             url = f"{self.url_base}customer"
-            self.rest_post(url=url, json=record)
+            customer_subsidiary_relationships = record.pop("customerSubsidiaryRelationships", None)
+            record_id = record.pop("id", None)
+            if record_id:
+                response = self.rest_patch(url=f"{url}/{record_id}", json=record)
+                self.logger.info(f"Customer with id '{record_id}' updated")
+            else:
+                response = self.rest_post(url=url, json=record)
+                record_id = self._extract_id_from_response_header(response.headers)
+                self.logger.info(f"Customer with id '{record_id}' created")
+
+            if customer_subsidiary_relationships:
+                relationship_url = f"{self.url_base}customerSubsidiaryRelationship"
+                existing_relationship_objects = self.get_customer_subsidiary_relationships(record_id)
+                subsidiaries_already_linked = [
+                    relationship.get("subsidiary")
+                    for relationship in existing_relationship_objects
+                ]
+                for relationship in customer_subsidiary_relationships:
+                    if relationship.get("subsidiary", {}).get("id") in subsidiaries_already_linked:
+                        continue
+                    self.logger.info(
+                        f"Creating customer subsidiary relationship for customer {record_id} and subsidiary {relationship.get('subsidiary')}"
+                    )
+                    relationship["entity"] = {"id": record_id}
+                    relationship_response = self.rest_post(url=relationship_url, json=relationship)
+                    self.logger.info(relationship_response)
         elif self.stream_name.lower() in ['purchaseorder','purchaseorders']:
             url = f"{self.url_base}purchaseOrder"
 
@@ -242,8 +300,10 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                     record_id = response["internalId"]
                 except:
                     raise Exception(f"Internal ID not found for {name}, response: {response}")
+            elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
+                record_id = self._extract_id_from_soap_response(response)
             else:
-                record_id = self._extract_id_from_response_header(response.headers)
+                record_id = record_id or self._extract_id_from_response_header(response.headers)
             if self.config.get("output_record_url", False):
                 record_url = self.get_record_url(record_id)
                 state_update["record_url"] = record_url

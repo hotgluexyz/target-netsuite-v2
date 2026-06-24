@@ -279,8 +279,39 @@ class netsuiteRestV2Sink(HotglueSink):
     def rest_post(self, **kwarg):
         return self._request("post", **kwarg)
 
+    def rest_get(self, **kwarg):
+        return self._request("get", **kwarg)
+
     def rest_patch(self, **kwarg):
         return self._request("patch", log_response_text=True, **kwarg)
+
+    def get_customer_subsidiary_relationships(self, customer_id):
+        query = f"SELECT * FROM customerSubsidiaryRelationship WHERE entity = '{customer_id}'"
+        response = self.rest_post(url=self.url_suiteql, json={"q": query}).json()
+        return response.get("items", [])
+
+    def _fetch_all_custom_fields(self):
+        """Fetch custom field metadata used to type SOAP custom field values."""
+        try:
+            custom_fields_lookup = {}
+            rows = self.rest_suiteql_query(
+                "SELECT scriptid, name, fieldvaluetype, "
+                "BUILTIN.DF(FieldValueTypeRecord) AS fieldvaluetyperecordname "
+                "FROM customfield"
+            )
+            for field_data in rows:
+                script_id = field_data.get("scriptid")
+                if not script_id:
+                    continue
+                custom_fields_lookup[script_id.upper()] = {
+                    "fieldValueType": field_data.get("fieldvaluetype"),
+                    "fieldName": field_data.get("name"),
+                    "fieldValueTypeRecordName": field_data.get("fieldvaluetyperecordname"),
+                }
+            return custom_fields_lookup
+        except Exception as e:
+            self.logger.exception(f"Failed to fetch custom fields metadata: {e}")
+            return {}
     
     def get_base_url(self):
         if not hasattr(self._target, 'base_url'):
@@ -608,8 +639,10 @@ class netsuiteRestV2Sink(HotglueSink):
             invoice["tranId"] = record["invoiceNumber"]
 
         # Get the NetSuite Customer Ref
-        if record.get("customerName"):
-            customer_name = record['customerName']
+        if record.get("customerId"):
+            invoice["entity"] = {"id": record["customerId"]}
+        elif record.get("customerName"):
+            customer_name = record["customerName"]
             matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"')
 
             if len(matching_customers) == 0:
@@ -631,17 +664,27 @@ class netsuiteRestV2Sink(HotglueSink):
                 loc_data = loc_data[0]
                 location = {"id": loc_data.get("internalId")}
         else:
-            location = {"id": record.get("locationId", "2")}
+            location = {"id": record["locationId"]} if record.get("locationId") else None
 
-        invoice["Location"] = location
+        if location:
+            invoice["Location"] = location
 
         # Get the NetSuite Subsidiary Ref
-        if record.get("subsidiary"):
-            subsidiary_name = record.get("subsidiary")
-            matching_subs = self.rest_search("subsidiary", f'name IS "{subsidiary_name}"')
-
-            if len(matching_subs) > 0:
-                invoice["Subsidiary"] = {"id": matching_subs[0]}
+        if self.reference_data.get("Subsidiaries") and record.get("subsidiary"):
+            subsidiary = record["subsidiary"] if isinstance(record["subsidiary"], str) else str(record["subsidiary"]).split(".")[0]
+            sub_data = [
+                s
+                for s in self.reference_data["Subsidiaries"]
+                if s["internalId"] == subsidiary
+            ]
+            if not sub_data:
+                sub_data = [
+                    s
+                    for s in self.reference_data["Subsidiaries"]
+                    if s["name"] == subsidiary
+                ]
+            if sub_data:
+                invoice["Subsidiary"] = {"id": sub_data[0].get("internalId")}
 
         duedate = record.get("dueDate")
         if isinstance(duedate, str):
@@ -658,6 +701,11 @@ class netsuiteRestV2Sink(HotglueSink):
         if isinstance(startdate, str):
             startdate = parse(startdate)
             invoice["startdate"] = startdate.strftime("%Y-%m-%d")
+            invoice["tranDate"] = startdate.strftime("%Y-%m-%d")
+
+        if record.get("currency"):
+            invoice["currency"] = {"refName": record["currency"]}
+
         for line in record.get("lineItems", []):
             order_item = {}
 
@@ -678,14 +726,16 @@ class netsuiteRestV2Sink(HotglueSink):
                     order_item["item"] = {"id": matching_items[0]}
 
             order_item["quantity"] = line.get("quantity")
-            order_item["amount"] = line.get("quantity") * line.get("unitPrice")
-            order_item["Location"] = location
+            order_item["amount"] = line.get("totalPrice", line.get("quantity") * line.get("unitPrice"))
+            if location:
+                order_item["Location"] = location
             items.append(order_item)
         invoice["item"] = {"items": items}
         return invoice
 
     def invoice_payment(self, context, record):
-        invoice_id = record.get("invoice_id")
+        raw_record = record.copy()
+        invoice_id = record.get("transactionId", record.get("invoice_id", record.get("id")))
         url = f"https://{self.config['ns_account']}.suitetalk.api.netsuite.com/services/NetSuitePort_2025_1"
 
         oauth_creds = self.ns_client.ns_client._build_soap_headers()
@@ -723,6 +773,21 @@ class netsuiteRestV2Sink(HotglueSink):
         for r in record:
             if isinstance(r.text, str):
                 r.getparent().remove(r)
+
+        if raw_record.get("amount"):
+            payment_elem = etree.Element("{urn:customers_2025_1.transactions.webservices.netsuite.com}payment")
+            payment_elem.text = str(raw_record["amount"])
+            record.append(payment_elem)
+
+            apply_list = record.find(".//{urn:customers_2025_1.transactions.webservices.netsuite.com}applyList")
+            if apply_list is not None:
+                for apply_elem in apply_list.findall(".//{urn:customers_2025_1.transactions.webservices.netsuite.com}apply"):
+                    apply_value = apply_elem.find(".//{urn:customers_2025_1.transactions.webservices.netsuite.com}apply")
+                    if apply_value is not None and apply_value.text == "true":
+                        amount_elem = apply_elem.find(".//{urn:customers_2025_1.transactions.webservices.netsuite.com}amount")
+                        if amount_elem is not None:
+                            amount_elem.text = str(raw_record["amount"])
+                        break
 
         return etree.tostring(record, pretty_print=True)
 
@@ -971,23 +1036,26 @@ class netsuiteRestV2Sink(HotglueSink):
         return res
 
     def process_customer(self, context, record):
+        customers = self.reference_data.get("Customer") or self.reference_data.get("Customers") or []
         subsidiary = record.get("subsidiary")
-        contact_name = record.get("contactName", None)
+        sales_rep = record.get("ownerId")
+        first_name = None
+        last_name = None
 
-        if contact_name is None and record.get("companyName"):
-            contact_name = record.get("companyName")
-        
-        if contact_name is None and record.get("firstName"):
-            contact_name = f'{record.get("firstName")} {record.get("lastName")}'
-
-        if contact_name:
-            names = contact_name.split(" ")
+        if record.get("contactName"):
+            names = record.get("contactName").split(" ")
             if len(names) > 0:
                 first_name = names[0]
                 last_name = " ".join(names[1:])
             else:
                 first_name = names[0]
-                last_name = (" ",)
+                last_name = ""
+
+        if record.get("addresses") and isinstance(record["addresses"], str):
+            record["addresses"] = json.loads(record["addresses"])
+
+        if record.get("phoneNumbers") and isinstance(record["phoneNumbers"], str):
+            record["phoneNumbers"] = json.loads(record["phoneNumbers"])
 
         address_book = [
             {
@@ -998,7 +1066,7 @@ class netsuiteRestV2Sink(HotglueSink):
                     "city": address.get("city"),
                     "state": address.get("state"),
                     "zip": address.get("postalCode"),
-                    "country": address.get("country"),
+                    "country": {"refName": address.get("country").strip()},
                 }
             }
             for address in record.get("addresses", [])
@@ -1007,27 +1075,57 @@ class netsuiteRestV2Sink(HotglueSink):
         address = record.get("addresses")
         customer = {
             "companyName": record.get("customerName"),
-            "firstName": first_name,
-            "lastName": last_name,
             "email": record.get("emailAddress"),
             "phone": record.get("phoneNumbers")[0].get("number")
             if record.get("phoneNumbers")
             else None,
             "comments": record.get("notes"),
             "balance": record.get("balance"),
-            "datecreated": record.get("createdAt"),
-            "taxable": record.get("taxable"),
-            "isInactive": not record.get("active"),
-            "addressbook": {"items": address_book},
+            "dateCreated": record.get("createdAt"),
+            "isInactive": not record.get("active", True),
+            "addressBook": {"items": address_book},
             "defaultAddress": f"{address[0].get('line1')} {address[0].get('line2')} {address[0].get('line3')}, {address[0].get('city')} {address[0].get('postalCode')}, {address[0].get('state')}, {address[0].get('country')}"
             if address
             else None,
+            "externalId": record.get("id"),
+            "entityId": record.get("id"),
         }
+
+        existing_customer = [c for c in customers if c.get("entityId") == customer.get("entityId") and c.get("entityId")]
+        if not existing_customer:
+            existing_customer = [c for c in customers if c.get("externalId") == customer.get("externalId") and c.get("externalId")]
+        if existing_customer:
+            customer["id"] = existing_customer[0]["internalId"]
+
+        if first_name:
+            customer["firstName"] = first_name
+            customer["lastName"] = last_name
 
         if subsidiary:
             customer["subsidiary"] = {"id": subsidiary}
-        else:
-            customer["subsidiary"] = {"id": 1}
+
+        if record.get("additionalSubsidiaries"):
+            customer["customerSubsidiaryRelationships"] = [
+                {"subsidiary": {"id": s}} for s in record["additionalSubsidiaries"]
+            ]
+
+        if sales_rep:
+            customer["salesRep"] = {"id": sales_rep}
+        if record.get("currency"):
+            customer["currency"] = {"refName": record["currency"]}
+
+        if record.get("customFields"):
+            if isinstance(record["customFields"], str):
+                record["customFields"] = json.loads(record["customFields"])
+
+            for field in record.get("customFields"):
+                if field.get("name"):
+                    customer[field["name"]] = field["value"]
+                else:
+                    self.logger.info(f"Skipping custom field {field} because name is empty")
+
+        if "externalId" in customer and customer.get("externalId") is None:
+            customer.pop("externalId")
 
         return customer
 

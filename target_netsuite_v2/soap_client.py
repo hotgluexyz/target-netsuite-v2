@@ -36,6 +36,94 @@ class netsuiteSoapV2Sink(HotglueSink):
 
         return {v: k for (k, v) in result}
 
+    def get_by_fully_qualified_name(self, name, data):
+        if not name:
+            return None
+
+        parts = [part.strip() for part in name.split(":") if part.strip()]
+        if not parts:
+            return None
+
+        if len(parts) == 1:
+            for record in data:
+                if record.get("name") == parts[0]:
+                    return [record]
+            return None
+
+        by_internal_id = {
+            record["internalId"]: record
+            for record in data
+            if record.get("internalId")
+        }
+
+        def path_from_root(record):
+            path = []
+            current = record
+            visited = set()
+            while current:
+                internal_id = current.get("internalId")
+                if internal_id:
+                    if internal_id in visited:
+                        break
+                    visited.add(internal_id)
+                path.insert(0, current.get("name"))
+                parent = current.get("parent") or {}
+                if not isinstance(parent, dict):
+                    break
+                parent_id = parent.get("internalId")
+                if parent_id and parent_id in by_internal_id:
+                    current = by_internal_id[parent_id]
+                elif parent.get("name"):
+                    path.insert(0, parent.get("name"))
+                    break
+                else:
+                    break
+            return path
+
+        leaf_name = parts[-1]
+        for record in data:
+            if record.get("name") != leaf_name:
+                continue
+            if path_from_root(record) == parts:
+                return [record]
+        return None
+
+    def _lookup_subsidiary(self, subsidiary_name, context):
+        subsidiaries_ref = context["reference_data"].get("Subsidiaries") or []
+        if not subsidiaries_ref:
+            return None
+        match = next(
+            (
+                subsidiary
+                for subsidiary in subsidiaries_ref
+                if subsidiary.get("name") == subsidiary_name
+            ),
+            None,
+        )
+        if not match:
+            return None
+        return {
+            "name": match.get("name"),
+            "externalId": match.get("externalId"),
+            "internalId": match.get("internalId"),
+        }
+
+    def _get_custom_field_type_and_value(self, script_id, value, context, rest_post_method):
+        field_type_map = {
+            "Check Box": "Boolean",
+            "Date": "Date",
+            "Date/Time": "DateTime",
+            "Time Of Day": "Time",
+            "List/Record": "Select",
+        }
+        custom_fields = context.get("reference_data", {}).get("CustomFields", {})
+        custom_field = custom_fields.get(script_id.upper())
+
+        if not custom_field:
+            raise Exception(f"Error parsing custom field, scriptid '{script_id}' is not valid.")
+
+        return field_type_map.get(custom_field.get("fieldValueType", ""), "String"), value
+
     def get_ns_client(self):
         ns_account = self.config.get("ns_account")
         ns_consumer_key = self.config.get("ns_consumer_key")
@@ -165,7 +253,11 @@ class netsuiteSoapV2Sink(HotglueSink):
             self._check_exception(e, "Locations")
 
         try:
-            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive", "subsidiary"], page_size=100)
+            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(
+                ["companyName", "entityId", "externalId", "isInactive", "name", "subsidiary"],
+                page_size=100,
+            )
+            reference_data["Customer"] = reference_data["Customers"]
         except Exception as e:
             self._check_exception(e, "Customers")
 
@@ -193,6 +285,8 @@ class netsuiteSoapV2Sink(HotglueSink):
         except Exception as e:
             self._check_exception(e, "Subsidiaries")
 
+        reference_data["CustomFields"] = self._fetch_all_custom_fields()
+
         if self.config.get("snapshot_hours"):
             reference_data["write_date"] = datetime.utcnow().isoformat()
             os.makedirs("snapshots", exist_ok=True)
@@ -205,47 +299,78 @@ class netsuiteSoapV2Sink(HotglueSink):
         return reference_data
 
     def process_journal_entry(self, context, record):
+        context["reference_data"] = self.reference_data
         subsidiaries = {}
         line_items = []
-        for line in record.get("lines"):
+        for line in record.get("journalLines", record.get("lines", [])):
             journal_entry_line = {}
-            if line.get("accountNumber"):
-                if not self.reference_data.get("Accounts"):
-                    raise Exception("Accounts reference data not found.")
-                acct_num = str(line["accountNumber"])
-                acct_data = [a for a in self.reference_data["Accounts"] if a["acctNumber"] == acct_num]
-                if not acct_data:
-                    raise Exception(f"Account number '{acct_num}' is not valid for this netsuite account.")
-                acct_data = acct_data[0]
-                ref_acct = {
-                    "name": acct_data.get("acctName"),
-                    "externalId": acct_data.get("externalId"),
-                    "internalId": acct_data.get("internalId"),
-                }
-                journal_entry_line = {"account": ref_acct}
 
-                # Extract the subsidiaries from Account
-                if line.get("subsidiary"):
-                    subsidiary = dict(name=None, internalId=line.get("subsidiary"), externalId=None, type=None)
+            if self.reference_data.get("Accounts"):
+                acct_data = None
+                if line.get("accountId"):
+                    acct_data = [
+                        a
+                        for a in self.reference_data["Accounts"]
+                        if a["internalId"] == line["accountId"]
+                    ]
+                elif line.get("accountNumber") and not line.get("accountId"):
+                    acct_num = str(line["accountNumber"])
+                    acct_data = [
+                        a
+                        for a in self.reference_data["Accounts"]
+                        if a["acctNumber"] == acct_num
+                    ]
+
+                if not acct_data:
+                    raise Exception(
+                        f"AccountId '{line.get('accountId')}' and/or accountNumber {line.get('accountNumber')} were not provided or not valid."
+                    )
+
+                acct_data = acct_data[0]
+                journal_entry_line = {
+                    "account": {
+                        "name": acct_data.get("acctName"),
+                        "externalId": acct_data.get("externalId"),
+                        "internalId": acct_data.get("internalId"),
+                    }
+                }
+
+                subsidiary_internal_id = line.get("subsidiary") or line.get("subsidiaryId")
+                if subsidiary_internal_id:
+                    subsidiary = {
+                        "name": None,
+                        "internalId": subsidiary_internal_id,
+                        "externalId": None,
+                        "type": None,
+                    }
+                elif line.get("subsidiaryName"):
+                    subsidiary = self._lookup_subsidiary(line["subsidiaryName"], context)
+                    if not subsidiary:
+                        raise Exception(f"Subsidiary with name '{line['subsidiaryName']}' was not found.")
                 else:
-                    subsidiary = acct_data['subsidiaryList']
+                    subsidiary = acct_data["subsidiaryList"]
                     if subsidiary:
                         subsidiary = subsidiary[0]
+                    else:
+                        raise Exception(
+                            f"No subsidiary was provided for line {line} and account subsidiaries couldn't be fetched because of missing permission."
+                        )
                 if subsidiary:
                     if line["postingType"].lower() == "credit":
                         subsidiaries["toSubsidiary"] = subsidiary
                     elif line["postingType"].lower() == "debit":
                         subsidiaries["subsidiary"] = subsidiary
                     else:
-                        raise('Posting Type must be "credit" or "debit"')
+                        raise Exception('Posting Type must be "credit" or "debit"')
+            else:
+                raise Exception("We failed to fetch Accounts from NetSuite. Please validate permissions.")
 
-            # Get the NetSuite Class Ref
             if self.reference_data.get("Classifications") and line.get("className"):
                 class_names = [c["name"] for c in self.reference_data["Classifications"]]
                 class_name = self.get_close_matches(line["className"], class_names)
                 if class_name:
                     class_name = max(class_name, key=class_name.get)
-                    class_data = [c for c in self.reference_data["Classifications"] if c["name"]==class_name]
+                    class_data = [c for c in self.reference_data["Classifications"] if c["name"] == class_name]
                     if class_data:
                         class_data = class_data[0]
                         journal_entry_line["class"] = {
@@ -254,26 +379,29 @@ class netsuiteSoapV2Sink(HotglueSink):
                             "internalId": class_data.get("internalId"),
                         }
 
-            # Get the NetSuite Department Ref
-            if self.reference_data.get("Departments") and line.get("department"):
-                dept_names = [d["name"] for d in self.reference_data["Departments"]]
-                dept_name = self.get_close_matches(line["department"], dept_names)
-                if dept_name:
-                    dept_name = max(dept_name, key=dept_name.get)
-                    dept_data = [d for d in self.reference_data["Departments"] if d["name"] == dept_name]
-                    if dept_data:
-                        dept_data = dept_data[0]
-                        journal_entry_line["department"] = {
-                            "name": dept_data.get("name"),
-                            "externalId": dept_data.get("externalId"),
-                            "internalId": dept_data.get("internalId"),
-                        }
+            department_name = line.get("departmentName") or line.get("department")
+            if self.reference_data.get("Departments") and department_name:
+                dept_data = self.get_by_fully_qualified_name(department_name, self.reference_data["Departments"])
+                if not dept_data:
+                    dept_names = [d["name"] for d in self.reference_data["Departments"]]
+                    dept_name = self.get_close_matches(department_name, dept_names)
+                    if dept_name:
+                        dept_name = max(dept_name, key=dept_name.get)
+                        dept_data = [d for d in self.reference_data["Departments"] if d["name"] == dept_name]
 
-            # Get the NetSuite Location Ref
+                if dept_data:
+                    dept_data = dept_data[0]
+                    journal_entry_line["department"] = {
+                        "name": dept_data.get("name"),
+                        "externalId": dept_data.get("externalId"),
+                        "internalId": dept_data.get("internalId"),
+                    }
+
+            location_name = line.get("locationName") or line.get("location")
             if line.get("locationId"):
                 journal_entry_line["location"] = {"internalId": line.get("locationId")}
-            elif self.reference_data.get("Locations") and line.get("location"):
-                loc_data = [l for l in self.reference_data["Locations"] if l["name"] == line["location"]]
+            elif self.reference_data.get("Locations") and location_name:
+                loc_data = [l for l in self.reference_data["Locations"] if l["name"] == location_name]
                 if loc_data:
                     loc_data = loc_data[0]
                     journal_entry_line["location"] = {
@@ -282,44 +410,76 @@ class netsuiteSoapV2Sink(HotglueSink):
                         "internalId": loc_data.get("internalId"),
                     }
 
-            # Get the NetSuite Customer Ref
-            if line.get("customerName"):
-                customer_name = line['customerName']
-                matching_customers = self.rest_search("customer", f'companyName IS "{customer_name}"', expand=True)
+            customers = self.reference_data.get("Customer") or self.reference_data.get("Customers") or []
+            if customers:
+                customer_data = []
+                if line.get("customerId"):
+                    customer_data = [c for c in customers if c["internalId"] == line["customerId"]]
+                if line.get("customerName") and not customer_data:
+                    customer_data = [c for c in customers if c.get("entityId") == line["customerName"]]
+                    if not customer_data:
+                        customer_names = []
+                        for c in customers:
+                            if "name" in c and c["name"]:
+                                customer_names.append(c["name"])
+                            elif c.get("companyName"):
+                                customer_names.append(c["companyName"])
+                        customer_name = self.get_close_matches(line["customerName"], customer_names, n=2, cutoff=0.95)
+                        if customer_name:
+                            customer_name = max(customer_name, key=customer_name.get)
+                            customer_data = [
+                                c
+                                for c in customers
+                                if c.get("name") == customer_name or c.get("companyName") == customer_name
+                            ]
 
-                if len(matching_customers) == 0:
-                    first_name = customer_name.split(" ")[0]
-                    last_name = customer_name.split(" ")[-1]
-                    matching_customers = self.rest_search("customer", f'firstName CONTAIN "{first_name}" AND lastName CONTAIN "{last_name}"', expand=True)
-
-                if len(matching_customers) > 0:
-                    customer_data = matching_customers[0]
+                if customer_data:
+                    customer_data = customer_data[0]
                     journal_entry_line["entity"] = {
                         "externalId": customer_data.get("externalId"),
                         "internalId": customer_data.get("internalId"),
                     }
 
-            # Check the Posting Type and insert the Amount
             amount = 0 if not line["amount"] else abs(round(line["amount"], 2))
             if line["postingType"].lower() == "credit":
                 journal_entry_line["credit"] = amount
             elif line["postingType"].lower() == "debit":
                 journal_entry_line["debit"] = amount
 
-            # Insert the Journal Entry to the memo field
-            if "description" in line.keys():
+            if "description" in line:
                 journal_entry_line["memo"] = line["description"]
 
+            custom_field_values = []
             if line.get("asset"):
-                journal_entry_line["customFieldList"] = [{"type": "Select", "scriptId": "custcol_far_trn_relatedasset", "value": line["asset"]}]
+                custom_field_values.append({"type": "Select", "scriptId": "custcol_far_trn_relatedasset", "value": line["asset"]})
+
+            custom_fields = line.get("customFields") or []
+            if isinstance(custom_fields, str):
+                custom_fields = json.loads(custom_fields)
+            if not isinstance(custom_fields, list):
+                raise Exception(f"Invalid customFields. Expecting a list of name/value pairs. Received: {custom_fields}")
+
+            for entry in custom_fields:
+                value = entry.get("value")
+                ns_id = entry.get("name")
+                if value is not None:
+                    field_type = entry.get("type")
+                    if not field_type:
+                        field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, self.rest_post)
+                    custom_field_values.append({"type": field_type, "scriptId": ns_id, "value": value})
+
+            if custom_field_values:
+                journal_entry_line["customFieldList"] = custom_field_values
 
             line_items.append(journal_entry_line)
 
-        # Get the currency ID
+        if record.get("currency") and not self.reference_data.get("Currencies"):
+            raise Exception("A currency was provided in the payload, but we failed to fetch Currencies from NetSuite. Please validate permissions.")
+
         if self.reference_data.get("Currencies") and record.get("currency"):
             currency_data = [
                 c for c in self.reference_data["Currencies"] if c["symbol"] == record["currency"]
-                ]
+            ]
             if currency_data:
                 currency_data = currency_data[0]
                 currency_ref = {
@@ -327,34 +487,56 @@ class netsuiteSoapV2Sink(HotglueSink):
                     "externalId": currency_data.get("externalId"),
                     "internalId": currency_data.get("internalId"),
                 }
+            else:
+                currency_ref = None
         else:
             currency_ref = None
 
-        # Check if subsidiary is duplicated and delete toSubsidiary if true
         subsidiary = None
-        if record.get("subsidiary"):
-            subsidiary = {"internalId": record["subsidiary"]}
-        elif len(subsidiaries)>1:
-            if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
-                subsidiary = subsidiaries['subsidiary']
+        record_subsidiary_internal_id = record.get("subsidiary") or record.get("subsidiaryId")
+        if record_subsidiary_internal_id:
+            subsidiary = {"internalId": record_subsidiary_internal_id}
+        elif record.get("subsidiaryName"):
+            subsidiary = self._lookup_subsidiary(record["subsidiaryName"], context)
+            if not subsidiary:
+                raise Exception(f"Subsidiary with name '{record['subsidiaryName']}' was not found.")
+        elif len(subsidiaries) > 1 and subsidiaries["subsidiary"] == subsidiaries["toSubsidiary"]:
+            subsidiary = subsidiaries["subsidiary"]
 
-        if "transactionDate" in record.keys():
-            created_date = parse(record["transactionDate"])
-        else:
-            created_date = None
-
-        # Create the journal entry
+        created_date = parse(record["transactionDate"]) if "transactionDate" in record else None
         journal_entry = {
             "createdDate": created_date,
             "tranDate": created_date,
-            "externalId": record["id"],
             "lineList": line_items,
             "currency": currency_ref,
-            "subsidiary": subsidiary
+            "subsidiary": subsidiary,
         }
 
-        if "journalDesc" in record.keys():
+        if record.get("id"):
+            journal_entry["externalId"] = record["id"]
+        else:
+            raise Exception(f"Invalid Journal Entry: id is a required field. {record}")
+
+        if "journalDesc" in record:
             journal_entry["memo"] = "" if not record["journalDesc"] else record["journalDesc"]
+
+        record_custom_fields = []
+        custom_fields = record.get("customFields") or []
+        if isinstance(custom_fields, str):
+            custom_fields = json.loads(custom_fields)
+        if not isinstance(custom_fields, list):
+            raise Exception(f"Invalid customFields. Expecting a list of name/value pairs. Received: {custom_fields}")
+
+        for entry in custom_fields:
+            value = entry.get("value")
+            ns_id = entry.get("name")
+            if value is not None:
+                field_type = entry.get("type")
+                if not field_type:
+                    field_type, value = self._get_custom_field_type_and_value(ns_id, value, context, self.rest_post)
+                record_custom_fields.append({"type": field_type, "scriptId": ns_id, "value": value})
+        if record_custom_fields:
+            journal_entry["customFieldList"] = record_custom_fields
 
         return journal_entry
 
