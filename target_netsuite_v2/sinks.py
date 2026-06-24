@@ -3,6 +3,7 @@
 from singer_sdk.plugin_base import PluginBase
 from target_netsuite_v2.soap_client import netsuiteSoapV2Sink
 from target_netsuite_v2.rest_client import netsuiteRestV2Sink
+import xmltodict
 
 
 class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
@@ -170,10 +171,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url, json=record)
         elif self.stream_name.lower() in ["invoicepayment","invoicepayments"]:
             response = self.push_payments(record)
+            name = "InvoicePayment"
         elif self.stream_name.lower() in ["vendorpayment","vendorpayments", "billpayment", "billpayments"]:
             response = self.push_vendor_payments(record)
+            name = "VendorPayment"
         elif self.stream_name in ["PurchaseOrderToVendorBill"]:
             response = self.po_to_vb(record)
+            name = "VendorBill"
         elif self.stream_name.lower() in ['inboundshipment','inboundshipments']:
             if record.get("id"):
                 endpoint="inboundShipment"
@@ -232,11 +236,13 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
             response = self.rest_post(url=url,json=record)
 
         if response:
-            if name in ["JournalEntry", "CustomerPayment", "InboundShipment"]:
-                try:    
+            try:
+                if name in ["JournalEntry", "CustomerPayment", "InboundShipment"]:
                     record_id = response["internalId"]
-                except:
-                    raise Exception(f"Internal ID not found for {name}, response: {response}")
+                elif name in ["InvoicePayment", "VendorPayment", "VendorBill"]:
+                    record_id = xmltodict.parse(response.text)["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]["@internalId"]
+            except:
+                raise Exception(f"Internal ID not found for {name}, response: {response}")
             else:
                 record_id = self._extract_id_from_response_header(response.headers)
             return record_id, True, {}
