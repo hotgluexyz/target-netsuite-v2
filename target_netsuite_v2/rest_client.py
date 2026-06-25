@@ -14,12 +14,6 @@ import xmltodict
 class netsuiteRestV2Sink(HotglueSink):
     """netsuite-v2 target sink class."""
 
-    def _extract_id_from_response_header(self, headers):
-        location = headers.get("Location")
-        #example 'Location': 'https://{ns_account}.suitetalk.api.netsuite.com/services/rest/record/v1/customer/{id}'
-        if not location:
-            return None
-        return location.split("/")[-1]
 
     @property
     def url_account(self) -> str:

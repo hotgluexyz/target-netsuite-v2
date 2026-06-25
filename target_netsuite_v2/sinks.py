@@ -213,8 +213,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                         continue
                     self.logger.info(f"Creating customer subsidiary relationship for customer {id} and subsidiary {relationship.get('subsidiary')}")
                     relationship["entity"] = {"id": id}
-                    response = self.rest_post(url=relationship_url, json=relationship)
-                    self.logger.info(response)
+                    relationship_response = self.rest_post(url=relationship_url, json=relationship)
+                    self.logger.info(relationship_response)
 
 
         elif self.stream_name.lower() in ['item','items']:
@@ -242,7 +242,8 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
                 elif name in ["InvoicePayment", "VendorPayment", "VendorBill"]:
                     record_id = xmltodict.parse(response.text)["soapenv:Envelope"]["soapenv:Body"]["addResponse"]["writeResponse"]["baseRef"]["@internalId"]
                 else:
-                    record_id = self._extract_id_from_response_header(response.headers)
+                    #example 'Location': 'https://{ns_account}.suitetalk.api.netsuite.com/services/rest/record/v1/customer/{id}'
+                    record_id = response.headers["Location"].split("/")[-1] 
             except:
                 raise Exception(f"Internal ID not found for {name if name else self.stream_name.lower()}, response: {response}")
             
