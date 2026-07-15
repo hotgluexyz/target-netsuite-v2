@@ -1511,9 +1511,12 @@ class netsuiteRestV2Sink(BatchSink):
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            
-            if not matching_item and record.get("id"):
-                raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")        
+            elif record.get("id"):
+                # No NetSuite match: create via POST (sinks.py posts when id is absent)
+                lookup = ", ".join(f"{k}='{record.get(k)}'" for k in ("id", "itemId") if record.get(k))
+                self.logger.info(f"No NetSuite item match for {lookup}; creating via POST.")
+                payload.pop("id")
+                payload["itemId"] = record.get("id")
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
         if isinstance(subsidiary, str):
@@ -1584,9 +1587,12 @@ class netsuiteRestV2Sink(BatchSink):
             if matching_item:
                 payload["id"] = matching_item.get("internalId")
                 payload["itemId"] = matching_item.get("itemId")
-            
-            if not matching_item and record.get("id"):
-                raise Exception(f"Item with id '{record.get('id')}' was not found in netsuite.")
+            elif record.get("id"):
+                # No NetSuite match: create via POST (sinks.py posts when id is absent)
+                lookup = ", ".join(f"{k}='{record.get(k)}'" for k in ("id", "itemId") if record.get(k))
+                self.logger.info(f"No NetSuite item match for {lookup}; creating via POST.")
+                payload.pop("id")
+                payload["itemId"] = record.get("id")
 
         if record.get("isBillItem"):
             cogsAccount = json.loads(record.get("billItem"))
