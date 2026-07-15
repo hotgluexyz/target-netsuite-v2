@@ -1513,6 +1513,8 @@ class netsuiteRestV2Sink(BatchSink):
                 payload["itemId"] = matching_item.get("itemId")
             elif record.get("id"):
                 # No NetSuite match: create via POST (sinks.py posts when id is absent)
+                lookup = ", ".join(f"{k}='{record.get(k)}'" for k in ("id", "itemId") if record.get(k))
+                self.logger.info(f"No NetSuite item match for {lookup}; creating via POST.")
                 payload.pop("id")
                 payload["itemId"] = record.get("id")
         
@@ -1587,6 +1589,8 @@ class netsuiteRestV2Sink(BatchSink):
                 payload["itemId"] = matching_item.get("itemId")
             elif record.get("id"):
                 # No NetSuite match: create via POST (sinks.py posts when id is absent)
+                lookup = ", ".join(f"{k}='{record.get(k)}'" for k in ("id", "itemId") if record.get(k))
+                self.logger.info(f"No NetSuite item match for {lookup}; creating via POST.")
                 payload.pop("id")
                 payload["itemId"] = record.get("id")
 
