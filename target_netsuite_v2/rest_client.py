@@ -1514,6 +1514,7 @@ class netsuiteRestV2Sink(BatchSink):
             elif record.get("id"):
                 # No NetSuite match: create via POST (sinks.py posts when id is absent)
                 payload.pop("id")
+                payload["itemId"] = record.get("id")
         
         subsidiary = record.get("subsidiary", record.get("subsidiaryId"))
         if isinstance(subsidiary, str):
@@ -1587,6 +1588,7 @@ class netsuiteRestV2Sink(BatchSink):
             elif record.get("id"):
                 # No NetSuite match: create via POST (sinks.py posts when id is absent)
                 payload.pop("id")
+                payload["itemId"] = record.get("id")
 
         if record.get("isBillItem"):
             cogsAccount = json.loads(record.get("billItem"))
