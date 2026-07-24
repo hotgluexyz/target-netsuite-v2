@@ -20,6 +20,8 @@ from zeep.helpers import serialize_object
 from zeep.transports import Transport
 import json
 
+from target_netsuite_v2.utils import format_ns_account_for_header
+
 
 class NetsuiteSoapClient:
     """Stream class for Netsuite streams."""
@@ -63,7 +65,7 @@ class NetsuiteSoapClient:
         consumer_secret = self.config["ns_consumer_secret"]
         token_key = self.config["ns_token_key"]
         token_secret = self.config["ns_token_secret"]
-        account = self.config["ns_account"]
+        account = format_ns_account_for_header(self.config["ns_account"])
 
         nonce = "".join([str(random.randint(0, 9)) for _ in range(20)])
         timestamp = str(int(datetime.now().timestamp()))
