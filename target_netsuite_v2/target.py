@@ -1,7 +1,7 @@
 """netsuite-v2 target class."""
 
-from singer_sdk import typing as th
-from target_hotglue.target import TargetHotglue
+from hotglue_singer_sdk import typing as th
+from hotglue_singer_sdk.target_sdk.target import TargetHotglue
 
 from target_netsuite_v2.sinks import (
     netsuiteV2Sink,

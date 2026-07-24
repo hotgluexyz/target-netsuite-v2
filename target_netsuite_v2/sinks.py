@@ -1,6 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-from singer_sdk.plugin_base import PluginBase
+from hotglue_singer_sdk.plugin_base import PluginBase
 from target_netsuite_v2.soap_client import netsuiteSoapV2Sink
 from target_netsuite_v2.rest_client import netsuiteRestV2Sink
 import xmltodict

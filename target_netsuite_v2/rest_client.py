@@ -1,6 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-from target_hotglue.sinks import HotglueSink
+from hotglue_singer_sdk.target_sdk.client import HotglueSink
 import requests
 from oauthlib import oauth1
 from requests_oauthlib import OAuth1

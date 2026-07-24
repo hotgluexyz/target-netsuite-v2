@@ -1,6 +1,6 @@
 """netsuite-v2 target sink class, which handles writing streams."""
 
-from target_hotglue.sinks import HotglueSink
+from hotglue_singer_sdk.target_sdk.client import HotglueSink
 from target_netsuite_v2.netsuite import NetSuite
 from target_netsuite_v2.constants import STANDARD_NETSUITE_OBJECTS_MAP, STANDARD_NETSUITE_OBJECTS_SELECT_MAP
 from netsuitesdk.internal.exceptions import NetSuiteRequestError
