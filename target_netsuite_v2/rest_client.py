@@ -8,7 +8,11 @@ from requests_oauthlib import OAuth1
 from pendulum import parse
 import json
 from lxml import etree
-from target_netsuite_v2.utils import coerce_numeric_value, format_date
+from target_netsuite_v2.utils import (
+    coerce_numeric_value,
+    format_date,
+    format_ns_account_for_header,
+)
 
 # NetSuite "Invalid Field Value" pattern: e.g. "Invalid Field Value 20685 for the following field: customer"
 _INVALID_FIELD_VALUE_RE = re.compile(
@@ -169,7 +173,7 @@ class netsuiteRestV2Sink(HotglueSink):
             client_secret=self.config["ns_consumer_secret"],
             resource_owner_key=self.config["ns_token_key"],
             resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
+            realm=format_ns_account_for_header(self.config["ns_account"]),
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
@@ -255,7 +259,7 @@ class netsuiteRestV2Sink(HotglueSink):
             client_secret=self.config["ns_consumer_secret"],
             resource_owner_key=self.config["ns_token_key"],
             resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
+            realm=format_ns_account_for_header(self.config["ns_account"]),
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 
@@ -928,7 +932,7 @@ class netsuiteRestV2Sink(HotglueSink):
             client_secret=self.config["ns_consumer_secret"],
             resource_owner_key=self.config["ns_token_key"],
             resource_owner_secret=self.config["ns_token_secret"],
-            realm=self.config["ns_account"],
+            realm=format_ns_account_for_header(self.config["ns_account"]),
             signature_method=oauth1.SIGNATURE_HMAC_SHA256,
         )
 

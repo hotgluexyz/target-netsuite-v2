@@ -7,6 +7,10 @@ def coerce_numeric_value(record, fields):
             record[key] = float(value)
     return record
 
+def format_ns_account_for_header(ns_account):
+    """Normalize account id for OAuth realm / SOAP token passport (e.g. 123-sb1 -> 123_SB1)."""
+    return ns_account.replace("-", "_").upper()
+
 def format_date(date):
     if isinstance(date, str):
         date = parse(date)
