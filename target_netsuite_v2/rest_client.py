@@ -380,7 +380,7 @@ class netsuiteRestV2Sink(HotglueSink):
         
         if not sale_order.get("location") and record.get('subsidiary_id') and self.reference_data.get("Locations"):
             for location in self.reference_data["Locations"]:
-                for subsidiary in location.get("subsidiaryList", []):
+                for subsidiary in location.get("subsidiaryList") or []:
                     if str(record.get('subsidiary_id')) == subsidiary["internalId"]:
                         sale_order["location"] = {"id": location["internalId"]}
         
