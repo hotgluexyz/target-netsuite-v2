@@ -61,7 +61,7 @@ class netsuiteSoapV2Sink(HotglueSink):
     def _check_exception(self, exception, stream_name):
         exception_string = exception.__str__()
                 
-        if "INSUFFICIENT_PERMISSION" in exception_string or "Your current role does not have permission to perform this action" in exception_string:
+        if "INSUFFICIENT_PERMISSION" in exception_string or "Your current role does not have permission to perform this action" in exception_string or "was not found" in exception_string:
             self.logger.warning(f"Insufficient permissions to access content for {stream_name}. Skipping...")
             return
 
