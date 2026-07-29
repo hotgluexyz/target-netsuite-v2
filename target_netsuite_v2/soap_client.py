@@ -3,17 +3,15 @@
 from target_hotglue.sinks import HotglueSink
 from target_netsuite_v2.netsuite import NetSuite
 from target_netsuite_v2.zeep_soap_client import NetsuiteSoapClient
+from target_netsuite_v2.reference_data_store import ReferenceDataStore
 
-from netsuitesdk.internal.exceptions import NetSuiteRequestError
 import json
-import os
 import requests
 import base64
 
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
 from pendulum import parse
-from datetime import datetime
 
 class netsuiteSoapV2Sink(HotglueSink):
     """netsuite-v2 target sink class."""
@@ -111,98 +109,10 @@ class netsuiteSoapV2Sink(HotglueSink):
         
         return attachments_ids
 
-    def get_reference_data(self):
-        if self._target.reference_data:
-            return self._target.reference_data
-        
-        if self.config.get("snapshot_hours"):
-            try:
-                with open(f'{self.config.get("snapshot_dir", "snapshots")}/reference_data.json') as json_file:
-                    reference_data = json.load(json_file)
-                    if reference_data.get("write_date"):
-                        last_run = parse(reference_data["write_date"])
-                        last_run = last_run.replace(tzinfo=None)
-                        if (datetime.utcnow()-last_run).total_hours()<int(self.config.get("snapshot_hours")):
-                            return reference_data
-            except:
-                self.logger.info(f"Snapshot not found or not readable.")
-
-        self.logger.info(f"Reading data from API...")
-        reference_data = {}
-
-        try:
-            reference_data["Classifications"] = self.ns_client.entities["Classifications"].get_all(["name"])
-        except Exception as e:
-            self._check_exception(e, "Classifications")
-
-        try:
-            reference_data["Currencies"] = self.ns_client.entities["Currencies"].get_all()
-        except Exception as e:
-            self._check_exception(e, "Currencies")
-        
-        try:
-            reference_data["Departments"] = self.ns_client.entities["Departments"].get_all(["name"])
-        except Exception as e:
-            self._check_exception(e, "Departments")
-
-        try:
-            reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
-        except Exception as e:
-            if "You need  the 'Lists -> Documents and Files' permission" in str(e):
-                self.logger.info(f"Permissions for Documents and Files missing. Attempting to get Accounts with body_fields_only=True")
-                reference_data["Accounts"] = self.ns_client.entities["Accounts"](self.ns_client.ns_client, body_fields_only=True).get_all(["acctName", "acctNumber", "subsidiaryList", "acctType", "class", "department", "isInactive", "location"], page_size=100)
-                self.ns_client.ns_client._search_preferences.bodyFieldsOnly = False
-            else:
-                self._check_exception(e, "Accounts")
-
-        try:
-            reference_data["Locations"] = self.ns_client.entities["Locations"].get_all(["name", "subsidiaryList", "isInactive"], page_size=100)
-            self.logger.info(f"Locations: {reference_data['Locations']}")
-        except NetSuiteRequestError as e:
-            message = e.message.replace("error", "failure").replace("Error", "")
-            self.logger.warning(f"It was not possible to retrieve Locations data: {message}")
-        except Exception as e:
-            self._check_exception(e, "Locations")
-
-        try:
-            reference_data["Customers"] = self.ns_client.entities["Customer"](self.ns_client.ns_client).get_all(["companyName", "isInactive", "subsidiary"], page_size=100)
-        except Exception as e:
-            self._check_exception(e, "Customers")
-
-        try:
-            self.logger.info("Fetching Jobs via REST SuiteQL...")
-            reference_data["Jobs"] = self.get_reference_jobs_rest()
-        except Exception as e:
-            self._check_exception(e, "Jobs")
-
-        try:
-            self.logger.info("Fetching Vendors via REST SuiteQL...")
-            reference_data["Vendors"] = self.get_reference_vendors_rest()
-        except Exception as e:
-            self._check_exception(e, "Vendors")
-        
-        if "Vendors" not in reference_data:
-            try:
-                self.logger.info("Fetching Vendors via SOAP")
-                reference_data["Vendors"] = self.ns_client.entities["Vendors"].get_all(["companyName", "firstName", "lastName", "altName", "isInactive", "externalId","name", "subsidiary"], page_size=100)
-            except Exception as e:
-                self._check_exception(e, "Vendors")
-
-        try:
-            reference_data["Subsidiaries"] = self.ns_client.entities["Subsidiaries"].get_all(["name"], page_size=100)
-        except Exception as e:
-            self._check_exception(e, "Subsidiaries")
-
-        if self.config.get("snapshot_hours"):
-            reference_data["write_date"] = datetime.utcnow().isoformat()
-            os.makedirs("snapshots", exist_ok=True)
-            with open('snapshots/reference_data.json', 'w') as outfile:
-                json.dump(reference_data, outfile)
-
-
-        # Cache reference data in target
-        self._target.reference_data = reference_data
-        return reference_data
+    def init_reference_data(self):
+        if self._target.reference_data is None:
+            self._target.reference_data = ReferenceDataStore(self)
+        self.reference_data = self._target.reference_data
 
     def process_journal_entry(self, context, record):
         subsidiaries = {}
@@ -436,7 +346,7 @@ class netsuiteSoapV2Sink(HotglueSink):
             cost = cogsAccount.get('unitPrice')
             accountName = cogsAccount.get('accountName')
             id = cogsAccount.get('accountId')
-            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), context['reference_data']['Accounts']))[0]
+            account = list(filter(lambda x: get_account_by_name_or_id(x,accountName,id), self.reference_data["Accounts"]))[0]
             item.costEstimate = cost
             item.cogsAccount = RecordRef(internalId = account['internalId'])
         
@@ -455,7 +365,7 @@ class netsuiteSoapV2Sink(HotglueSink):
             id = invoiceAccount.get('accountId')
             if accountName or id:
                 try:
-                    account = list(filter(lambda x: get_account_by_name_or_id(x, accountName, id), context['reference_data']['Accounts']))[0]
+                    account = list(filter(lambda x: get_account_by_name_or_id(x, accountName, id), self.reference_data["Accounts"]))[0]
                     item.incomeAccount = RecordRef(internalId=account['internalId'])
                 except IndexError:
                     self.logger.error(f"Account not found for {accountName} or {id}")
