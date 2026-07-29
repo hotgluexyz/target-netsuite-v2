@@ -133,6 +133,11 @@ class netsuiteRestV2Sink(HotglueSink):
 
         labels_checked = []
         for ref_key, label in ref_keys_and_labels:
+            if hasattr(ref_data, "load_succeeded"):
+                if not ref_data.load_succeeded(ref_key):
+                    continue
+            elif ref_key not in ref_data:
+                continue
             labels_checked.append(label.lower())
             ref_entry = self._find_ref_entry(ref_data, ref_key, value_id)
             if ref_entry is None:

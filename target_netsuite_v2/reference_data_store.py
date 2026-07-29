@@ -10,6 +10,7 @@ class ReferenceDataStore:
         self._sink = sink
         self._data = {}
         self._loading = set()
+        self._failed_keys = set()
 
     def get(self, key, default=None):
         self._ensure_loaded(key)
@@ -25,14 +26,22 @@ class ReferenceDataStore:
         self._ensure_loaded(key)
         return key in self._data
 
+    def load_succeeded(self, key):
+        """Return True if the table was fetched successfully (may be empty)."""
+        self._ensure_loaded(key)
+        return key in self._data
+
     def _ensure_loaded(self, key):
-        if key in self._data or key in self._loading:
+        if key in self._data or key in self._loading or key in self._failed_keys:
             return
         self._loading.add(key)
         try:
             self._sink.logger.info(f"Loading reference data for {key}...")
             rows = self._fetch(key)
-            self._data[key] = rows if rows is not None else []
+            if rows is not None:
+                self._data[key] = rows
+            else:
+                self._failed_keys.add(key)
         finally:
             self._loading.discard(key)
 
@@ -157,9 +166,7 @@ class ReferenceDataStore:
     def _load_vendors(self):
         try:
             self._sink.logger.info("Fetching Vendors via REST SuiteQL...")
-            vendors = self._sink.get_reference_vendors_rest()
-            if vendors:
-                return vendors
+            return self._sink.get_reference_vendors_rest()
         except Exception as e:
             self._sink._check_exception(e, "Vendors")
 
