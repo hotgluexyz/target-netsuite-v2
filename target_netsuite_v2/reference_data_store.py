@@ -22,6 +22,7 @@ class ReferenceDataStore:
         return self._data[key]
 
     def __contains__(self, key):
+        self._ensure_loaded(key)
         return key in self._data
 
     def _ensure_loaded(self, key):
@@ -31,8 +32,7 @@ class ReferenceDataStore:
         try:
             self._sink.logger.info(f"Loading reference data for {key}...")
             rows = self._fetch(key)
-            if rows is not None:
-                self._data[key] = rows
+            self._data[key] = rows if rows is not None else []
         finally:
             self._loading.discard(key)
 
