@@ -447,8 +447,9 @@ class netsuiteSoapV2Sink(BatchSink):
             if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
                 subsidiary = subsidiaries['subsidiary']
 
-        if "transactionDate" in record.keys():
-            created_date = parse(record["transactionDate"])
+        if record.get("transactionDate"):
+            parsed = parse(record["transactionDate"])
+            created_date = datetime(parsed.year, parsed.month, parsed.day)
         else:
             created_date = None
 
