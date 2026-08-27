@@ -15,6 +15,8 @@ from heapq import nlargest as _nlargest
 from pendulum import parse
 from datetime import datetime
 
+from target_netsuite_v2.utils import format_date_as_naive_datetime
+
 class netsuiteSoapV2Sink(HotglueSink):
     """netsuite-v2 target sink class."""
 
@@ -338,8 +340,8 @@ class netsuiteSoapV2Sink(HotglueSink):
             if subsidiaries['subsidiary'] == subsidiaries['toSubsidiary']:
                 subsidiary = subsidiaries['subsidiary']
 
-        if "transactionDate" in record.keys():
-            created_date = parse(record["transactionDate"])
+        if record.get("transactionDate"):
+            created_date = format_date_as_naive_datetime(record["transactionDate"])
         else:
             created_date = None
 
