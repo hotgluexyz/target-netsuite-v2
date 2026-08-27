@@ -19,3 +19,14 @@ def format_date(date):
         return date.strftime("%Y-%m-%d")
     
     raise ValueError(f"Not able to parse date, invalid date: {date}")
+
+
+def format_date_as_naive_datetime(date):
+    """Return a timezone-naive datetime at midnight for the source calendar date."""
+    if isinstance(date, str):
+        date = parse(date)
+
+    if isinstance(date, datetime.datetime):
+        return datetime.datetime(date.year, date.month, date.day)
+
+    raise ValueError(f"Not able to parse date, invalid date: {date}")
