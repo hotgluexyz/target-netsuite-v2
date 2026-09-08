@@ -2,7 +2,6 @@ import json
 import os
 
 import vcr
-
 from hotglue_smoke_test.vcr.json_body_comparator import JsonBodyComparator
 from hotglue_smoke_test.vcr.target import VCRTargetTestRunner
 
