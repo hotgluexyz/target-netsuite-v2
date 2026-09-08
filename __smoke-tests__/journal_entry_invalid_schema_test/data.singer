@@ -1,0 +1,3 @@
+{ "type": "SCHEMA", "stream": "JournalEntries", "schema": { "properties": { "id": { "type": [ "number", "null" ] }, "lineItems": { "items": { "properties": { "accountId": { "type": [ "number", "null" ] } } }, "type": [ "array", "null" ] } }, "type": "object" }, "key_properties": []}
+{ "type": "RECORD", "stream": "JournalEntries", "record": { "id": 123, "lineItems": [{ "accountId": 1234}] }}
+{ "type": "STATE", "value": {} }

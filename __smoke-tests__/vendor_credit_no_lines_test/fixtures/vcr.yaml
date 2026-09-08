@@ -1,0 +1,996 @@
+interactions:
+- request:
+    body: '{"q": "SELECT subsidiary.id as internalId, subsidiary.name, subsidiary.externalId
+      FROM subsidiary"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '99'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"California"},{"links":[],"internalid":"5","name":"Germany"},{"links":[],"internalid":"4","name":"New
+        York"},{"links":[],"internalid":"1","name":"Parent Company"},{"links":[],"internalid":"3","name":"Virginia"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150777.1465cc23
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:12:58 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1103415823:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - d4f578f4-3b12-49e5-945c-181a943cd60e
+      X-NetSuite-JobId:
+      - b5316437-0780-49b8-bb29-4849483eea5e
+      content-length:
+      - '441'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT classification.id as internalId, classification.name, classification.externalId,
+      subsidiary as subsidiaryId FROM classification"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '143'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"Project
+        2","subsidiaryid":"1"},{"links":[],"externalid":"pr-001","internalid":"1","name":"Project
+        1","subsidiaryid":"1, 2, 3, 4, 5"},{"links":[],"internalid":"3","name":"Project
+        3","subsidiaryid":"1"},{"links":[],"internalid":"4","name":"Project 4","subsidiaryid":"1,
+        2, 3, 4, 5"},{"links":[],"internalid":"6","name":"Project 5","subsidiaryid":"3"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150778.1465d1f4
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:12:59 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1837082827:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - b0b484a9-3f19-4639-96a2-0a9cde6a10a4
+      X-NetSuite-JobId:
+      - 14681d78-4e00-4527-a50a-bcf9cc29b4d5
+      content-length:
+      - '580'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT currency.id as internalId, currency.symbol, currency.name
+      FROM currency"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '87'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":4,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"British
+        pound","symbol":"GBP"},{"links":[],"internalid":"3","name":"Canadian Dollar","symbol":"CAD"},{"links":[],"internalid":"4","name":"Euro","symbol":"EUR"},{"links":[],"internalid":"1","name":"US
+        Dollar","symbol":"USD"}],"offset":0,"totalResults":4}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.a28c1002.1749150779.1050c82c
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:12:59 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1837082847:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - d350fd88-923b-47ad-9d1f-11be005519d0
+      X-NetSuite-JobId:
+      - a5fab45c-66ef-4ed7-b3e7-5380eb729919
+      content-length:
+      - '455'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT department.id as internalId, department.name, department.externalId,
+      subsidiary as subsidiaryId FROM department"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '127'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":9,"hasMore":false,"items":[{"links":[],"internalid":"6","name":"Accounting
+        and finance","subsidiaryid":"1, 2, 4, 5"},{"links":[],"internalid":"9","name":"Audit","subsidiaryid":"1"},{"links":[],"internalid":"8","name":"Business
+        Development","subsidiaryid":"1, 2, 3, 4, 5"},{"links":[],"internalid":"1","name":"Human
+        resources","subsidiaryid":"1"},{"links":[],"internalid":"3","name":"Information
+        technology","subsidiaryid":"1"},{"links":[],"externalid":"sales-12","internalid":"5","name":"Sales","subsidiaryid":"1,
+        2, 3, 4, 5"},{"links":[],"internalid":"4","name":"Marketing","subsidiaryid":"1"},{"links":[],"internalid":"2","name":"Operations
+        management","subsidiaryid":"1"},{"links":[],"internalid":"7","name":"Production,
+        research and development","subsidiaryid":"1"}],"offset":0,"totalResults":9}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150779.1465d695
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:12:59 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1837082852:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - ebd4c2ee-f2e3-4c6d-b509-efe84ea3262b
+      X-NetSuite-JobId:
+      - 893aa3f5-d02b-4155-9506-a61a3be2a6c0
+      content-length:
+      - '937'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT location.id as internalId, location.name as name, location.externalId,
+      location.subsidiary as subsidiaryId FROM location"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '136'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":20,"hasMore":false,"items":[{"links":[],"internalid":"9","name":"EMEA","subsidiaryid":"1"},{"links":[],"internalid":"15","name":"AFRICA","subsidiaryid":"1"},{"links":[],"internalid":"18","name":"Nigeria","subsidiaryid":"1"},{"links":[],"internalid":"10","name":"EUROPE","subsidiaryid":"1"},{"links":[],"internalid":"19","name":"Italy","subsidiaryid":"2"},{"links":[],"internalid":"12","name":"NETHERLANDS","subsidiaryid":"1"},{"links":[],"internalid":"13","name":"SPAIN","subsidiaryid":"1"},{"links":[],"internalid":"11","name":"UNITED
+        KINGDOM","subsidiaryid":"1"},{"links":[],"internalid":"14","name":"MIDDLE
+        EAST","subsidiaryid":"1"},{"links":[],"internalid":"4","name":"LATAM","subsidiaryid":"1"},{"links":[],"internalid":"8","name":"ARGENTINA","subsidiaryid":"1"},{"links":[],"internalid":"7","name":"BRAZIL","subsidiaryid":"1"},{"links":[],"internalid":"6","name":"COLOMBIA","subsidiaryid":"1"},{"links":[],"internalid":"5","name":"MEXICO","subsidiaryid":"1"},{"links":[],"internalid":"1","name":"NOAM","subsidiaryid":"1"},{"links":[],"internalid":"2","name":"CANADA","subsidiaryid":"1"},{"links":[],"externalid":"USA-location","internalid":"3","name":"USA","subsidiaryid":"1"},{"links":[],"internalid":"20","name":"Cal","subsidiaryid":"4"},{"links":[],"internalid":"16","name":"Location
+        1","subsidiaryid":"2"},{"links":[],"internalid":"17","name":"Location 2","subsidiaryid":"2"}],"offset":0,"totalResults":20}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.a28c1002.1749150780.1050ca6c
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:00 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1515356637:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - f4c35211-adf3-4f69-bd30-56e501555446
+      X-NetSuite-JobId:
+      - d4e3abc0-f40e-4ecf-bc74-9999deebab9f
+      content-length:
+      - '1554'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT account.id as internalId, account.acctName as name, account.acctNumber
+      as number, account.externalId FROM account"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: "{\"links\":[{\"rel\":\"self\",\"href\":\"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0\"}],\"count\":78,\"hasMore\":false,\"items\":[{\"links\":[],\"internalid\":\"111\",\"name\":\"Accounts
+        Payable\"},{\"links\":[],\"internalid\":\"220\",\"name\":\"Accounts Payable
+        \u2013 Inventory\"},{\"links\":[],\"internalid\":\"219\",\"name\":\"Accounts
+        Payable \u2013 Office Supplies\"},{\"links\":[],\"internalid\":\"119\",\"name\":\"Accounts
+        Receivable\"},{\"links\":[],\"externalid\":\"AccRev3345\",\"internalid\":\"1719\",\"name\":\"Cash
+        Account Receivables\"},{\"links\":[],\"internalid\":\"221\",\"name\":\"Accrued
+        Expenses\"},{\"links\":[],\"internalid\":\"224\",\"name\":\"Accrued Interest\"},{\"links\":[],\"internalid\":\"112\",\"name\":\"Accrued
+        Purchases\"},{\"links\":[],\"internalid\":\"222\",\"name\":\"Accrued Salaries
+        and Wages\"},{\"links\":[],\"internalid\":\"223\",\"name\":\"Accrued Utilities\"},{\"links\":[],\"internalid\":\"118\",\"name\":\"Advances
+        Paid\"},{\"links\":[],\"internalid\":\"250\",\"name\":\"Bank Fees\"},{\"links\":[],\"internalid\":\"216\",\"name\":\"Buildings\"},{\"links\":[],\"internalid\":\"1\",\"name\":\"Cash\"},{\"links\":[],\"externalid\":\"Interbank6733\",\"internalid\":\"1720\",\"name\":\"Bank
+        account #35\"},{\"links\":[],\"internalid\":\"3623\",\"name\":\"Savings\"},{\"links\":[],\"internalid\":\"237\",\"name\":\"Commissions
+        Earned\"},{\"links\":[],\"internalid\":\"239\",\"name\":\"Consulting Fees\"},{\"links\":[],\"internalid\":\"313\",\"name\":\"Cost
+        of Goods Sold\"},{\"links\":[],\"internalid\":\"251\",\"name\":\"Cost of Goods
+        Sold (COGS)\"},{\"links\":[],\"internalid\":\"109\",\"name\":\"Cumulative
+        Translation Adjustment\",\"number\":\"3035\"},{\"links\":[],\"internalid\":\"245\",\"name\":\"Depreciation\"},{\"links\":[],\"internalid\":\"217\",\"name\":\"Equipment\"},{\"links\":[],\"internalid\":\"114\",\"name\":\"Estimates\"},{\"links\":[],\"internalid\":\"58\",\"name\":\"Expenses\",\"number\":\"6000\"},{\"links\":[],\"internalid\":\"214\",\"name\":\"Finished
+        Goods\"},{\"links\":[],\"internalid\":\"218\",\"name\":\"Furniture\"},{\"links\":[],\"internalid\":\"236\",\"name\":\"Gain
+        on Sale of Assets\"},{\"links\":[],\"internalid\":\"247\",\"name\":\"Insurance\"},{\"links\":[],\"internalid\":\"234\",\"name\":\"Interest
+        Income\"},{\"links\":[],\"internalid\":\"211\",\"name\":\"Inventory\"},{\"links\":[],\"internalid\":\"312\",\"name\":\"Inventory
+        Asset\"},{\"links\":[],\"internalid\":\"3622\",\"name\":\"Merchandise\"},{\"links\":[],\"internalid\":\"315\",\"name\":\"Inventory
+        In Transit\"},{\"links\":[],\"internalid\":\"215\",\"name\":\"Land\"},{\"links\":[],\"internalid\":\"240\",\"name\":\"Late
+        Fees\"},{\"links\":[],\"internalid\":\"249\",\"name\":\"Loan Interest\"},{\"links\":[],\"internalid\":\"228\",\"name\":\"Long-Term
+        Loans Payable\"},{\"links\":[],\"internalid\":\"243\",\"name\":\"Marketing
+        and Advertising\"},{\"links\":[],\"internalid\":\"229\",\"name\":\"Mortgage
+        Payable\"},{\"links\":[],\"internalid\":\"244\",\"name\":\"Office Supplies\"},{\"links\":[],\"internalid\":\"53\",\"name\":\"Opening
+        Balance\",\"number\":\"3200\"},{\"links\":[],\"internalid\":\"124\",\"name\":\"Opportunities\"},{\"links\":[],\"internalid\":\"252\",\"name\":\"Other
+        Operating Expenses\"},{\"links\":[],\"internalid\":\"238\",\"name\":\"Other
+        Operating Income\"},{\"links\":[],\"internalid\":\"230\",\"name\":\"Owner\u2019s
+        Equity\"},{\"links\":[],\"internalid\":\"246\",\"name\":\"Professional Fees\"},{\"links\":[],\"internalid\":\"115\",\"name\":\"Purchase
+        Orders\"},{\"links\":[],\"internalid\":\"121\",\"name\":\"Purchases Returned
+        Not Credited\"},{\"links\":[],\"internalid\":\"212\",\"name\":\"Raw Materials\"},{\"links\":[],\"internalid\":\"123\",\"name\":\"Refunds
+        Payable\"},{\"links\":[],\"internalid\":\"242\",\"name\":\"Rent and Utilities\"},{\"links\":[],\"internalid\":\"235\",\"name\":\"Rental
+        Income\"},{\"links\":[],\"internalid\":\"52\",\"name\":\"Retained Earnings\",\"number\":\"3000\"},{\"links\":[],\"internalid\":\"113\",\"name\":\"Return
+        Authorizations\"},{\"links\":[],\"internalid\":\"311\",\"name\":\"Rounding
+        Gain/Loss\"},{\"links\":[],\"internalid\":\"241\",\"name\":\"Salaries and
+        Wages\"},{\"links\":[],\"internalid\":\"54\",\"name\":\"Sales\"},{\"links\":[],\"externalid\":\"EXT-555\",\"internalid\":\"3522\",\"name\":\"California
+        Product Sales Updated\"},{\"links\":[],\"internalid\":\"232\",\"name\":\"Product
+        Sales\"},{\"links\":[],\"internalid\":\"233\",\"name\":\"Service Sales\"},{\"links\":[],\"internalid\":\"116\",\"name\":\"Sales
+        Orders\"},{\"links\":[],\"internalid\":\"210\",\"name\":\"Sales Taxes Payable
+        MD\"},{\"links\":[],\"internalid\":\"108\",\"name\":\"Shipping and Handling\",\"number\":\"4050\"},{\"links\":[],\"internalid\":\"226\",\"name\":\"Short-Term
+        Loan \u2013 Bank A\"},{\"links\":[],\"internalid\":\"227\",\"name\":\"Short-Term
+        Loan \u2013 Line of Credit\"},{\"links\":[],\"internalid\":\"225\",\"name\":\"Short-Term
+        Loans Payable\"},{\"links\":[],\"internalid\":\"314\",\"name\":\"Transfer
+        Orders\"},{\"links\":[],\"internalid\":\"248\",\"name\":\"Travel and Entertainment\"},{\"links\":[],\"internalid\":\"110\",\"name\":\"Unapproved
+        Customer Payments\"},{\"links\":[],\"internalid\":\"117\",\"name\":\"Unapproved
+        Expense Reports\"},{\"links\":[],\"internalid\":\"1617\",\"name\":\"Uncategorized
+        Expense\"},{\"links\":[],\"internalid\":\"316\",\"name\":\"Uncategorized Income\"},{\"links\":[],\"internalid\":\"122\",\"name\":\"Undeposited
+        Funds\"},{\"links\":[],\"internalid\":\"3624\",\"name\":\"Unrealized Gain/Loss\"},{\"links\":[],\"internalid\":\"3625\",\"name\":\"Unrealized
+        Matching Gain/Loss\"},{\"links\":[],\"internalid\":\"213\",\"name\":\"Work-in-Progress
+        (WIP)\"},{\"links\":[],\"internalid\":\"120\",\"name\":\"{#Vendor Return Authorizations#}\"}],\"offset\":0,\"totalResults\":78}\n"
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150780.1465dbdf
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:00 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1448537675:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 9597ea1f-bf8b-4209-952d-5a4eaafcd6c9
+      X-NetSuite-JobId:
+      - 72a401b9-f86e-408f-898a-4eb6ad3fb46f
+      content-length:
+      - '5025'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT customercategory.id as internalid, customercategory.externalid
+      as externalid, customercategory.name FROM customercategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '137'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":2,"hasMore":false,"items":[{"links":[],"internalid":"1","name":"Customer
+        category 1"},{"links":[],"internalid":"2","name":"customer category 2"}],"offset":0,"totalResults":2}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.a28c1002.1749150780.1050cce3
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:01 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 54368247:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 5bbf0d2b-6163-427a-a888-1d8e487ca73b
+      X-NetSuite-JobId:
+      - 6ca9044b-a3a9-49e7-a62d-cbd6b7592543
+      content-length:
+      - '312'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendorcategory.id as internalId, vendorcategory.externalId
+      as externalId, vendorcategory.name FROM vendorcategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":4,"hasMore":false,"items":[{"links":[],"internalid":"1","name":"1099
+        contractor"},{"links":[],"internalid":"2","name":"Consultant"},{"links":[],"internalid":"4","name":"Supplies"},{"links":[],"internalid":"3","name":"Tax
+        agency"}],"offset":0,"totalResults":4}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.a28c1002.1749150781.1050ce15
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:01 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 2036702183:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 59ba302d-a1b1-49d9-a57f-8e3e18298c74
+      X-NetSuite-JobId:
+      - 5b20de3b-ae49-485a-904a-9c2fa366140b
+      content-length:
+      - '397'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT salestaxitem.id as internalid, salestaxitem.name as name,
+      salestaxitem.taxtype, customrecord_ste_taxrate.custrecord_ste_taxrate_rate as
+      taxrate FROM salestaxitem inner join customrecord_ste_taxrate on customrecord_ste_taxrate.custrecord_ste_taxrate_taxcode
+      = salestaxitem.id"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '290'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuNA==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"7027","name":"Test","taxrate":"0.15","taxtype":"-5"},{"links":[],"internalid":"6612","name":"VAT
+        20","taxrate":"0.2","taxtype":"-2"},{"links":[],"internalid":"7018","name":"VAT
+        5","taxrate":"0.05","taxtype":"-5"},{"links":[],"internalid":"7022","name":"VAT10
+        - Germany","taxrate":"0.115","taxtype":"2"},{"links":[],"internalid":"7025","name":"VAT25
+        - Germany","taxrate":"0.25","taxtype":"2"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.892a1102.1755020101.106a5da4
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 12 Aug 2025 17:35:02 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 839967262:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 9e4a1c35-a666-4750-aaa4-f7162a413e66
+      X-NetSuite-JobId:
+      - 41dbe7c0-00db-4c16-895c-c28821219db6
+      content-length:
+      - '612'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT transaction.id as internalId, transaction.tranid as tranId,
+      transaction.externalId as externalId, transaction.subsidiary as subsidiaryId
+      FROM transaction WHERE transaction.type = ''VendCred'' AND (externalId IN (''VC-TEST-2001''))"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '242'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":0,"hasMore":false,"items":[],"offset":0,"totalResults":0}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150781.1465e219
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:02 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1103416021:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 636d12fd-9181-4eda-a651-ae34f6fca7c0
+      X-NetSuite-JobId:
+      - ea05a8ba-ccd7-4bbf-861b-d194d7e806d8
+      content-length:
+      - '195'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendor.id as internalId, vendor.companyName as name, vendor.externalId,
+      vendor.subsidiary as subsidiaryId, vendor.entityid as entityId FROM vendor WHERE
+      id IN (2425)"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '181'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":1,"hasMore":false,"items":[{"links":[],"entityid":"Golden
+        Eagle Ventures","internalid":"2425","name":"Golden Eagle Ventures","subsidiaryid":"1"}],"offset":0,"totalResults":1}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.a28c1002.1749150782.1050d0d5
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:02 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1663862891:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 62ef7f33-4176-458b-ae5f-7d3716b40790
+      X-NetSuite-JobId:
+      - f0756c52-09c7-4e89-85a6-d5e46479e315
+      content-length:
+      - '312'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT item.id as internalid, item.externalId as externalId, item.fullName
+      as name, item.itemid as itemId FROM item"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '124'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":121,"hasMore":false,"items":[{"links":[],"externalid":"EXT-1245161","internalid":"1912","itemid":"12415161","name":"12415161"},{"links":[],"externalid":"EXT-332323","internalid":"2518","itemid":"134143","name":"134143"},{"links":[],"externalid":"EXT-14111","internalid":"2516","itemid":"1415114","name":"1415114"},{"links":[],"externalid":"EXT-9993124","internalid":"2417","itemid":"1415115","name":"1415115"},{"links":[],"externalid":"EXT-13414","internalid":"2912","itemid":"151431","name":"151431"},{"links":[],"externalid":"EXT-124113211","internalid":"2814","itemid":"1515144","name":"1515144"},{"links":[],"internalid":"105","itemid":"3rd
+        Party License","name":"3rd Party License"},{"links":[],"internalid":"8","itemid":"3rd
+        Party Services","name":"3rd Party Services"},{"links":[],"internalid":"107","itemid":"3rd
+        Party Software - Installation Fee","name":"3rd Party Software - Installation
+        Fee"},{"links":[],"internalid":"108","itemid":"3rd Party Software License","name":"3rd
+        Party Software License"},{"links":[],"internalid":"109","itemid":"3rd Party
+        Software Support Contract","name":"3rd Party Software Support Contract"},{"links":[],"externalid":"EXT-14124516515","internalid":"6111","itemid":"515161","name":"515161"},{"links":[],"externalid":"EXT-124141","internalid":"2811","itemid":"5435245","name":"5435245"},{"links":[],"externalid":"EXT-21461","internalid":"1817","itemid":"612767","name":"612767"},{"links":[],"externalid":"EXT-226278","internalid":"1913","itemid":"76828","name":"76828"},{"links":[],"externalid":"EXT-900","internalid":"1311","itemid":"77777","name":"77777"},{"links":[],"externalid":"EXT-222","internalid":"1412","itemid":"8881481","name":"8881481"},{"links":[],"externalid":"EXT-999","internalid":"1816","itemid":"89712561","name":"89712561"},{"links":[],"externalid":"EXT-2567","internalid":"1916","itemid":"8996762","name":"8996762"},{"links":[],"internalid":"110","itemid":"Activation
+        Fee","name":"Activation Fee"},{"links":[],"internalid":"6613","itemid":"Additional
+        Sync Plus Paid Recipient Fee","name":"Additional Sync Plus Paid Recipient
+        Fee"},{"links":[],"internalid":"112","itemid":"Administration","name":"Administration"},{"links":[],"internalid":"9","itemid":"Administration
+        Services","name":"Administration Services"},{"links":[],"internalid":"909","itemid":"Asesoria","name":"Asesoria"},{"links":[],"internalid":"10","itemid":"Configuration
+        Services","name":"Configuration Services"},{"links":[],"internalid":"11","itemid":"Consulting
+        Services","name":"Consulting Services"},{"links":[],"internalid":"711","itemid":"Corte
+        de pelo","name":"Corte de pelo"},{"links":[],"internalid":"113","itemid":"Data
+        Migration","name":"Data Migration"},{"links":[],"internalid":"12","itemid":"Data
+        Migration Services","name":"Data Migration Services"},{"links":[],"internalid":"114","itemid":"Electronic
+        Invoicing","name":"Electronic Invoicing"},{"links":[],"internalid":"115","itemid":"Emergency
+        Consultation","name":"Emergency Consultation"},{"links":[],"externalid":"ITEM-00111","internalid":"5611","itemid":"ITEM-00111","name":"ITEM-00111"},{"links":[],"externalid":"ITEM-00222","internalid":"5612","itemid":"ITEM-00222","name":"ITEM-00222"},{"links":[],"externalid":"ITEM-00555","internalid":"5512","itemid":"ITEM-00555","name":"ITEM-00555"},{"links":[],"externalid":"ITEM-00999","internalid":"5613","itemid":"ITEM-00999","name":"ITEM-00999"},{"links":[],"externalid":"ITEM-01000","internalid":"5711","itemid":"ITEM-01000","name":"ITEM-01000"},{"links":[],"externalid":"ITEM-01001","internalid":"5811","itemid":"ITEM-01001","name":"ITEM-01001"},{"links":[],"externalid":"ITEM-01002","internalid":"5712","itemid":"ITEM-01002","name":"ITEM-01002"},{"links":[],"externalid":"ITEM-011","internalid":"5412","itemid":"ITEM-011","name":"ITEM-011"},{"links":[],"externalid":"ITEM-0112","internalid":"5415","itemid":"ITEM-0112","name":"ITEM-0112"},{"links":[],"externalid":"ITEM-0115","internalid":"5511","itemid":"ITEM-0115","name":"ITEM-0115"},{"links":[],"externalid":"ITEM-111","internalid":"5211","itemid":"ITEM-111","name":"ITEM-111"},{"links":[],"externalid":"ITEM-112","internalid":"5311","itemid":"ITEM-112","name":"ITEM-112"},{"links":[],"externalid":"ITEM-113","internalid":"5411","itemid":"ITEM-113","name":"ITEM-113"},{"links":[],"externalid":"ITEM-119","internalid":"5414","itemid":"ITEM-119","name":"ITEM-119"},{"links":[],"externalid":"EXT-ITEM-899149","internalid":"4114","itemid":"ITEM-899149","name":"ITEM-899149"},{"links":[],"internalid":"116","itemid":"Implementation
+        Services","name":"Implementation Services"},{"links":[],"internalid":"13","itemid":"Installation
+        Services","name":"Installation Services"},{"links":[],"internalid":"14","itemid":"Integration
+        Services","name":"Integration Services"},{"links":[],"externalid":"Item_700","internalid":"5911","itemid":"Item_700","name":"Item_700"},{"links":[],"externalid":"Item_701","internalid":"6012","itemid":"Item_701","name":"Item_701"},{"links":[],"externalid":"Item_702","internalid":"6211","itemid":"Item_702","name":"Item_702"},{"links":[],"externalid":"Item_704","internalid":"6311","itemid":"Item_704","name":"Item_704"},{"links":[],"externalid":"Item_777","internalid":"6411","itemid":"Item_777","name":"Item_777"},{"links":[],"externalid":"Item_778","internalid":"6511","itemid":"Item_778","name":"Item_778"},{"links":[],"internalid":"15","itemid":"Managed
+        Sanitization Services","name":"Managed Sanitization Services"},{"links":[],"internalid":"16","itemid":"Managed
+        Services","name":"Managed Services"},{"links":[],"internalid":"5","itemid":"Office
+        Expense","name":"Office Expense"},{"links":[],"internalid":"1010","itemid":"Office
+        suppliers","name":"Product 10 : Office suppliers"},{"links":[],"internalid":"6","itemid":"Prescription
+        Refill","name":"Prescription Refill"},{"links":[],"internalid":"205","itemid":"Product
+        1","name":"Product 1"},{"links":[],"internalid":"214","itemid":"Product 10","name":"Product
+        10"},{"links":[],"internalid":"215","itemid":"Product 11","name":"Product
+        11"},{"links":[],"internalid":"216","itemid":"Product 12","name":"Product
+        12"},{"links":[],"internalid":"217","itemid":"Product 13","name":"Product
+        13"},{"links":[],"internalid":"218","itemid":"Product 14","name":"Product
+        14"},{"links":[],"internalid":"219","itemid":"Product 15","name":"Product
+        15"},{"links":[],"internalid":"206","itemid":"Product 2","name":"Product 2"},{"links":[],"internalid":"207","itemid":"Product
+        3","name":"Product 3"},{"links":[],"internalid":"208","itemid":"Product 4","name":"Product
+        4"},{"links":[],"internalid":"209","itemid":"Product 5","name":"Product 5"},{"links":[],"internalid":"210","itemid":"Product
+        6","name":"Product 6"},{"links":[],"internalid":"211","itemid":"Product 7","name":"Product
+        7"},{"links":[],"internalid":"212","itemid":"Product 8","name":"Product 8"},{"links":[],"internalid":"213","itemid":"Product
+        9","name":"Product 9"},{"links":[],"internalid":"17","itemid":"Project Management
+        Services","name":"Project Management Services"},{"links":[],"internalid":"18","itemid":"Report
+        Writing Services","name":"Report Writing Services"},{"links":[],"internalid":"7","itemid":"Software-Maintenance","name":"Software-Maintenance"},{"links":[],"externalid":"EXT-ITEM-2001","internalid":"6913","itemid":"TEST-ITEM-N-2000","name":"TEST-ITEM-N-2000"},{"links":[],"externalid":"EXT-TEST-ITEM-3101","internalid":"6914","itemid":"TEST-ITEM-N-3100","name":"TEST-ITEM-N-3100"},{"links":[],"internalid":"6813","itemid":"Test
+        Item Four","name":"Test Item Four"},{"links":[],"externalid":"EXT-888","internalid":"1815","itemid":"Test
+        Item Three","name":"Test Item Three"},{"links":[],"internalid":"6614","itemid":"Test
+        Item Two","name":"Test Item Two"},{"links":[],"internalid":"4211","itemid":"Test500","name":"Test500"},{"links":[],"internalid":"4311","itemid":"Test500","name":"Test500"},{"links":[],"internalid":"4511","itemid":"Test501","name":"Test501"},{"links":[],"externalid":"Test502","internalid":"4312","itemid":"Test502","name":"Test502"},{"links":[],"externalid":"Test503","internalid":"5011","itemid":"Test503","name":"Test503"},{"links":[],"externalid":"Test504","internalid":"5111","itemid":"Test504","name":"Test504"},{"links":[],"externalid":"Test505","internalid":"5112","itemid":"Test505","name":"Test505"},{"links":[],"externalid":"Test506","internalid":"4611","itemid":"Test506","name":"Test506"},{"links":[],"externalid":"Test507","internalid":"4612","itemid":"Test507","name":"Test507"},{"links":[],"externalid":"Test508","internalid":"4613","itemid":"Test508","name":"Test508"},{"links":[],"externalid":"Test509","internalid":"4711","itemid":"Test509","name":"Test509"},{"links":[],"externalid":"Test510","internalid":"4811","itemid":"Test510","name":"Test510"},{"links":[],"externalid":"Test511","internalid":"4614","itemid":"Test511","name":"Test511"},{"links":[],"externalid":"Test515","internalid":"4712","itemid":"Test515","name":"Test515"},{"links":[],"externalid":"Test517","internalid":"4713","itemid":"Test517","name":"Test517"},{"links":[],"externalid":"Test518","internalid":"4911","itemid":"Test518","name":"Test518"},{"links":[],"internalid":"19","itemid":"Testing
+        Services","name":"Testing Services"},{"links":[],"internalid":"20","itemid":"Training
+        Services","name":"Training Services"},{"links":[],"internalid":"21","itemid":"Travel
+        Expense","name":"Travel Expense"},{"links":[],"internalid":"507","itemid":"a
+        service item","name":"a service item"},{"links":[],"internalid":"6611","itemid":"cleaning
+        service","name":"cleaning service"},{"links":[],"internalid":"305","itemid":"phone","name":"phone"},{"links":[],"internalid":"708","itemid":"service
+        sale item","name":"service sale item"},{"links":[],"internalid":"3312","itemid":"suppliers","name":"suppliers"},{"links":[],"internalid":"306","itemid":"un
+        nuevo inventory item","name":"un nuevo inventory item"},{"links":[],"internalid":"307","itemid":"un
+        nuevo item","name":"un nuevo item"},{"links":[],"internalid":"407","itemid":"un
+        nuevo item 2","name":"un nuevo item 2"},{"links":[],"internalid":"309","itemid":"un
+        nuevo item 3","name":"un nuevo item 3"},{"links":[],"internalid":"310","itemid":"un
+        nuevo item 4","name":"un nuevo item 4"},{"links":[],"internalid":"508","itemid":"un
+        nuevo item 5","name":"un nuevo item 5"},{"links":[],"internalid":"311","itemid":"un
+        nuevo item 5","name":"un nuevo item 5"},{"links":[],"internalid":"608","itemid":"un
+        nuevo item 6","name":"un nuevo item 6"},{"links":[],"internalid":"610","itemid":"un
+        nuevo item 8","name":"un nuevo item 8"},{"links":[],"internalid":"709","itemid":"un
+        nuevo service sale item","name":"un nuevo service sale item"},{"links":[],"internalid":"809","itemid":"un
+        nuevo service sale item 2","name":"un nuevo service sale item 2"},{"links":[],"internalid":"710","itemid":"un
+        nuevo service sale item 3","name":"un nuevo service sale item 3"},{"links":[],"internalid":"810","itemid":"un
+        nuevo service sale item 4","name":"un nuevo service sale item 4"},{"links":[],"internalid":"812","itemid":"un
+        nuevo service sale item 5","name":"un nuevo service sale item 5"}],"offset":0,"totalResults":121}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150782.1465e8f2
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:03 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1103416315:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - ff14ebee-c875-4f72-b289-e0a1fce044e3
+      X-NetSuite-JobId:
+      - 44057356-3bf8-4fc1-a2b9-d4295dc403c9
+      content-length:
+      - '11225'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"entity": {"id": "2425"}, "currency": {"id": "1"}, "subsidiary": {"id":
+      "1"}, "location": {"id": "9"}, "department": {"id": "8"}, "custbody2": 125,
+      "externalId": "VC-TEST-2001", "tranDate": "2025-05-28T00:00:00", "duedate":
+      "2025-06-06T00:00:00", "exchangerate": 1.0, "memo": "VC Description 2"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '296'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/record/v1/vendorCredit
+  response:
+    body:
+      string: '{"type":"https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5.1","title":"Bad
+        Request","status":400,"o:errorDetails":[{"detail":"Error while accessing a
+        resource. You must enter at least one line item for this transaction.","o:errorCode":"USER_ERROR"}]}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.9b8c1002.1749150783.1465eccc
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - close
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=error; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 19:13:08 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1515357037:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - acba088f-442c-47c9-937b-2ecadeef20bc
+      X-NetSuite-JobId:
+      - 808a0515-d7e2-4425-92f9-924aec0d27fe
+      content-length:
+      - '258'
+    status:
+      code: 400
+      message: Bad Request
+version: 1

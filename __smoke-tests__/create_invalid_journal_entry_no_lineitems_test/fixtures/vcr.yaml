@@ -1,0 +1,1138 @@
+interactions:
+- request:
+    body: '{"q": "SELECT subsidiary.id as internalId, subsidiary.name, subsidiary.externalId
+      FROM subsidiary"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '99'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"California"},{"links":[],"internalid":"5","name":"Germany"},{"links":[],"internalid":"4","name":"New
+        York"},{"links":[],"internalid":"1","name":"Parent Company"},{"links":[],"internalid":"3","name":"Virginia"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147186.5b236029
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:06 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1802304758:706172746E6572733130342E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 5c107f51-162b-4914-b08c-debf2681b8fe
+      X-NetSuite-JobId:
+      - 0d9926ab-af2f-4644-89da-6ae26d690d1c
+      content-length:
+      - '441'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT classification.id as internalId, classification.name, classification.externalId,
+      subsidiary as subsidiaryId FROM classification"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '143'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"Project
+        2","subsidiaryid":"1"},{"links":[],"externalid":"pr-001","internalid":"1","name":"Project
+        1","subsidiaryid":"1, 2, 3, 4, 5"},{"links":[],"internalid":"3","name":"Project
+        3","subsidiaryid":"1"},{"links":[],"internalid":"4","name":"Project 4","subsidiaryid":"1,
+        2, 3, 4, 5"},{"links":[],"internalid":"6","name":"Project 5","subsidiaryid":"3"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147186.2017b7d9
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:08 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1802305097:706172746E6572733130342E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 0ee185f3-bda9-48e8-ae7b-28c0834b4d9a
+      X-NetSuite-JobId:
+      - d8422741-44d1-41df-b019-a517f1eb05e5
+      content-length:
+      - '580'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT currency.id as internalId, currency.symbol, currency.name
+      FROM currency"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '87'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":4,"hasMore":false,"items":[{"links":[],"internalid":"2","name":"British
+        pound","symbol":"GBP"},{"links":[],"internalid":"3","name":"Canadian Dollar","symbol":"CAD"},{"links":[],"internalid":"4","name":"Euro","symbol":"EUR"},{"links":[],"internalid":"1","name":"US
+        Dollar","symbol":"USD"}],"offset":0,"totalResults":4}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147188.2017c5c3
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:08 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1379551388:706172746E6572733130342E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 0a463e74-f5a2-4e54-ae8c-35c06d0b9b8c
+      X-NetSuite-JobId:
+      - 502f5f45-ba21-4431-9ea2-6cc1f3af1c62
+      content-length:
+      - '455'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT department.id as internalId, department.name, department.externalId,
+      subsidiary as subsidiaryId FROM department"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '127'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":9,"hasMore":false,"items":[{"links":[],"internalid":"6","name":"Accounting
+        and finance","subsidiaryid":"1, 2, 4, 5"},{"links":[],"internalid":"9","name":"Audit","subsidiaryid":"1"},{"links":[],"internalid":"8","name":"Business
+        Development","subsidiaryid":"1, 2, 3, 4, 5"},{"links":[],"internalid":"1","name":"Human
+        resources","subsidiaryid":"1"},{"links":[],"internalid":"3","name":"Information
+        technology","subsidiaryid":"1"},{"links":[],"externalid":"sales-12","internalid":"5","name":"Sales","subsidiaryid":"1,
+        2, 3, 4, 5"},{"links":[],"internalid":"4","name":"Marketing","subsidiaryid":"1"},{"links":[],"internalid":"2","name":"Operations
+        management","subsidiaryid":"1"},{"links":[],"internalid":"7","name":"Production,
+        research and development","subsidiaryid":"1"}],"offset":0,"totalResults":9}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147188.5b23b623
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:09 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 456752721:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 02458f54-ccf4-479c-bbc2-8a00e0a3612d
+      X-NetSuite-JobId:
+      - c439e9ae-2e56-4d4f-aea4-02a54d966f89
+      content-length:
+      - '937'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT location.id as internalId, location.name as name, location.externalId,
+      location.subsidiary as subsidiaryId FROM location"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '136'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":20,"hasMore":false,"items":[{"links":[],"internalid":"9","name":"EMEA","subsidiaryid":"1"},{"links":[],"internalid":"15","name":"AFRICA","subsidiaryid":"1"},{"links":[],"internalid":"18","name":"Nigeria","subsidiaryid":"1"},{"links":[],"internalid":"10","name":"EUROPE","subsidiaryid":"1"},{"links":[],"internalid":"19","name":"Italy","subsidiaryid":"2"},{"links":[],"internalid":"12","name":"NETHERLANDS","subsidiaryid":"1"},{"links":[],"internalid":"13","name":"SPAIN","subsidiaryid":"1"},{"links":[],"internalid":"11","name":"UNITED
+        KINGDOM","subsidiaryid":"1"},{"links":[],"internalid":"14","name":"MIDDLE
+        EAST","subsidiaryid":"1"},{"links":[],"internalid":"4","name":"LATAM","subsidiaryid":"1"},{"links":[],"internalid":"8","name":"ARGENTINA","subsidiaryid":"1"},{"links":[],"internalid":"7","name":"BRAZIL","subsidiaryid":"1"},{"links":[],"internalid":"6","name":"COLOMBIA","subsidiaryid":"1"},{"links":[],"internalid":"5","name":"MEXICO","subsidiaryid":"1"},{"links":[],"internalid":"1","name":"NOAM","subsidiaryid":"1"},{"links":[],"internalid":"2","name":"CANADA","subsidiaryid":"1"},{"links":[],"externalid":"USA-location","internalid":"3","name":"USA","subsidiaryid":"1"},{"links":[],"internalid":"20","name":"Cal","subsidiaryid":"4"},{"links":[],"internalid":"16","name":"Location
+        1","subsidiaryid":"2"},{"links":[],"internalid":"17","name":"Location 2","subsidiaryid":"2"}],"offset":0,"totalResults":20}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147189.2017d222
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:10 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1909986889:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - c34fa0e9-3b88-4f4b-8cb8-a9a241441424
+      X-NetSuite-JobId:
+      - 94975a46-f604-4390-a96c-27db0da8af65
+      content-length:
+      - '1554'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT account.id as internalId, account.acctName as name, account.acctNumber
+      as number, account.externalId FROM account"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: "{\"links\":[{\"rel\":\"self\",\"href\":\"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0\"}],\"count\":78,\"hasMore\":false,\"items\":[{\"links\":[],\"internalid\":\"111\",\"name\":\"Accounts
+        Payable\"},{\"links\":[],\"internalid\":\"220\",\"name\":\"Accounts Payable
+        \u2013 Inventory\"},{\"links\":[],\"internalid\":\"219\",\"name\":\"Accounts
+        Payable \u2013 Office Supplies\"},{\"links\":[],\"internalid\":\"119\",\"name\":\"Accounts
+        Receivable\"},{\"links\":[],\"externalid\":\"AccRev3345\",\"internalid\":\"1719\",\"name\":\"Cash
+        Account Receivables\"},{\"links\":[],\"internalid\":\"221\",\"name\":\"Accrued
+        Expenses\"},{\"links\":[],\"internalid\":\"224\",\"name\":\"Accrued Interest\"},{\"links\":[],\"internalid\":\"112\",\"name\":\"Accrued
+        Purchases\"},{\"links\":[],\"internalid\":\"222\",\"name\":\"Accrued Salaries
+        and Wages\"},{\"links\":[],\"internalid\":\"223\",\"name\":\"Accrued Utilities\"},{\"links\":[],\"internalid\":\"118\",\"name\":\"Advances
+        Paid\"},{\"links\":[],\"internalid\":\"250\",\"name\":\"Bank Fees\"},{\"links\":[],\"internalid\":\"216\",\"name\":\"Buildings\"},{\"links\":[],\"internalid\":\"1\",\"name\":\"Cash\"},{\"links\":[],\"externalid\":\"Interbank6733\",\"internalid\":\"1720\",\"name\":\"Bank
+        account #35\"},{\"links\":[],\"internalid\":\"3623\",\"name\":\"Savings\"},{\"links\":[],\"internalid\":\"237\",\"name\":\"Commissions
+        Earned\"},{\"links\":[],\"internalid\":\"239\",\"name\":\"Consulting Fees\"},{\"links\":[],\"internalid\":\"313\",\"name\":\"Cost
+        of Goods Sold\"},{\"links\":[],\"internalid\":\"251\",\"name\":\"Cost of Goods
+        Sold (COGS)\"},{\"links\":[],\"internalid\":\"109\",\"name\":\"Cumulative
+        Translation Adjustment\",\"number\":\"3035\"},{\"links\":[],\"internalid\":\"245\",\"name\":\"Depreciation\"},{\"links\":[],\"internalid\":\"217\",\"name\":\"Equipment\"},{\"links\":[],\"internalid\":\"114\",\"name\":\"Estimates\"},{\"links\":[],\"internalid\":\"58\",\"name\":\"Expenses\",\"number\":\"6000\"},{\"links\":[],\"internalid\":\"214\",\"name\":\"Finished
+        Goods\"},{\"links\":[],\"internalid\":\"218\",\"name\":\"Furniture\"},{\"links\":[],\"internalid\":\"236\",\"name\":\"Gain
+        on Sale of Assets\"},{\"links\":[],\"internalid\":\"247\",\"name\":\"Insurance\"},{\"links\":[],\"internalid\":\"234\",\"name\":\"Interest
+        Income\"},{\"links\":[],\"internalid\":\"211\",\"name\":\"Inventory\"},{\"links\":[],\"internalid\":\"312\",\"name\":\"Inventory
+        Asset\"},{\"links\":[],\"internalid\":\"3622\",\"name\":\"Merchandise\"},{\"links\":[],\"internalid\":\"315\",\"name\":\"Inventory
+        In Transit\"},{\"links\":[],\"internalid\":\"215\",\"name\":\"Land\"},{\"links\":[],\"internalid\":\"240\",\"name\":\"Late
+        Fees\"},{\"links\":[],\"internalid\":\"249\",\"name\":\"Loan Interest\"},{\"links\":[],\"internalid\":\"228\",\"name\":\"Long-Term
+        Loans Payable\"},{\"links\":[],\"internalid\":\"243\",\"name\":\"Marketing
+        and Advertising\"},{\"links\":[],\"internalid\":\"229\",\"name\":\"Mortgage
+        Payable\"},{\"links\":[],\"internalid\":\"244\",\"name\":\"Office Supplies\"},{\"links\":[],\"internalid\":\"53\",\"name\":\"Opening
+        Balance\",\"number\":\"3200\"},{\"links\":[],\"internalid\":\"124\",\"name\":\"Opportunities\"},{\"links\":[],\"internalid\":\"252\",\"name\":\"Other
+        Operating Expenses\"},{\"links\":[],\"internalid\":\"238\",\"name\":\"Other
+        Operating Income\"},{\"links\":[],\"internalid\":\"230\",\"name\":\"Owner\u2019s
+        Equity\"},{\"links\":[],\"internalid\":\"246\",\"name\":\"Professional Fees\"},{\"links\":[],\"internalid\":\"115\",\"name\":\"Purchase
+        Orders\"},{\"links\":[],\"internalid\":\"121\",\"name\":\"Purchases Returned
+        Not Credited\"},{\"links\":[],\"internalid\":\"212\",\"name\":\"Raw Materials\"},{\"links\":[],\"internalid\":\"123\",\"name\":\"Refunds
+        Payable\"},{\"links\":[],\"internalid\":\"242\",\"name\":\"Rent and Utilities\"},{\"links\":[],\"internalid\":\"235\",\"name\":\"Rental
+        Income\"},{\"links\":[],\"internalid\":\"52\",\"name\":\"Retained Earnings\",\"number\":\"3000\"},{\"links\":[],\"internalid\":\"113\",\"name\":\"Return
+        Authorizations\"},{\"links\":[],\"internalid\":\"311\",\"name\":\"Rounding
+        Gain/Loss\"},{\"links\":[],\"internalid\":\"241\",\"name\":\"Salaries and
+        Wages\"},{\"links\":[],\"internalid\":\"54\",\"name\":\"Sales\"},{\"links\":[],\"externalid\":\"EXT-555\",\"internalid\":\"3522\",\"name\":\"California
+        Product Sales Updated\"},{\"links\":[],\"internalid\":\"232\",\"name\":\"Product
+        Sales\"},{\"links\":[],\"internalid\":\"233\",\"name\":\"Service Sales\"},{\"links\":[],\"internalid\":\"116\",\"name\":\"Sales
+        Orders\"},{\"links\":[],\"internalid\":\"210\",\"name\":\"Sales Taxes Payable
+        MD\"},{\"links\":[],\"internalid\":\"108\",\"name\":\"Shipping and Handling\",\"number\":\"4050\"},{\"links\":[],\"internalid\":\"226\",\"name\":\"Short-Term
+        Loan \u2013 Bank A\"},{\"links\":[],\"internalid\":\"227\",\"name\":\"Short-Term
+        Loan \u2013 Line of Credit\"},{\"links\":[],\"internalid\":\"225\",\"name\":\"Short-Term
+        Loans Payable\"},{\"links\":[],\"internalid\":\"314\",\"name\":\"Transfer
+        Orders\"},{\"links\":[],\"internalid\":\"248\",\"name\":\"Travel and Entertainment\"},{\"links\":[],\"internalid\":\"110\",\"name\":\"Unapproved
+        Customer Payments\"},{\"links\":[],\"internalid\":\"117\",\"name\":\"Unapproved
+        Expense Reports\"},{\"links\":[],\"internalid\":\"1617\",\"name\":\"Uncategorized
+        Expense\"},{\"links\":[],\"internalid\":\"316\",\"name\":\"Uncategorized Income\"},{\"links\":[],\"internalid\":\"122\",\"name\":\"Undeposited
+        Funds\"},{\"links\":[],\"internalid\":\"3624\",\"name\":\"Unrealized Gain/Loss\"},{\"links\":[],\"internalid\":\"3625\",\"name\":\"Unrealized
+        Matching Gain/Loss\"},{\"links\":[],\"internalid\":\"213\",\"name\":\"Work-in-Progress
+        (WIP)\"},{\"links\":[],\"internalid\":\"120\",\"name\":\"{#Vendor Return Authorizations#}\"}],\"offset\":0,\"totalResults\":78}\n"
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147190.5b23edbe
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:10 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1004819447:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 55c19aca-b8ad-4e0c-a2e8-116f235e71ac
+      X-NetSuite-JobId:
+      - 1c51aed0-57e0-4940-a143-c5c3855214a6
+      content-length:
+      - '5025'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT customercategory.id as internalid, customercategory.externalid
+      as externalid, customercategory.name FROM customercategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '137'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":2,"hasMore":false,"items":[{"links":[],"internalid":"1","name":"Customer
+        category 1"},{"links":[],"internalid":"2","name":"customer category 2"}],"offset":0,"totalResults":2}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147190.2017dc4c
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:11 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 696553366:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 50b1d5ee-ef25-40d0-a004-40b396ac7fd0
+      X-NetSuite-JobId:
+      - 7a39f5d0-8d0c-4a93-bfba-50b30ca6ff6a
+      content-length:
+      - '312'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendorcategory.id as internalId, vendorcategory.externalId
+      as externalId, vendorcategory.name FROM vendorcategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":4,"hasMore":false,"items":[{"links":[],"internalid":"1","name":"1099
+        contractor"},{"links":[],"internalid":"2","name":"Consultant"},{"links":[],"internalid":"4","name":"Supplies"},{"links":[],"internalid":"3","name":"Tax
+        agency"}],"offset":0,"totalResults":4}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147191.5b240d87
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:12 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 401920919:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - f717acf4-de0f-47fd-b954-5d9bb9d58bc1
+      X-NetSuite-JobId:
+      - 468124ad-ff12-475a-9bcb-bf081ac1cf88
+      content-length:
+      - '397'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT salestaxitem.id as internalid, salestaxitem.name as name,
+      salestaxitem.taxtype, customrecord_ste_taxrate.custrecord_ste_taxrate_rate as
+      taxrate FROM salestaxitem inner join customrecord_ste_taxrate on customrecord_ste_taxrate.custrecord_ste_taxrate_taxcode
+      = salestaxitem.id"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '290'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuNA==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":5,"hasMore":false,"items":[{"links":[],"internalid":"7027","name":"Test","taxrate":"0.15","taxtype":"-5"},{"links":[],"internalid":"6612","name":"VAT
+        20","taxrate":"0.2","taxtype":"-2"},{"links":[],"internalid":"7018","name":"VAT
+        5","taxrate":"0.05","taxtype":"-5"},{"links":[],"internalid":"7022","name":"VAT10
+        - Germany","taxrate":"0.115","taxtype":"2"},{"links":[],"internalid":"7025","name":"VAT25
+        - Germany","taxrate":"0.25","taxtype":"2"}],"offset":0,"totalResults":5}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.892a1102.1755020101.106a5da4
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 12 Aug 2025 17:35:02 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 839967262:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 9e4a1c35-a666-4750-aaa4-f7162a413e66
+      X-NetSuite-JobId:
+      - 41dbe7c0-00db-4c16-895c-c28821219db6
+      content-length:
+      - '612'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT transaction.id as internalId, transaction.tranid as tranId,
+      transaction.externalId as externalId, transaction.subsidiary as subsidiaryId
+      FROM transaction WHERE transaction.type = ''Journal'' AND (externalId IN (''TEST-JL-303''))"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '240'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":0,"hasMore":false,"items":[],"offset":0,"totalResults":0}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147192.2017ed71
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:13 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1903424777:706172746E6572733132322E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 6db49694-05e5-45ee-9f54-c60d5d214ece
+      X-NetSuite-JobId:
+      - 81b01ae5-a517-4edc-9359-dae0b344334f
+      content-length:
+      - '195'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT customer.id as internalId, customer.companyName as name,
+      customer.externalId, customer.entityid as entityId FROM customer"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '137'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":161,"hasMore":false,"items":[{"links":[],"entityid":"1","internalid":"107","name":"Central
+        Carolina Ac Co"},{"links":[],"entityid":"11","internalid":"314","name":"Stabillo"},{"links":[],"entityid":"2","internalid":"108","name":"Central
+        Carolina Htg & Air"},{"links":[],"entityid":"3","internalid":"109","name":"Ce
+        Holt Refrigeration Inc"},{"links":[],"entityid":"4","internalid":"110","name":"Central
+        Carolina Com College"},{"links":[],"entityid":"5","internalid":"111","name":"Centech
+        Service Corp"},{"links":[],"entityid":"6","internalid":"112","name":"Central
+        Htg & Cooling Co"},{"links":[],"entityid":"7","internalid":"113","name":"Cbre-Centura
+        Bank"},{"links":[],"entityid":"8","internalid":"114","name":"Charlies Tin
+        Shop"},{"links":[],"entityid":"9","internalid":"115","name":"Chatham County
+        Schools"},{"links":[],"entityid":"10","internalid":"116","name":"Ch Ferguson
+        Inc"},{"links":[],"entityid":"11","internalid":"117","name":"Chisholm Service
+        Co"},{"links":[],"entityid":"12","internalid":"118","name":"Chrismon Htg &
+        Cooling Co"},{"links":[],"entityid":"13","internalid":"119","name":"Cii Service
+        Inc"},{"links":[],"entityid":"1277","externalid":"IZ_087","internalid":"7234","name":"Isuzu"},{"links":[],"entityid":"14","internalid":"120","name":"City
+        Of Burlington"},{"links":[],"entityid":"15","internalid":"121","name":"City
+        Of Greensboro"},{"links":[],"entityid":"16","internalid":"122","name":"City
+        Of Winston Salem"},{"links":[],"entityid":"17","internalid":"123","name":"City
+        Of Durham"},{"links":[],"entityid":"18","internalid":"124","name":"City Of
+        Fayetteville"},{"links":[],"entityid":"19","internalid":"125","name":"Clinton
+        City Schools"},{"links":[],"entityid":"20","internalid":"126","name":"Cms
+        Mechanical Service Co"},{"links":[],"entityid":"21","internalid":"127","name":"Cornelia
+        Nixon Davis Inc"},{"links":[],"entityid":"22","internalid":"128","name":"Coastal
+        Carolina Com College"},{"links":[],"entityid":"23","internalid":"129","name":"Coastal
+        Heating & Ac Co"},{"links":[],"entityid":"24","internalid":"130","name":"Colonial
+        Baptist Church"},{"links":[],"entityid":"25","internalid":"131","name":"Greensboro
+        Coliseum"},{"links":[],"entityid":"26","internalid":"132","name":"Columbus
+        County"},{"links":[],"entityid":"27","internalid":"133","name":"Commercial
+        Air System Inc"},{"links":[],"entityid":"28","internalid":"134","name":"Comfort
+        Mech Contractors Inc"},{"links":[],"entityid":"29","internalid":"135","name":"Comfort
+        Master Inc"},{"links":[],"entityid":"30","internalid":"136","name":"Comfortmaster
+        Mech Assoc"},{"links":[],"entityid":"31","internalid":"137","name":"Comfort
+        Services Inc"},{"links":[],"entityid":"32","internalid":"138","name":"Commonwealth
+        Hosiery Mill"},{"links":[],"entityid":"33","internalid":"139","name":"Commercial
+        Ac Services"},{"links":[],"entityid":"34","internalid":"140","name":"Comfort
+        Tech Heating & Air"},{"links":[],"entityid":"35","internalid":"141","name":"Cone
+        Health Systems"},{"links":[],"entityid":"36","internalid":"142","name":"Cooks
+        Heating & Cooling"},{"links":[],"entityid":"37","internalid":"143","name":"Cook
+        Out Inc"},{"links":[],"entityid":"38","internalid":"144","name":"Cormetech
+        Envir Tech Inc"},{"links":[],"entityid":"39","internalid":"145","name":"Diosynth
+        Rtp Inc"},{"links":[],"entityid":"40","internalid":"146","name":"Corning Inc"},{"links":[],"entityid":"41","internalid":"147","name":"Corum
+        Heating & Ac Inc"},{"links":[],"entityid":"42","internalid":"148","name":"Costa
+        & Company Inc"},{"links":[],"entityid":"43","internalid":"149","name":"Coty
+        Incorporated"},{"links":[],"entityid":"44","internalid":"150","name":"Duke
+        Energy(ARIBA)"},{"links":[],"entityid":"45","internalid":"151","name":"Crabbe
+        Service Co Inc"},{"links":[],"entityid":"46","internalid":"152","name":"Wolfspeed,
+        Inc Fka Cree (ARIBA)"},{"links":[],"entityid":"47","internalid":"153","name":"Craven
+        County Schools"},{"links":[],"entityid":"48","internalid":"154","name":"Craven
+        Services Inc"},{"links":[],"entityid":"49","internalid":"155","name":"Cts
+        Heat & Ac"},{"links":[],"entityid":"50","internalid":"156","name":"Cumberland
+        Cty Bd Of Ed"},{"links":[],"entityid":"51","internalid":"157","name":"Cumberland
+        Trading Co"},{"links":[],"entityid":"52","internalid":"158","name":"D&s Heating
+        & Air Inc"},{"links":[],"entityid":"53","internalid":"159","name":"D&w Heating
+        & Ac Company"},{"links":[],"entityid":"54","internalid":"160","name":"Daly
+        Motel Supply Company"},{"links":[],"entityid":"55","internalid":"161","name":"Damuth
+        Trane Parts Center"},{"links":[],"entityid":"56","internalid":"162","name":"Darryls
+        Ac & Heating Inc"},{"links":[],"entityid":"57","internalid":"163","name":"Davidson-Davie
+        Comm College"},{"links":[],"entityid":"58","internalid":"164","name":"Davie
+        County Public Works"},{"links":[],"entityid":"59","internalid":"165","name":"Davidson
+        Heating & Air Inc"},{"links":[],"entityid":"60","internalid":"166","name":"Davidson
+        County Public Works"},{"links":[],"entityid":"61","internalid":"167","name":"Davie
+        County Schools"},{"links":[],"entityid":"62","internalid":"168","name":"Dependable
+        Cooling & Heating"},{"links":[],"entityid":"63","internalid":"169","name":"Derek
+        Walker Heating & Ac"},{"links":[],"entityid":"64","internalid":"170","name":"Des
+        Solutions Inc"},{"links":[],"entityid":"65","internalid":"171","name":"Dewpoint
+        Control Services Inc"},{"links":[],"entityid":"66","internalid":"172","name":"Dinos
+        Heating & Ac"},{"links":[],"entityid":"67","internalid":"173","name":"Discca
+        Environmental Services"},{"links":[],"entityid":"68","internalid":"174","name":"Dl''s
+        Refrigeration"},{"links":[],"entityid":"69","internalid":"175","name":"Happy
+        Home Heating & Cooling"},{"links":[],"entityid":"70","internalid":"176","name":"Don''s
+        Heating & Air"},{"links":[],"entityid":"71","internalid":"177","name":"Dorsett
+        Heating & Ac Inc"},{"links":[],"entityid":"72","internalid":"178","name":"Dorothea
+        Dix Hospital"},{"links":[],"entityid":"73","internalid":"179","name":"Drs
+        Services Incorporated"},{"links":[],"entityid":"74","internalid":"180","name":"Duggins
+        Mech-Burlington"},{"links":[],"entityid":"75","internalid":"181","name":"Duggins
+        Mech-Walkertown"},{"links":[],"entityid":"76","internalid":"182","name":"Duplin
+        County Bd Of Education"},{"links":[],"entityid":"77","internalid":"183","name":"Duplin
+        County"},{"links":[],"entityid":"78","internalid":"184","name":"Durham Mech
+        Services Inc"},{"links":[],"entityid":"79","internalid":"185","name":"Durham
+        Public Schools"},{"links":[],"entityid":"80","internalid":"186","name":"Earls
+        Elec Heating & Ac Co"},{"links":[],"entityid":"81","internalid":"187","name":"Earnhardt
+        Heating & Cooling"},{"links":[],"entityid":"82","internalid":"188","name":"Ecm
+        Corporation"},{"links":[],"entityid":"83","internalid":"189","name":"Ed Briggs
+        Heating & Ac Co"},{"links":[],"entityid":"84","internalid":"190","name":"Edwards
+        Heating & Air"},{"links":[],"entityid":"85","internalid":"191","name":"Elastic
+        Therapy Incorporated"},{"links":[],"entityid":"86","internalid":"192","name":"Electric
+        Motor Shop"},{"links":[],"entityid":"87","internalid":"193","name":"Elon University"},{"links":[],"entityid":"88","internalid":"194","name":"Embassy
+        Suites-Greensboro"},{"links":[],"entityid":"89","internalid":"195","name":"Hollingsworth
+        Leitch Hvac"},{"links":[],"entityid":"90","internalid":"196","name":"Eneco
+        East Llc"},{"links":[],"entityid":"91","internalid":"197","name":"Environmental
+        Air Systems Inc"},{"links":[],"entityid":"92","internalid":"198","name":"Environmental
+        Services"},{"links":[],"entityid":"93","internalid":"199","name":"Envirotrol
+        Incorporated"},{"links":[],"entityid":"94","internalid":"200","name":"East
+        Carolina University"},{"links":[],"entityid":"95","internalid":"201","name":"Evans
+        Heating & Cooling"},{"links":[],"entityid":"96","internalid":"202","name":"Purolator
+        Facet Inc"},{"links":[],"entityid":"97","internalid":"203","name":"Fast Hvac
+        & Refrigeration Inc"},{"links":[],"entityid":"98","internalid":"204","name":"Federal
+        Aviation Admin"},{"links":[],"entityid":"99","internalid":"205","name":"Federal
+        Correctional Institute"},{"links":[],"entityid":"100","internalid":"206","name":"Intern''tl
+        Paper-Riegelwood"},{"links":[],"entityid":"1001","externalid":"Pawsh65758","internalid":"3230","name":"Pawsh
+        Couture"},{"links":[],"entityid":"122","externalid":"SC1","internalid":"1622","name":"South
+        & Co."},{"links":[],"entityid":"101","internalid":"207","name":"Et Ferrell
+        & Son Inc"},{"links":[],"entityid":"102","internalid":"208","name":"Fields
+        Plumbing & Heating Co"},{"links":[],"entityid":"103","internalid":"209","name":"Fsi
+        Mechanical Inc"},{"links":[],"entityid":"104","internalid":"210","name":"Finance
+        & Accounting Office"},{"links":[],"entityid":"105","internalid":"211","name":"Fleming
+        Heating & Ac Inc"},{"links":[],"entityid":"106","internalid":"212","name":"Food
+        Lion Incorporated"},{"links":[],"entityid":"107","internalid":"213","name":"Harris
+        Teeter, LLC"},{"links":[],"entityid":"108","internalid":"214","name":"Forsyth
+        County Fac Operations"},{"links":[],"entityid":"109","internalid":"215","name":"Novant
+        Health Inc"},{"links":[],"entityid":"110","internalid":"216","name":"Forsyth
+        Tech Com College"},{"links":[],"entityid":"111","internalid":"217","name":"Fowler
+        & Sons-Residential"},{"links":[],"entityid":"112","internalid":"218","name":"Friends
+        Homes At Guilford"},{"links":[],"entityid":"113","internalid":"311","name":"Finbox"},{"links":[],"entityid":"114","internalid":"312","name":"Finbox"},{"links":[],"entityid":"115","internalid":"313","name":"Finbox"},{"links":[],"entityid":"116","internalid":"316","name":"San
+        Fernando"},{"links":[],"entityid":"117","internalid":"317","name":"San Fernando"},{"links":[],"entityid":"118","internalid":"416","name":"San
+        Fernando"},{"links":[],"entityid":"119","internalid":"516","name":"Ramon"},{"links":[],"entityid":"120","externalid":"M-MrPJGgaByzPfCBmifPW5cR","internalid":"618","name":"FXIFY
+        Solutions Limited"},{"links":[],"entityid":"121","externalid":"M-ANJcfecm6fvc1KbFPgSNvu","internalid":"922","name":"Storetasker"},{"links":[],"entityid":"127","externalid":"EXT-806","internalid":"5133","name":"DAS
+        Bootleg"},{"links":[],"entityid":"134","externalid":"TEST-EXT-CUST-1000","internalid":"12841","name":"TEST
+        Cust Name 1000"},{"links":[],"entityid":"1272","externalid":"beh-01","internalid":"6733","name":"Behram"},{"links":[],"entityid":"1274","externalid":"MK_0087","internalid":"7033","name":"Mohsin"},{"links":[],"entityid":"1275","externalid":"RP_0087","internalid":"7034","name":"Robert"},{"links":[],"entityid":"1276","externalid":"Nis_001","internalid":"7233","name":"Nissan"},{"links":[],"entityid":"1278","externalid":"BL_401","internalid":"7333","name":"Brian
+        Lara"},{"links":[],"entityid":"1279","externalid":"EXT-775511","internalid":"7533","name":"Fast
+        Lane Enterprises"},{"links":[],"entityid":"12710","externalid":"Ford_911","internalid":"7633","name":"Ford"},{"links":[],"entityid":"12711","externalid":"EXT-7755141114","internalid":"7634","name":"Yummy
+        Food Restaurant Group"},{"links":[],"entityid":"12712","externalid":"EXT-71419000981","internalid":"7833","name":"ZZZZZ"},{"links":[],"entityid":"12713","externalid":"EXT-a14901401","internalid":"7834"},{"links":[],"entityid":"12714","externalid":"Toyota2024","internalid":"8434","name":"Toyota2024"},{"links":[],"entityid":"12715","externalid":"CUST-TF1","internalid":"8534"},{"links":[],"entityid":"12716","externalid":"CUST-TF2","internalid":"8635","name":"TF2
+        Company Name"},{"links":[],"entityid":"12717","externalid":"C_200","internalid":"9136","name":"Coty"},{"links":[],"entityid":"12718","externalid":"C_201","internalid":"9236"},{"links":[],"entityid":"12719","externalid":"C_222","internalid":"10537"},{"links":[],"entityid":"12720","externalid":"C_333","internalid":"11137"},{"links":[],"entityid":"12721","externalid":"C_444","internalid":"11337"},{"links":[],"entityid":"12722","externalid":"irf_002","internalid":"11737"},{"links":[],"entityid":"12723","internalid":"12037"},{"links":[],"entityid":"TEST-CUST-N-1000","externalid":"TEST-EXT-CUST-1002","internalid":"12842","name":"TEST
+        Cust Name 1000"},{"links":[],"entityid":"TEST-CUST-N-1100","externalid":"TEST-EXT-CUST-9999","internalid":"12941","name":"TEST
+        Cust Name 1100"},{"links":[],"entityid":"128","internalid":"6134","name":"Hondaa"},{"links":[],"entityid":"129","externalid":"VEXT-111","internalid":"9436","name":"DAS
+        Bootleg"},{"links":[],"entityid":"130","externalid":"EXT-142114","internalid":"9536","name":"DAS
+        Bootleg"},{"links":[],"entityid":"131","externalid":"CUST-EXT-1234616","internalid":"9439","name":"DAS
+        Bootleg Updated"},{"links":[],"entityid":"132","externalid":"EXT-1706","internalid":"12241","name":"IRFAN
+        1706"},{"links":[],"entityid":"133","externalid":"EXT-1707","internalid":"12242","name":"IRFAN
+        1707"},{"links":[],"entityid":"ENT-1708","externalid":"EXT-1708","internalid":"12341","name":"IRFAN
+        1708"},{"links":[],"entityid":"ewtto","internalid":"12541","name":"ewtto"},{"links":[],"entityid":"ewtto
+        2","internalid":"12542","name":"ewtto 2"},{"links":[],"entityid":"ewtto 3","internalid":"12641","name":"ewtto
+        3"},{"links":[],"entityid":"ewtto 4","internalid":"12741","name":"ewtto 4"},{"links":[],"entityid":"hotglue
+        incorporated","internalid":"12441","name":"hotglue incorporated"}],"offset":0,"totalResults":161}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147193.5b24472b
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:13 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1004819831:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 8d1d4711-5f16-4218-9ad1-ccdd3d77f306
+      X-NetSuite-JobId:
+      - f0282ea8-36c4-442b-9808-bece0e46bd63
+      content-length:
+      - '13468'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendor.id as internalId, vendor.companyName as name, vendor.externalId,
+      vendor.subsidiary as subsidiaryId, vendor.entityid as entityId FROM vendor"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '162'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links":[{"rel":"self","href":"https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0"}],"count":80,"hasMore":false,"items":[{"links":[],"entityid":"-Accountant-","internalid":"-3","subsidiaryid":"1"},{"links":[],"entityid":"ACR
+        SUPPLY CO","internalid":"21","name":"ACR SUPPLY CO","subsidiaryid":"1"},{"links":[],"entityid":"Abbot","externalid":"AP_600","internalid":"8936","name":"Abbot","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        700","externalid":"AP_700","internalid":"10137","name":"Abbot 700","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        711","externalid":"AP_711","internalid":"10237","name":"Abbot 711","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        712","externalid":"AP_712","internalid":"10638","name":"Abbot 712","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        715","externalid":"AP_715","internalid":"10837","name":"Abbot 715","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        716","externalid":"AP_716","internalid":"10937","name":"Abbot 716","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        717","externalid":"AP_717","internalid":"11037","name":"Abbot 717","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        888","externalid":"AP_888","internalid":"10337","name":"Abbot 888","subsidiaryid":"4"},{"links":[],"entityid":"Abbot
+        889","externalid":"AP_889","internalid":"10437","name":"Abbot 889","subsidiaryid":"4"},{"links":[],"entityid":"Ac
+        Controls Company, Inc.","internalid":"18","name":"Ac Controls Company, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Ac
+        Corporation","internalid":"19","name":"Ac Corporation","subsidiaryid":"1"},{"links":[],"entityid":"Accent
+        Imaging Inc","internalid":"16","name":"Accent Imaging Inc","subsidiaryid":"1"},{"links":[],"entityid":"Advantage
+        Controls, Llc","internalid":"31","name":"Advantage Controls, Llc","subsidiaryid":"1"},{"links":[],"entityid":"Air
+        Conditioning Contractors","internalid":"15","name":"Air Conditioning Contractors","subsidiaryid":"1"},{"links":[],"entityid":"Allied
+        Boiler & Supply, Inc.","internalid":"26","name":"Allied Boiler & Supply, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"American
+        Industrial Con., Inc.","internalid":"25","name":"American Industrial Con.,
+        Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Amerigas Propane Lp","internalid":"29","name":"Amerigas
+        Propane Lp","subsidiaryid":"1"},{"links":[],"entityid":"Authorized Parts,
+        Inc.","internalid":"42","name":"Authorized Parts, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Baker
+        Distributing Company","internalid":"32","name":"Baker Distributing Company","subsidiaryid":"1"},{"links":[],"entityid":"Bayside
+        Electric Supply Co, Inc.","internalid":"34","name":"Bayside Electric Supply
+        Co, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Bearing Distributors,
+        Inc.","internalid":"35","name":"Bearing Distributors, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Behram","externalid":"BHK_001","internalid":"8834","name":"Behram","subsidiaryid":"1"},{"links":[],"entityid":"Bennett-Hockett
+        Supply Co. Inc","internalid":"37","name":"Bennett-Hockett Supply Co. Inc","subsidiaryid":"1"},{"links":[],"entityid":"Bibey
+        Machine Company, Inc.","internalid":"41","name":"Bibey Machine Company, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Bills
+        Mobile Crane Service, Inc.","internalid":"43","name":"Bills Mobile Crane Service,
+        Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Bmi Mail Systems","internalid":"44","name":"Bmi
+        Mail Systems","subsidiaryid":"1"},{"links":[],"entityid":"Boatwright Dist
+        & Supply, Inc.","internalid":"46","name":"Boatwright Dist & Supply, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Boiler
+        Masters, Inc.","internalid":"47","name":"Boiler Masters, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Boma/raleigh-Durham,
+        Inc","internalid":"49","name":"Boma/raleigh-Durham, Inc","subsidiaryid":"1"},{"links":[],"entityid":"Bowden
+        Electric Motor Service, Inc.","internalid":"50","name":"Bowden Electric Motor
+        Service, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Brian C Lara","externalid":"AP_601","internalid":"9036","subsidiaryid":"2"},{"links":[],"entityid":"Brian
+        W Lewis","externalid":"AP_670","internalid":"11239","subsidiaryid":"2"},{"links":[],"entityid":"Brooks,
+        Pierce, Mclendon","internalid":"51","name":"Brooks, Pierce, Mclendon","subsidiaryid":"1"},{"links":[],"entityid":"Bruce
+        Watkins Supply, Inc.","internalid":"54","name":"Bruce Watkins Supply, Inc.","subsidiaryid":"1"},{"links":[],"entityid":"CAPITOL
+        COFFEE GREENSBORO","internalid":"57","name":"CAPITOL COFFEE GREENSBORO","subsidiaryid":"1"},{"links":[],"entityid":"Capital
+        Grounds Maintenance Co","internalid":"61","name":"Capital Grounds Maintenance
+        Co","subsidiaryid":"1"},{"links":[],"entityid":"Carlos J Perez","externalid":"HyM-2053","internalid":"720","name":"HyM","subsidiaryid":"1"},{"links":[],"entityid":"Carolina
+        Material Handling, Inc.","internalid":"62","name":"Carolina Material Handling,
+        Inc.","subsidiaryid":"1"},{"links":[],"entityid":"Church''s Shoes","externalid":"AP_798","internalid":"12139","name":"Church''s
+        Shoes","subsidiaryid":"4"},{"links":[],"entityid":"Coca Cola","externalid":"EXT-10891490814089","internalid":"8234","name":"Coca
+        Cola","subsidiaryid":"1"},{"links":[],"entityid":"FIRST NAME M LAST NAME","externalid":"VEND-99999","internalid":"8134","subsidiaryid":"1"},{"links":[],"entityid":"Fake
+        Wrapbook Updated 19810910","externalid":"VEXT-2222","internalid":"9437","name":"Fake
+        Wrapbook Updated 19810910","subsidiaryid":"1"},{"links":[],"entityid":"Fake
+        Wrapbook Updated Again","externalid":"EXT-456","internalid":"6634","name":"Fake
+        Wrapbook Updated Again","subsidiaryid":"4"},{"links":[],"entityid":"Fedex","internalid":"13","name":"Fedex","subsidiaryid":"1"},{"links":[],"entityid":"Forza","externalid":"AP_768","internalid":"12038","name":"Forza","subsidiaryid":"4"},{"links":[],"entityid":"Fruitella","externalid":"FL_001","internalid":"7133","name":"Fruitella","subsidiaryid":"1"},{"links":[],"entityid":"Gemaire
+        Distributors, Llc","internalid":"56","name":"Gemaire Distributors, Llc","subsidiaryid":"1"},{"links":[],"entityid":"Golden
+        Eagle Ventures","internalid":"2425","name":"Golden Eagle Ventures","subsidiaryid":"1"},{"links":[],"entityid":"Goodman
+        Company, Lp","internalid":"7","name":"Goodman Company, Lp","subsidiaryid":"1"},{"links":[],"entityid":"Greensboro
+        Baseball Llc","internalid":"33","name":"Greensboro Baseball Llc","subsidiaryid":"1"},{"links":[],"entityid":"Irfan
+        Zulfiqar","externalid":"irf_001","internalid":"8634","name":"Irfan Zulfiqar","subsidiaryid":"1"},{"links":[],"entityid":"Irfan
+        test","externalid":"vendor-a","internalid":"307","name":"Irfan test","subsidiaryid":"1"},{"links":[],"entityid":"Jason
+        A Timpson","externalid":"JAT_001","internalid":"8735","name":"Jason Timpson","subsidiaryid":"1"},{"links":[],"entityid":"Jim
+        Brady","internalid":"52","name":"Jim Brady","subsidiaryid":"1"},{"links":[],"entityid":"LOMAN
+        GARRET","internalid":"27","name":"LOMAN GARRET","subsidiaryid":"1"},{"links":[],"entityid":"Leonard
+        Building & Truck Acc.","internalid":"14","name":"Leonard Building & Truck
+        Acc.","subsidiaryid":"1"},{"links":[],"entityid":"MICHAEL LUKE BRYAN","internalid":"53","name":"MICHAEL
+        LUKE BRYAN","subsidiaryid":"1"},{"links":[],"entityid":"Probando vendors","internalid":"1122","name":"Probando
+        vendors","subsidiaryid":"1"},{"links":[],"entityid":"REOAB","externalid":"VEND58718900","internalid":"9937","name":"REOAB","subsidiaryid":"1"},{"links":[],"entityid":"Random
+        129480","externalid":"VEXT-238487","internalid":"9637","name":"Random 129480","subsidiaryid":"1"},{"links":[],"entityid":"Random
+        1415151","externalid":"VEXT-14145159","internalid":"9837","name":"Random 1415151","subsidiaryid":"1"},{"links":[],"entityid":"Raquel
+        J Guevara","externalid":"RG-2829","internalid":"2829","name":"Guevara S.A.C.","subsidiaryid":"2"},{"links":[],"entityid":"Republic
+        Services","internalid":"39","name":"Republic Services","subsidiaryid":"1"},{"links":[],"entityid":"Rolex","externalid":"R_001","internalid":"8734","name":"Rolex","subsidiaryid":"1"},{"links":[],"entityid":"Same
+        C Something","externalid":"AP_900","internalid":"11437","subsidiaryid":"2"},{"links":[],"entityid":"Samsung
+        C.V.","externalid":"27-2789","internalid":"2727","name":"Samsung C.V.","subsidiaryid":"1"},{"links":[],"entityid":"Springs","externalid":"BHK_0087","internalid":"7035","name":"Springs","subsidiaryid":"1"},{"links":[],"entityid":"Swagelok","internalid":"11","name":"Swagelok","subsidiaryid":"1"},{"links":[],"entityid":"TEST-VN-N-1000","externalid":"TEST-EXT-VN-N-1001","internalid":"13041","name":"VEndor
+        name test","subsidiaryid":"1"},{"links":[],"entityid":"TEST-VN-N-1100","externalid":"TEST-EXT-VN-N-1101","internalid":"12843","name":"Test
+        vendor Name 1000 UPDATED","subsidiaryid":"1"},{"links":[],"entityid":"Tax
+        Agency MD","internalid":"2","subsidiaryid":"1"},{"links":[],"entityid":"Tottus","internalid":"8133","name":"Tottus","subsidiaryid":"1"},{"links":[],"entityid":"United
+        Rentals","internalid":"9","name":"United Rentals","subsidiaryid":"1"},{"links":[],"entityid":"VND-mintlify","internalid":"616","name":"Mintlify","subsidiaryid":"1"},{"links":[],"entityid":"Wrapbook","internalid":"309","name":"Wrapbook","subsidiaryid":"1"},{"links":[],"entityid":"Yet
+        Another Vendor","externalid":"EXT-1410914089","internalid":"8334","name":"Yet
+        Another Vendor","subsidiaryid":"1"},{"links":[],"entityid":"Yeti Coolers","externalid":"EXT-12498014190","internalid":"9336","name":"Yeti
+        Coolers","subsidiaryid":"1"},{"links":[],"entityid":"Zara","internalid":"718","name":"Zara","subsidiaryid":"1"}],"offset":0,"totalResults":80}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.6f841402.1749147193.2017f5a9
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:14 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1887607349:706172746E6572733130372E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - d2f99e22-bc68-4f79-afdc-5dd374161de0
+      X-NetSuite-JobId:
+      - e0832174-6a00-415b-9d6f-2672ea42f7f3
+      content-length:
+      - '9611'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"currency": {"id": "1"}, "subsidiary": {"id": "1"}, "location": {"id":
+      "1"}, "class": {"id": "1"}, "department": {"id": "5"}, "custbodycust_je_cf_test":
+      "CF test value", "custbody3": true, "externalId": "TEST-JL-303", "tranDate":
+      "2025-03-19T00:00:00+00:00", "memo": "Operation: Test JE description", "exchangeRate":
+      1.0, "postingPeriod": "23"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '345'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzIuMw==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/record/v1/journalEntry
+  response:
+    body:
+      string: '{"type":"https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5.1","title":"Bad
+        Request","status":400,"o:errorDetails":[{"detail":"Error while accessing a
+        resource. You must enter at least one line item for this transaction.","o:errorCode":"USER_ERROR"}]}
+
+        '
+    headers:
+      Akamai-GRN:
+      - 0.70841402.1749147194.5b246bbf
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - close
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=error; charset=UTF-8
+      Date:
+      - Thu, 05 Jun 2025 18:13:18 GMT
+      Expires:
+      - '0'
+      NS_RTIMER_COMPOSITE:
+      - 1706156634:706172746E6572733133352E70726F642D736A632D6E6131322E636F72652E6E732E696E7465726E616C:80
+      Pragma:
+      - No-Cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 075b4094-b443-41af-8c49-a431dbbca25d
+      X-NetSuite-JobId:
+      - 75c5235c-77d7-4e2d-b7d0-ece65db73bea
+      content-length:
+      - '258'
+    status:
+      code: 400
+      message: Bad Request
+version: 1

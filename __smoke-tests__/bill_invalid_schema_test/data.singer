@@ -1,0 +1,3 @@
+{ "type": "SCHEMA", "stream": "Bills", "schema": { "properties": { "id": { "type": [ "number", "null" ] } }, "type": "object" }, "key_properties": []}
+{ "type": "RECORD", "stream": "Bills", "record": { "id": 123 } }
+{"type": "STATE", "value": {}}

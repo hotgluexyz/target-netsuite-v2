@@ -1,0 +1,1 @@
+{"bookmarks": {"Customers": [{"success": false, "error": "Failed Structure/Datatype validation for Customers: 'id' -> Input should be a valid string (got value 123 of type int)", "id": "123"}]}, "summary": {"Customers": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}

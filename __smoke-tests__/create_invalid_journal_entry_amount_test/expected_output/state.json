@@ -1,0 +1,1 @@
+{"bookmarks": {"JournalEntries": [{"error": "[{\"detail\": \"Error while accessing a resource. The amounts in a journal entry must balance.\", \"o:errorCode\": \"USER_ERROR\"}]", "success": false, "externalId": "TEST-JL-302"}]}, "summary": {"JournalEntries": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}

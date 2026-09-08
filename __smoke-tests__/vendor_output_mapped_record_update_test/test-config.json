@@ -1,0 +1,5 @@
+{
+    "env": {
+        "OUTPUT_MAPPED_RECORD": "true"
+    }
+}

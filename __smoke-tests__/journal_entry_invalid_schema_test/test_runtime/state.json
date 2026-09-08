@@ -1,0 +1,1 @@
+{"bookmarks": {"JournalEntries": [{"success": false, "error": "Failed Structure/Datatype validation for JournalEntries: 'id' -> Input should be a valid string (got value 123 of type int); 'lineItems.0.accountId' -> Input should be a valid string (got value 1234 of type int)", "id": "123"}]}, "summary": {"JournalEntries": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}
