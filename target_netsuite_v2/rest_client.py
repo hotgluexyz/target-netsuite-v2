@@ -133,7 +133,10 @@ class netsuiteRestV2Sink(HotglueSink):
 
         labels_checked = []
         for ref_key, label in ref_keys_and_labels:
-            if ref_key not in ref_data:
+            if hasattr(ref_data, "load_succeeded"):
+                if not ref_data.load_succeeded(ref_key):
+                    continue
+            elif ref_key not in ref_data:
                 continue
             labels_checked.append(label.lower())
             ref_entry = self._find_ref_entry(ref_data, ref_key, value_id)
@@ -380,7 +383,7 @@ class netsuiteRestV2Sink(HotglueSink):
         
         if not sale_order.get("location") and record.get('subsidiary_id') and self.reference_data.get("Locations"):
             for location in self.reference_data["Locations"]:
-                for subsidiary in location.get("subsidiaryList", []):
+                for subsidiary in location.get("subsidiaryList") or []:
                     if str(record.get('subsidiary_id')) == subsidiary["internalId"]:
                         sale_order["location"] = {"id": location["internalId"]}
         

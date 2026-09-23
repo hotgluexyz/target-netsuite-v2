@@ -53,7 +53,7 @@ class netsuiteV2Sink(netsuiteSoapV2Sink, netsuiteRestV2Sink):
         super().__init__(target, stream_name, schema, key_properties)
         
         self.get_ns_client()
-        self.reference_data = self.get_reference_data()
+        self.init_reference_data()
 
     
     def post_item(self, record):
