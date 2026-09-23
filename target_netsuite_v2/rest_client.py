@@ -239,7 +239,21 @@ class netsuiteRestV2Sink(BatchSink):
                 except:
                     return record
         return record
-    
+
+    def _apply_custom_fields_to_payload(self, payload, custom_fields):
+        """Merge custom field name/value pairs onto a REST payload, decoding stringified objects."""
+        custom_fields = self.parse_objs(custom_fields or [])
+        if not isinstance(custom_fields, list):
+            raise Exception(
+                f"Invalid customFields. Expecting a list of name/value pairs. Received: {custom_fields}"
+            )
+        for field in custom_fields:
+            name = field.get("name")
+            if not name:
+                self.logger.info(f"Skipping custom field {field} because name is empty")
+                continue
+            payload[name] = self.parse_objs(field.get("value"))
+
     def get_account_by_name_id_number(self, x, accountName, id, number=None):
         return (
             (id is not None and x["internalId"] == id) or
@@ -500,8 +514,7 @@ class netsuiteRestV2Sink(BatchSink):
             expense["amount"] = round(line.get("amount"), 3)
 
             if line.get("customFields"):
-                for field in line.get("customFields"):
-                    expense[field["name"]] = field["value"]
+                self._apply_custom_fields_to_payload(expense, line.get("customFields"))
 
             # Get the NetSuite Location Ref
             location = None
@@ -1246,14 +1259,7 @@ class netsuiteRestV2Sink(BatchSink):
             customer["currency"] = {"refName": record["currency"]}
 
         if record.get("customFields"):
-            if isinstance(record["customFields"], str):
-                record["customFields"] = json.loads(record["customFields"])
-
-            for field in record.get("customFields"):
-                if field.get("name"):
-                    customer[field["name"]] = field["value"]
-                else:
-                    self.logger.info(f"Skipping custom field {field} because name is empty")
+            self._apply_custom_fields_to_payload(customer, record.get("customFields"))
 
         if "externalId" in customer and customer.get("externalId") == None:
             customer.pop("externalId")
@@ -1557,11 +1563,7 @@ class netsuiteRestV2Sink(BatchSink):
                 f"Service sale item can't be created without an incomeAccount, please provide an incomeAccount"
             )
 
-        custom_fields = self.parse_objs(record.get("customFields", "[]"))
-        for cf in custom_fields:
-            # add custom fields to payload
-            if cf.get("name"):
-                payload[cf.get("name")] = cf.get("value")
+        self._apply_custom_fields_to_payload(payload, record.get("customFields", "[]"))
 
         return payload
 
