@@ -1,0 +1,1 @@
+{"bookmarks": {"BillPayments": [{"error": "The Vendor supplied must be the same Bill Vendor", "externalId": "EXT-TEST-3001"}]}, "summary": {"BillPayments": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}

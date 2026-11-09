@@ -1,0 +1,1 @@
+{"bookmarks": {"Invoices": [{"error": "[{\"detail\": \"Error while accessing a resource. You must enter at least one line item for this transaction.\", \"o:errorCode\": \"USER_ERROR\"}]", "success": false, "externalId": "TEST-INV-B55555"}]}, "summary": {"Invoices": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}

@@ -1,0 +1,5 @@
+{
+    "ignore_columns": {
+        "vendorBill": ["tranId"]
+    }
+}
