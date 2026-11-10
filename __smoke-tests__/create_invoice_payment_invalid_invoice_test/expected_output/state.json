@@ -1,1 +1,18 @@
-{"bookmarks": {"InvoicePayments": [{"error": "Unable to find invoice. Tried lookup by externalId -Fallback-scrubbed-fGtlJjLHflFAINvU.", "externalId": "EXT-TEST-3200"}]}, "summary": {"InvoicePayments": {"success": 0, "fail": 1, "existing": 0, "updated": 0}}}
+{
+  "bookmarks": {
+    "InvoicePayments": [
+      {
+        "error": "Unable to find invoice. Tried lookup by externalId -Fallback-scrubbed-fGtlJjLHflFAINvU.",
+        "externalId": "EXT-TEST-3200"
+      }
+    ]
+  },
+  "summary": {
+    "InvoicePayments": {
+      "success": 0,
+      "fail": 1,
+      "existing": 0,
+      "updated": 0
+    }
+  }
+}

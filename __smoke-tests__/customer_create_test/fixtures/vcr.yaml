@@ -35,7 +35,7 @@ interactions:
         "internalid": "3", "name": "Virginia"}], "offset": 0, "totalResults": 5}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248489.e7ac924
+      - 0.1d0a2c17.1794248399.f22b3a2
       Cache-Control:
       - No-Cache
       Connection:
@@ -43,7 +43,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:31 GMT
+      - Mon, 09 Nov 2026 18:20:01 GMT
       Expires:
       - '0'
       Pragma:
@@ -58,9 +58,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 8358010f-b8e1-4f08-9320-b8ac77a414e3
+      - a6d654a6-93cb-4a02-b199-f81cb4069c19
       X-NetSuite-JobId:
-      - c67007a0-ecba-443f-b393-f549b7a8a7de
+      - eedcf778-782e-464e-b9f5-227bd6df213a
       content-length:
       - '457'
     status:
@@ -106,7 +106,7 @@ interactions:
         6}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248491.e7acc35
+      - 0.1d0a2c17.1794248402.f22b80c
       Cache-Control:
       - No-Cache
       Connection:
@@ -114,7 +114,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:32 GMT
+      - Mon, 09 Nov 2026 18:20:02 GMT
       Expires:
       - '0'
       Pragma:
@@ -129,9 +129,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 8643466a-9346-4bba-b843-08e1c30ebcfc
+      - 77065c18-a9e1-4d46-afb1-de8f5f3cbcb0
       X-NetSuite-JobId:
-      - cb0aa4d4-6c9b-4c9b-8d0c-73794b5b2582
+      - 6369d4e2-2b5a-4dfe-8ad6-77599fc0b31c
       content-length:
       - '671'
     status:
@@ -174,7 +174,7 @@ interactions:
         "offset": 0, "totalResults": 4}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248493.e7ace70
+      - 0.1d0a2c17.1794248403.f22bb1a
       Cache-Control:
       - No-Cache
       Connection:
@@ -182,7 +182,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:33 GMT
+      - Mon, 09 Nov 2026 18:20:04 GMT
       Expires:
       - '0'
       Pragma:
@@ -197,9 +197,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 45c8a789-01ee-4a4d-b049-b9f40d07b209
+      - ccaa5168-ffba-4f71-b022-520bf2050638
       X-NetSuite-JobId:
-      - 2da08757-960f-46e8-90ff-8112fb36a73b
+      - 364c4fd7-b939-4967-84ad-a99bdae7fbdb
       content-length:
       - '471'
     status:
@@ -248,7 +248,7 @@ interactions:
         "subsidiaryid": "1"}], "offset": 0, "totalResults": 9}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248494.f235a67
+      - 0.1d0a2c17.1794248404.f22be24
       Cache-Control:
       - No-Cache
       Connection:
@@ -256,7 +256,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:36 GMT
+      - Mon, 09 Nov 2026 18:20:06 GMT
       Expires:
       - '0'
       Pragma:
@@ -271,9 +271,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 0339c9af-123b-48f8-9198-7d74a867a156
+      - 11724d53-8131-41f9-8990-58d0cd6b765f
       X-NetSuite-JobId:
-      - 920fb79b-f5e2-4c3e-b3b6-f2ac812fa9b3
+      - f5b8ca9e-893f-4d1c-a896-36647776f84a
       content-length:
       - '958'
     status:
@@ -334,7 +334,7 @@ interactions:
         22}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248496.f235dd2
+      - 0.3f0a2c17.1794248406.e7a1f79
       Cache-Control:
       - No-Cache
       Connection:
@@ -342,7 +342,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:37 GMT
+      - Mon, 09 Nov 2026 18:20:08 GMT
       Expires:
       - '0'
       Pragma:
@@ -357,9 +357,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 2af546a3-3bd0-41c4-bcee-7a0456fd6996
+      - 51f3447c-b968-47a4-bcff-0b424e3998cd
       X-NetSuite-JobId:
-      - 89b74478-7e7d-4e8b-bb51-1b1e59c134e9
+      - 7af267a0-f1af-4e46-b700-88077161bf51
       content-length:
       - '1709'
     status:
@@ -490,7 +490,7 @@ interactions:
         99}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248498.e7ad74f
+      - 0.3f0a2c17.1794248408.e7a230b
       Cache-Control:
       - No-Cache
       Connection:
@@ -498,7 +498,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:38 GMT
+      - Mon, 09 Nov 2026 18:20:09 GMT
       Expires:
       - '0'
       Pragma:
@@ -513,9 +513,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - ac002db0-5bf2-4bdb-9f54-a612c705e334
+      - 7b95356d-4e9b-4ed5-8bf4-4ed6fc21640e
       X-NetSuite-JobId:
-      - c46e9c4b-9aa5-41c6-8a7a-8cb710f41150
+      - d09ddbd4-6dbe-4292-8e09-9433f7723ee6
       content-length:
       - '6823'
     status:
@@ -556,7 +556,7 @@ interactions:
         2}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248499.e7ad94c
+      - 0.3f0a2c17.1794248410.e7a2551
       Cache-Control:
       - No-Cache
       Connection:
@@ -564,7 +564,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:39 GMT
+      - Mon, 09 Nov 2026 18:20:10 GMT
       Expires:
       - '0'
       Pragma:
@@ -579,9 +579,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - d58b3813-c531-48d4-8794-3d5c3536a66e
+      - ecd738a2-9ab4-461e-9fd5-653addb01a01
       X-NetSuite-JobId:
-      - 7801f4a1-ad98-4888-9063-04a2af51fd1c
+      - 4867d5a1-1d56-423d-871a-051ef025f4d7
       content-length:
       - '328'
     status:
@@ -623,7 +623,7 @@ interactions:
         "offset": 0, "totalResults": 4}'
     headers:
       Akamai-GRN:
-      - 0.3f0a2c17.1794248500.e7adb78
+      - 0.3f0a2c17.1794248411.e7a27fc
       Cache-Control:
       - No-Cache
       Connection:
@@ -631,7 +631,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:41 GMT
+      - Mon, 09 Nov 2026 18:20:12 GMT
       Expires:
       - '0'
       Pragma:
@@ -646,9 +646,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 97105927-99da-4238-a364-765b9334f49e
+      - 677b03ba-8135-469e-8f3f-d106fc13043a
       X-NetSuite-JobId:
-      - 7508c22d-806b-4189-8cbb-fbef692e16a2
+      - df423c14-8eea-4abd-bf90-1b56ce01e1ab
       content-length:
       - '413'
     status:
@@ -712,7 +712,7 @@ interactions:
         "2"}], "offset": 0, "totalResults": 19}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248501.f23666b
+      - 0.3f0a2c17.1794248412.e7a2b29
       Cache-Control:
       - No-Cache
       Connection:
@@ -720,7 +720,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:42 GMT
+      - Mon, 09 Nov 2026 18:20:13 GMT
       Expires:
       - '0'
       Pragma:
@@ -735,9 +735,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - e9aaa6ff-a596-4192-8378-6aa797612ac5
+      - 5bf2bf61-a59d-45f5-a48f-8be749eb0cda
       X-NetSuite-JobId:
-      - 18d75870-6598-43de-9d76-0c88472663df
+      - 626f9bd7-8284-4880-8801-3af202630e28
       content-length:
       - '1833'
     status:
@@ -746,8 +746,8 @@ interactions:
 - request:
     body: '{"q": "SELECT customer.id as internalId, customer.companyName as name,
       customer.externalId, customer.entityid as entityId FROM customer WHERE id IN
-      (5133) OR externalId IN (''CUST-TF3'') OR customer.companyName IN (''TF3 Company
-      Name'')"}'
+      (5133) OR externalId IN (''TEST-EXT-CUST-11001'') OR customer.companyName IN
+      (''TEST Cust Name 11001'') OR entityId IN (''TEST-CUST-N-11001'')"}'
     headers:
       Accept:
       - !!binary |
@@ -759,7 +759,7 @@ interactions:
       - !!binary |
         a2VlcC1hbGl2ZQ==
       Content-Length:
-      - '234'
+      - '286'
       Content-Type:
       - !!binary |
         YXBwbGljYXRpb24vanNvbg==
@@ -779,7 +779,7 @@ interactions:
         "name": "DAS Bootleg"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248503.f23689f
+      - 0.1d0a2c17.1794248414.f22d4ad
       Cache-Control:
       - No-Cache
       Connection:
@@ -787,7 +787,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:45 GMT
+      - Mon, 09 Nov 2026 18:20:15 GMT
       Expires:
       - '0'
       Pragma:
@@ -802,9 +802,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 5e3680d5-9a7c-41a1-965d-fb1652eeb38a
+      - 1bf23178-c9d7-449d-b2cb-ec94031e7a71
       X-NetSuite-JobId:
-      - 3530288f-6ed1-4154-b302-7d0df7e0fc5e
+      - 5e7b1656-4b63-4f99-9648-b5bf013b7c83
       content-length:
       - '304'
     status:
@@ -845,7 +845,7 @@ interactions:
         "subsidiaryid": "1"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248505.f236c65
+      - 0.1d0a2c17.1794248416.f22d7a7
       Cache-Control:
       - No-Cache
       Connection:
@@ -853,7 +853,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:46 GMT
+      - Mon, 09 Nov 2026 18:20:17 GMT
       Expires:
       - '0'
       Pragma:
@@ -868,9 +868,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 56f82d2c-482d-4f42-bd06-a96db487a9c0
+      - b0f98aec-73ed-4a91-b942-1d354b5dae8b
       X-NetSuite-JobId:
-      - ea529463-02da-4dd5-9e79-2d15b9e87a9a
+      - 3f8437e8-4c6f-4a7b-8fa6-a4079c0f3029
       content-length:
       - '284'
     status:
@@ -925,7 +925,7 @@ interactions:
         "zip": "10001"}], "offset": 0, "totalResults": 2}'
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248507.f236df6
+      - 0.3f0a2c17.1794248417.e7a35ee
       Cache-Control:
       - No-Cache
       Connection:
@@ -933,7 +933,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 18:21:47 GMT
+      - Mon, 09 Nov 2026 18:20:18 GMT
       Expires:
       - '0'
       Pragma:
@@ -948,9 +948,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - b921e291-b262-41ec-a0d6-0761c9b6ae69
+      - 31366134-3ab2-4a11-91b5-4ece0938b5ba
       X-NetSuite-JobId:
-      - 944fc1bc-4e01-4a7f-a8e5-28357dcaff29
+      - c7bb5670-921a-453e-91fb-badd3c5ce3b5
       content-length:
       - '878'
     status:
@@ -969,8 +969,9 @@ interactions:
       "addr1": "-Fallback-scrubbed-qljLFStHcPTjjtqGGBYb", "addr2": "-Fallback-scrubbed-ylexX",
       "addr3": "-Fallback-scrubbed-iqWd", "city": "Fake-Tracyburgh", "state": "-Fallback-scrubbed-LC",
       "country": "-Fallback-scrubbed-vG", "zip": "19123"}}]}, "currency": {"id": "1"},
-      "isInactive": false, "externalId": "CUST-TF3", "companyName": "TF3 Company Name",
-      "title": "car manufacturer", "email": "test@example.com", "url": "https://www.Nissan.com"}'
+      "isInactive": false, "externalId": "TEST-EXT-CUST-11001", "entityId": "TEST-CUST-N-11001",
+      "companyName": "TEST Cust Name 11001", "title": "car manufacturer", "email":
+      "test@example.com", "url": "https://www.Nissan.com"}'
     headers:
       Accept:
       - !!binary |
@@ -982,7 +983,7 @@ interactions:
       - !!binary |
         a2VlcC1hbGl2ZQ==
       Content-Length:
-      - '1207'
+      - '1255'
       Content-Type:
       - !!binary |
         YXBwbGljYXRpb24vanNvbg==
@@ -996,17 +997,17 @@ interactions:
       string: ''
     headers:
       Akamai-GRN:
-      - 0.1d0a2c17.1794248508.f236f84
+      - 0.3f0a2c17.1794248419.e7a392e
       Cache-Control:
       - No-Cache
       Connection:
       - keep-alive
       Date:
-      - Mon, 09 Nov 2026 18:21:53 GMT
+      - Mon, 09 Nov 2026 18:20:33 GMT
       Expires:
       - '0'
       Location:
-      - https://2945321.suitetalk.api.netsuite.com/services/rest/record/v1/customer/21498
+      - https://2945321.suitetalk.api.netsuite.com/services/rest/record/v1/customer/21398
       Pragma:
       - No-Cache
       Strict-Transport-Security:
@@ -1016,9 +1017,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - f2e9ee1f-eee1-4f7f-8ac4-2a7dbce58f98
+      - 137f5be3-9cdf-4ce2-b457-de35cab9f154
       X-NetSuite-JobId:
-      - de4d8529-14e7-4a3c-8df8-83c81ea2e708
+      - 297b45c4-15c1-4d66-a538-cb65d1ef94f6
     status:
       code: 204
       message: No Content
