@@ -1,0 +1,19 @@
+{
+  "bookmarks": {
+    "InvoicePayments": [
+      {
+        "success": true,
+        "id": "48798",
+        "externalId": "EXT-INV-TEST-3401"
+      }
+    ]
+  },
+  "summary": {
+    "InvoicePayments": {
+      "success": 1,
+      "fail": 0,
+      "existing": 0,
+      "updated": 0
+    }
+  }
+}

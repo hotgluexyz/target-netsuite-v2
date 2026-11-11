@@ -1,0 +1,19 @@
+{
+  "bookmarks": {
+    "VendorCredits": [
+      {
+        "success": true,
+        "id": "49299",
+        "externalId": "-Fallback-scrubbed-ZNZnkfHqgpRlG"
+      }
+    ]
+  },
+  "summary": {
+    "VendorCredits": {
+      "success": 1,
+      "fail": 0,
+      "existing": 0,
+      "updated": 0
+    }
+  }
+}

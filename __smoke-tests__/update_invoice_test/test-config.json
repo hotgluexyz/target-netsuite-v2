@@ -1,0 +1,5 @@
+{
+    "ignore_columns": {
+        "/services/rest/record/v1/invoice/8938": ["tranId"]
+    }
+}
