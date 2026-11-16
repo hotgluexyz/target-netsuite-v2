@@ -1,0 +1,1224 @@
+interactions:
+- request:
+    body: '{"q": "SELECT subsidiary.id as internalId, subsidiary.name, subsidiary.externalId
+      FROM subsidiary"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '99'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 5, "hasMore": false, "items":
+        [{"links": [], "internalid": "2", "name": "California"}, {"links": [], "internalid":
+        "5", "name": "Germany"}, {"links": [], "internalid": "4", "name": "New York"},
+        {"links": [], "internalid": "1", "name": "Parent Company"}, {"links": [],
+        "internalid": "3", "name": "Virginia"}], "offset": 0, "totalResults": 5}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319143.562d608
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:04 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 7e29e6c0-fdd8-469b-9cf2-aba22175ad1d
+      X-NetSuite-JobId:
+      - 57b99ff5-8633-4720-af47-1ceb4314ea32
+      content-length:
+      - '457'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT classification.id as internalId, classification.name, classification.externalId,
+      subsidiary as subsidiaryId FROM classification"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '143'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 6, "hasMore": false, "items":
+        [{"links": [], "internalid": "7", "name": "Areeb Class", "subsidiaryid": "5"},
+        {"links": [], "internalid": "2", "name": "Project 2", "subsidiaryid": "1"},
+        {"links": [], "externalid": "pr-001", "internalid": "1", "name": "-Fallback-scrubbed-zpENCQlMw",
+        "subsidiaryid": "1, 2, 3, 4, 5"}, {"links": [], "internalid": "3", "name":
+        "Project 3 - BK", "subsidiaryid": "1"}, {"links": [], "internalid": "4", "name":
+        "-Fallback-scrubbed-eSMirZhwM", "subsidiaryid": "1, 2, 3, 4, 5"}, {"links":
+        [], "internalid": "6", "name": "Project 5", "subsidiaryid": "3"}], "offset":
+        0, "totalResults": 6}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319144.562dbd3
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:05 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - f8595aa4-209f-41c0-830f-2ec14c440e62
+      X-NetSuite-JobId:
+      - eeced601-8d41-4386-b43d-5288d23bb38e
+      content-length:
+      - '671'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT currency.id as internalId, currency.symbol, currency.name
+      FROM currency"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '87'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 4, "hasMore": false, "items":
+        [{"links": [], "internalid": "2", "name": "British pound", "symbol": "GBP"},
+        {"links": [], "internalid": "3", "name": "Canadian Dollar", "symbol": "CAD"},
+        {"links": [], "internalid": "4", "name": "Euro", "symbol": "EUR"}, {"links":
+        [], "internalid": "1", "name": "US Dollar", "symbol": "USD"}], "offset": 0,
+        "totalResults": 4}'
+    headers:
+      Akamai-GRN:
+      - 0.6cf57468.1794319146.624da77
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:06 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 165972c4-a2ad-48f6-ac4a-7f941471a718
+      X-NetSuite-JobId:
+      - c58f6bd3-0b64-44a2-bbf9-bf702b8e0e12
+      content-length:
+      - '471'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT department.id as internalId, department.name, department.externalId,
+      subsidiary as subsidiaryId FROM department"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '127'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 9, "hasMore": false, "items":
+        [{"links": [], "internalid": "6", "name": "Accounting and finance - BK", "subsidiaryid":
+        "1, 2, 4, 5"}, {"links": [], "internalid": "9", "name": "Audit", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "8", "name": "Business Development", "subsidiaryid":
+        "1, 2, 3, 4, 5"}, {"links": [], "internalid": "1", "name": "Human resources",
+        "subsidiaryid": "1"}, {"links": [], "internalid": "3", "name": "Information
+        technology", "subsidiaryid": "1"}, {"links": [], "externalid": "sales-12",
+        "internalid": "5", "name": "Sales", "subsidiaryid": "1, 2, 3, 4, 5"}, {"links":
+        [], "internalid": "4", "name": "Marketing", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "2", "name": "Operations management", "subsidiaryid": "1"},
+        {"links": [], "internalid": "7", "name": "Production, research and development",
+        "subsidiaryid": "1"}], "offset": 0, "totalResults": 9}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319146.562e230
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:07 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 9784f95c-57e4-496a-8d3b-3b12c329ef69
+      X-NetSuite-JobId:
+      - a1fc53b9-c67d-4a52-b81c-018202f98c97
+      content-length:
+      - '958'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT location.id as internalId, location.name as name, location.externalId,
+      location.subsidiary as subsidiaryId FROM location"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '136'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 22, "hasMore": false, "items":
+        [{"links": [], "internalid": "9", "name": "EMEA", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "15", "name": "AFRICA", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "18", "name": "Nigeria - BK", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "10", "name": "EUROPE", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "19", "name": "Italy", "subsidiaryid": "2"}, {"links": [],
+        "internalid": "12", "name": "NETHERLANDS", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "13", "name": "SPAIN", "subsidiaryid": "1"}, {"links": [],
+        "internalid": "21", "name": "TESTLOC", "subsidiaryid": "2"}, {"links": [],
+        "internalid": "11", "name": "UNITED KINGDOM", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "14", "name": "MIDDLE EAST", "subsidiaryid": "1"}, {"links":
+        [], "internalid": "22", "name": "Germany", "subsidiaryid": "5"}, {"links":
+        [], "internalid": "4", "name": "LATAM", "subsidiaryid": "1"}, {"links": [],
+        "internalid": "8", "name": "ARGENTINA", "subsidiaryid": "1"}, {"links": [],
+        "internalid": "7", "name": "BRAZIL", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "6", "name": "COLOMBIA", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "5", "name": "MEXICO", "subsidiaryid": "1"}, {"links": [], "internalid": "1",
+        "name": "NOAM", "subsidiaryid": "1"}, {"links": [], "internalid": "2", "name":
+        "CANADA", "subsidiaryid": "1"}, {"links": [], "externalid": "USA-location",
+        "internalid": "3", "name": "USA", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "20", "name": "Cal", "subsidiaryid": "4"}, {"links": [], "internalid": "16",
+        "name": "Location 1", "subsidiaryid": "2"}, {"links": [], "internalid": "17",
+        "name": "Location 2", "subsidiaryid": "2"}], "offset": 0, "totalResults":
+        22}'
+    headers:
+      Akamai-GRN:
+      - 0.6cf57468.1794319147.624e0be
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:07 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 5e4f84ac-5c95-41cb-ade6-93b12ab63b55
+      X-NetSuite-JobId:
+      - c46e2d10-cd50-484e-8dba-662ed063ddb9
+      content-length:
+      - '1709'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT account.id as internalId, account.acctName as name, account.acctNumber
+      as number, account.externalId FROM account"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 99, "hasMore": false, "items":
+        [{"links": [], "internalid": "3728", "name": "Raheel CAD", "number": "090078601"},
+        {"links": [], "internalid": "3729", "name": "Raheel USD", "number": "090078602"},
+        {"links": [], "internalid": "3735", "name": "Paul Revenue Test", "number":
+        "100001"}, {"links": [], "internalid": "111", "name": "Accounts Payable",
+        "number": "111"}, {"links": [], "internalid": "119", "name": "Accounts Receivable
+        - BK:", "number": "119"}, {"links": [], "internalid": "3734", "name": "BK-1234",
+        "number": "1234"}, {"links": [], "internalid": "3726", "name": "Test Account
+        123455", "number": "123455"}, {"links": [], "internalid": "3727", "name":
+        "Areeb", "number": "1999"}, {"links": [], "internalid": "3731", "name": "Deferred
+        Revenue", "number": "219"}, {"links": [], "internalid": "52", "name": "Retained
+        Earnings", "number": "3000"}, {"links": [], "internalid": "109", "name": "Cumulative
+        Translation Adjustment", "number": "3035"}, {"links": [], "internalid": "3732",
+        "name": "tax", "number": "319"}, {"links": [], "internalid": "53", "name":
+        "Opening Balance", "number": "3200"}, {"links": [], "internalid": "108", "name":
+        "Shipping and Handling", "number": "4050"}, {"links": [], "internalid": "58",
+        "name": "Expenses", "number": "58"}, {"links": [], "internalid": "3733", "name":
+        "IT and Internet Expenses", "number": "59"}, {"links": [], "internalid": "3936",
+        "name": "Airwallex excluded account", "number": "65793"}, {"links": [], "internalid":
+        "220", "name": "Accounts Payable \u2013 Inventory"}, {"links": [], "internalid":
+        "219", "name": "Accounts Payable \u2013 Office Supplies"}, {"links": [], "externalid":
+        "AccRev3345", "internalid": "1719", "name": "Cash Account Receivables"}, {"links":
+        [], "internalid": "221", "name": "Accrued Expenses"}, {"links": [], "internalid":
+        "224", "name": "Accrued Interest"}, {"links": [], "internalid": "112", "name":
+        "Accrued Purchases"}, {"links": [], "internalid": "222", "name": "Accrued
+        Salaries and Wages"}, {"links": [], "internalid": "223", "name": "Accrued
+        Utilities"}, {"links": [], "internalid": "118", "name": "Advances Paid"},
+        {"links": [], "internalid": "250", "name": "Bank Fees"}, {"links": [], "internalid":
+        "216", "name": "Buildings"}, {"links": [], "internalid": "1", "name": "Cash"},
+        {"links": [], "externalid": "Interbank6733", "internalid": "1720", "name":
+        "Bank account #35"}, {"links": [], "internalid": "3623", "name": "Savings"},
+        {"links": [], "internalid": "237", "name": "Commissions Earned"}, {"links":
+        [], "internalid": "239", "name": "Consulting Fees"}, {"links": [], "internalid":
+        "313", "name": "Cost of Goods Sold"}, {"links": [], "internalid": "251", "name":
+        "Cost of Goods Sold (COGS)"}, {"links": [], "internalid": "245", "name": "Depreciation"},
+        {"links": [], "internalid": "217", "name": "Equipment"}, {"links": [], "internalid":
+        "114", "name": "Estimates"}, {"links": [], "internalid": "214", "name": "Finished
+        Goods"}, {"links": [], "internalid": "218", "name": "Furniture"}, {"links":
+        [], "internalid": "236", "name": "Gain on Sale of Assets"}, {"links": [],
+        "internalid": "247", "name": "-Fallback-scrubbed-tNiDovvhi"}, {"links": [],
+        "internalid": "234", "name": "Interest Income"}, {"links": [], "internalid":
+        "211", "name": "Inventory"}, {"links": [], "internalid": "312", "name": "Inventory
+        Asset"}, {"links": [], "internalid": "3622", "name": "Merchandise"}, {"links":
+        [], "internalid": "315", "name": "Inventory In Transit"}, {"links": [], "internalid":
+        "215", "name": "Land"}, {"links": [], "internalid": "240", "name": "Late Fees"},
+        {"links": [], "internalid": "249", "name": "Loan Interest"}, {"links": [],
+        "internalid": "228", "name": "Long-Term Loans Payable"}, {"links": [], "internalid":
+        "243", "name": "Marketing and Advertising"}, {"links": [], "internalid": "229",
+        "name": "Mortgage Payable"}, {"links": [], "internalid": "244", "name": "Office
+        Supplies"}, {"links": [], "internalid": "124", "name": "Opportunities"}, {"links":
+        [], "internalid": "252", "name": "Other Operating Expenses"}, {"links": [],
+        "internalid": "238", "name": "Other Operating Income"}, {"links": [], "internalid":
+        "230", "name": "Owner\u2019s Equity"}, {"links": [], "internalid": "246",
+        "name": "Professional Fees"}, {"links": [], "internalid": "115", "name": "Purchase
+        Orders"}, {"links": [], "internalid": "121", "name": "Purchases Returned Not
+        Credited"}, {"links": [], "internalid": "212", "name": "Raw Materials"}, {"links":
+        [], "internalid": "3730", "name": "Realized Gain/Loss"}, {"links": [], "internalid":
+        "123", "name": "Refunds Payable"}, {"links": [], "internalid": "242", "name":
+        "Rent and Utilities"}, {"links": [], "internalid": "235", "name": "Rental
+        Income"}, {"links": [], "internalid": "113", "name": "Return Authorizations"},
+        {"links": [], "internalid": "311", "name": "Rounding Gain/Loss"}, {"links":
+        [], "internalid": "241", "name": "Salaries and Wages"}, {"links": [], "internalid":
+        "54", "name": "Sales"}, {"links": [], "externalid": "EXT-555", "internalid":
+        "3522", "name": "California Product Sales Updated"}, {"links": [], "internalid":
+        "232", "name": "Product Sales"}, {"links": [], "internalid": "233", "name":
+        "Service Sales"}, {"links": [], "internalid": "116", "name": "Sales Orders"},
+        {"links": [], "internalid": "3627", "name": "Sales Tax Expense Maryland"},
+        {"links": [], "internalid": "3626", "name": "Sales Tax Payable Maryland"},
+        {"links": [], "internalid": "210", "name": "Sales Taxes Payable MD"}, {"links":
+        [], "internalid": "226", "name": "Short-Term Loan \u2013 Bank A"}, {"links":
+        [], "internalid": "227", "name": "Short-Term Loan \u2013 Line of Credit"},
+        {"links": [], "internalid": "225", "name": "Short-Term Loans Payable"}, {"links":
+        [], "internalid": "3631", "name": "Tax Liability Germany"}, {"links": [],
+        "internalid": "3629", "name": "Tax on Sales Germany"}, {"links": [], "internalid":
+        "314", "name": "Transfer Orders"}, {"links": [], "internalid": "248", "name":
+        "Travel and Entertainment"}, {"links": [], "internalid": "110", "name": "Unapproved
+        Customer Payments"}, {"links": [], "internalid": "117", "name": "Unapproved
+        Expense Reports"}, {"links": [], "internalid": "1617", "name": "Uncategorized
+        Expense"}, {"links": [], "internalid": "316", "name": "Uncategorized Income"},
+        {"links": [], "internalid": "122", "name": "Undeposited Funds"}, {"links":
+        [], "internalid": "3624", "name": "Unrealized Gain/Loss"}, {"links": [], "internalid":
+        "3625", "name": "Unrealized Matching Gain/Loss"}, {"links": [], "internalid":
+        "3628", "name": "Use Tax Payable Maryland"}, {"links": [], "internalid": "213",
+        "name": "Work-in-Progress (WIP)"}, {"links": [], "externalid": "8a19d4c09e43fdbe019e452be7641746",
+        "internalid": "3736", "name": "Savings Control - EUR", "number": "dep200"},
+        {"links": [], "externalid": "8a19bdd09e452756019e452bb4dc057a", "internalid":
+        "3836", "name": "Interest Expense - EUR", "number": "dep300"}, {"links": [],
+        "externalid": "8a19d4c09e43fdbe019e4521048403f1", "internalid": "3838", "name":
+        "Penalty Receivable - EUR", "number": "loan600"}, {"links": [], "externalid":
+        "8a19d4c09e43fdbe019e4521048403f3", "internalid": "3837", "name": "Penalty
+        Income - EUR", "number": "loan900"}, {"links": [], "internalid": "3630", "name":
+        "Tax on Purchases Germany", "number": "somenumber123"}, {"links": [], "internalid":
+        "120", "name": "{#Vendor Return Authorizations#}"}], "offset": 0, "totalResults":
+        99}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319148.562e629
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:08 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 0c0a944d-2c06-4148-92ef-89940b199575
+      X-NetSuite-JobId:
+      - db9ed481-1c40-453e-a79c-5a4624b308b9
+      content-length:
+      - '6823'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT customercategory.id as internalid, customercategory.externalid
+      as externalid, customercategory.name FROM customercategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '137'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 2, "hasMore": false, "items":
+        [{"links": [], "internalid": "1", "name": "Customer category 1"}, {"links":
+        [], "internalid": "2", "name": "customer category 2"}], "offset": 0, "totalResults":
+        2}'
+    headers:
+      Akamai-GRN:
+      - 0.6cf57468.1794319148.624e615
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:09 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 880375b9-6b5b-4872-8679-0aebb0f46e7e
+      X-NetSuite-JobId:
+      - d7ba01c9-f2d6-473f-85f8-7c9599477764
+      content-length:
+      - '328'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendorcategory.id as internalId, vendorcategory.externalId
+      as externalId, vendorcategory.name FROM vendorcategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 4, "hasMore": false, "items":
+        [{"links": [], "internalid": "1", "name": "1099 contractor"}, {"links": [],
+        "internalid": "2", "name": "Consultant"}, {"links": [], "internalid": "4",
+        "name": "Supplies"}, {"links": [], "internalid": "3", "name": "Tax agency"}],
+        "offset": 0, "totalResults": 4}'
+    headers:
+      Akamai-GRN:
+      - 0.6cf57468.1794319149.624e89e
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:10 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - d6411944-1b9a-4850-99b4-42ad2c42f32f
+      X-NetSuite-JobId:
+      - 0550287e-c037-470f-b3e8-325ada70c1dd
+      content-length:
+      - '413'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT salestaxitem.id as internalid, salestaxitem.name as name,
+      salestaxitem.taxtype, customrecord_ste_taxrate.custrecord_ste_taxrate_rate as
+      taxrate FROM salestaxitem inner join customrecord_ste_taxrate on customrecord_ste_taxrate.custrecord_ste_taxrate_taxcode
+      = salestaxitem.id"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '290'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 19, "hasMore": false, "items":
+        [{"links": [], "internalid": "7029", "name": "DE_NL", "taxrate": "0", "taxtype":
+        "24"}, {"links": [], "internalid": "7030", "name": "DE_RCS", "taxrate": "0",
+        "taxtype": "26"}, {"links": [], "internalid": "7031", "name": "DE_RR", "taxrate":
+        "0.07", "taxtype": "24"}, {"links": [], "internalid": "7031", "name": "DE_RR",
+        "taxrate": "0.05", "taxtype": "24"}, {"links": [], "internalid": "7031", "name":
+        "DE_RR", "taxrate": "0.07", "taxtype": "24"}, {"links": [], "internalid":
+        "7033", "name": "DE_SR", "taxrate": "0.19", "taxtype": "24"}, {"links": [],
+        "internalid": "7033", "name": "DE_SR", "taxrate": "0.16", "taxtype": "24"},
+        {"links": [], "internalid": "7033", "name": "DE_SR", "taxrate": "0.19", "taxtype":
+        "24"}, {"links": [], "internalid": "7035", "name": "DE_ZR", "taxrate": "0",
+        "taxtype": "24"}, {"links": [], "internalid": "7036", "name": "Not liable
+        to tax, Maryland", "taxrate": "0", "taxtype": "23"}, {"links": [], "internalid":
+        "7039", "name": "State consumer''s use tax for Maryland", "taxrate": "0.06",
+        "taxtype": "7"}, {"links": [], "internalid": "7037", "name": "State sales
+        tax for Maryland", "taxrate": "0.06", "taxtype": "3"}, {"links": [], "internalid":
+        "7038", "name": "State use tax for Maryland", "taxrate": "0.06", "taxtype":
+        "5"}, {"links": [], "internalid": "7129", "name": "Tax10", "taxrate": "0.1",
+        "taxtype": "28"}, {"links": [], "internalid": "7027", "name": "Test", "taxrate":
+        "0.15", "taxtype": "-5"}, {"links": [], "internalid": "6612", "name": "VAT
+        20", "taxrate": "0.2", "taxtype": "-2"}, {"links": [], "internalid": "7018",
+        "name": "VAT 5", "taxrate": "0.05", "taxtype": "-5"}, {"links": [], "internalid":
+        "7022", "name": "VAT10 - Germany", "taxrate": "0.115", "taxtype": "2"}, {"links":
+        [], "internalid": "7025", "name": "VAT25 - Germany", "taxrate": "0.25", "taxtype":
+        "2"}], "offset": 0, "totalResults": 19}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319150.562ef12
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:10 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 3b409d95-9741-433b-9d5d-6b767f13fdea
+      X-NetSuite-JobId:
+      - b830bd38-64da-4638-b384-4af05ba5a681
+      content-length:
+      - '1833'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT transaction.id as internalId, transaction.tranid as tranId,
+      transaction.externalId as externalId, transaction.subsidiary as subsidiaryId
+      FROM transaction WHERE transaction.type = ''VendCred'' AND (externalId IN (''VC-TEST-2000''))"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '242'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 1, "hasMore": false, "items":
+        [{"links": [], "externalid": "VC-TEST-2000", "internalid": "21649", "subsidiaryid":
+        "1", "tranid": "VC-TEST-2000"}], "offset": 0, "totalResults": 1}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319151.562f170
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:11 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 08f6cd2c-225e-46c6-8829-53421a4aa1de
+      X-NetSuite-JobId:
+      - 22f10439-641b-4c82-9083-1c3bca37e732
+      content-length:
+      - '315'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendor.id as internalId, vendor.companyName as name, vendor.externalId,
+      vendor.subsidiary as subsidiaryId, vendor.entityid as entityId FROM vendor WHERE
+      entityId IN (''TestVendor'')"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '195'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 1, "hasMore": false, "items":
+        [{"links": [], "entityid": "TestVendor", "externalid": "T_001", "internalid":
+        "21298", "name": "TestVendor", "subsidiaryid": "1"}], "offset": 0, "totalResults":
+        1}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319152.562f53e
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:12 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 04eb7533-a578-4143-ad38-c443921e7555
+      X-NetSuite-JobId:
+      - c1fb8a75-a08e-4125-af35-c33a5e3d3b5c
+      content-length:
+      - '328'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT item.id as internalid, item.externalId as externalId, item.fullName
+      as name, item.itemid as itemId FROM item WHERE id IN (5911) OR item.fullName
+      IN (''Item-502'')"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '176'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 1, "hasMore": false, "items":
+        [{"links": [], "externalid": "Item_700", "internalid": "5911", "itemid": "Item_700",
+        "name": "Item_700"}], "offset": 0, "totalResults": 1}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319152.562f742
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:13 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 1d404676-eae8-4950-bd72-9185cee6b71b
+      X-NetSuite-JobId:
+      - 54f201dd-12cb-442d-aea0-e41f0b4b5381
+      content-length:
+      - '305'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT t.recordtype, tl.* FROM transaction t inner join transactionLine
+      tl on tl.transaction = t.id WHERE mainline <> ''T'' AND t.recordtype = ''vendorcredit''
+      AND t.id IN (''21649'')"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '186'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 15, "hasMore": false, "items":
+        [{"links": [], "billingsubsidiary": "1", "class": "3", "cleared": "F", "commitmentfirm":
+        "F", "creditforeignamount": "40", "custcol1": "-Fallback-scrubbed-ElDdBjNiBpurYgaaYqsA",
+        "department": "7", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount":
+        "58", "foreignamount": "-40", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "1", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "kitcomponent": "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX",
+        "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX", "linesequencenumber":
+        "1", "location": "18", "mainline": "F", "matchbilltoreceipt": "F", "memo":
+        "-Fallback-scrubbed-edsuszBbHnqpcNxGMNPCqzmoiI", "netamount": "-40", "oldcommitmentfirm":
+        "F", "pretransactiondiscountamount": "-40", "quantitybilled": "0", "quantityrejected":
+        "0", "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24465", "unitcostoverridecurrency": "USD"}, {"links": [], "billingsubsidiary":
+        "1", "class": "4", "cleared": "F", "commitmentfirm": "F", "creditforeignamount":
+        "30", "custcol1": "-Fallback-scrubbed-bIsmJcbKHryFOUHkzJRN", "department":
+        "6", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "247",
+        "foreignamount": "-30", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "2", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "kitcomponent": "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX",
+        "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX", "linesequencenumber":
+        "2", "location": "3", "mainline": "F", "matchbilltoreceipt": "F", "memo":
+        "-Fallback-scrubbed-ApugpyVWmstWEiAfiznXGhAAXo", "netamount": "-30", "oldcommitmentfirm":
+        "F", "pretransactiondiscountamount": "-30", "quantitybilled": "0", "quantityrejected":
+        "0", "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24466", "unitcostoverridecurrency": "USD"}, {"links": [], "billingsubsidiary":
+        "1", "class": "4", "cleared": "F", "commitmentfirm": "F", "creditforeignamount":
+        "34", "custcol1": "-Fallback-scrubbed-bIsmJcbKHryFOUHkzJRN", "department":
+        "6", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "247",
+        "foreignamount": "-34", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "3", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "kitcomponent": "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX",
+        "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX", "linesequencenumber":
+        "3", "location": "3", "mainline": "F", "matchbilltoreceipt": "F", "memo":
+        "-Fallback-scrubbed-LwgIyqQOFajxZYpj", "netamount": "-34", "oldcommitmentfirm":
+        "F", "pretransactiondiscountamount": "-34", "quantitybilled": "0", "quantityrejected":
+        "0", "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24467", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-bwtiw", "billingsubsidiary": "1", "class": "3", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "creditforeignamount":
+        "10", "custcol1": "-Fallback-scrubbed-nuCPOrvFqtqLnASBw", "department": "7",
+        "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312", "foreignamount":
+        "-10", "fulfillable": "T", "fxamountlinked": "0", "hascostline": "T", "hasfulfillableitems":
+        "F", "id": "4", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "T", "isitemvalueadjustment":
+        "F", "item": "5211", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "4", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "-Fallback-scrubbed-QBvVuowdHPyxJiNAFa",
+        "netamount": "-10", "oldcommitmentfirm": "F", "pretransactiondiscountamount":
+        "-10", "quantity": "-5", "quantitybilled": "0", "quantityrejected": "0", "quantityshiprecv":
+        "0", "rate": "0", "rateamount": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24468", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-bwtiw", "billingsubsidiary": "1", "class": "4", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "creditforeignamount":
+        "20", "custcol1": "-Fallback-scrubbed-iTxVCuDubKmODQzPQ", "department": "8",
+        "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312", "foreignamount":
+        "-20", "fulfillable": "T", "fxamountlinked": "0", "hascostline": "T", "hasfulfillableitems":
+        "F", "id": "5", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "T", "isitemvalueadjustment":
+        "F", "item": "5911", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "7", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "-Fallback-scrubbed-sSwLaFdkgPqEXBNXDV",
+        "netamount": "-20", "oldcommitmentfirm": "F", "pretransactiondiscountamount":
+        "-20", "quantity": "-1", "quantitybilled": "0", "quantityrejected": "0", "quantityshiprecv":
+        "0", "rate": "0", "rateamount": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24469", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-bwtiw", "billingsubsidiary": "1", "class": "1", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "creditforeignamount":
+        "30", "custcol1": "-Fallback-scrubbed-jPqlaSYeBVRBxmLXr", "department": "5",
+        "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312", "foreignamount":
+        "-30", "fulfillable": "T", "fxamountlinked": "0", "hascostline": "T", "hasfulfillableitems":
+        "F", "id": "6", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "T", "isitemvalueadjustment":
+        "F", "item": "5412", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "10", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "-Fallback-scrubbed-aEDVBAkeoYtRFaJfDY",
+        "netamount": "-30", "oldcommitmentfirm": "F", "pretransactiondiscountamount":
+        "-30", "quantity": "-1", "quantitybilled": "0", "quantityrejected": "0", "quantityshiprecv":
+        "0", "rate": "0", "rateamount": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24470", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-bwtiw", "billingsubsidiary": "1", "class": "1", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "creditforeignamount":
+        "25", "custcol1": "-Fallback-scrubbed-RGNmKbqjFZMYZHaUi", "department": "5",
+        "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312", "foreignamount":
+        "-25", "fulfillable": "T", "fxamountlinked": "0", "hascostline": "T", "hasfulfillableitems":
+        "F", "id": "7", "isbillable": "F", "isclosed": "F", "iscogs": "F", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "T", "isitemvalueadjustment":
+        "F", "item": "5412", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "13", "location": "9",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "-Fallback-scrubbed-LECfYdgLeiQyJWBtAM",
+        "netamount": "-25", "oldcommitmentfirm": "F", "pretransactiondiscountamount":
+        "-25", "quantity": "-2", "quantitybilled": "0", "quantityrejected": "0", "quantityshiprecv":
+        "0", "rate": "0", "rateamount": "0", "recordtype": "vendorcredit", "subsidiary":
+        "1", "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24471", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-LWVGSPSRWdfXBbStJJwD", "class": "3", "cleared": "F", "commitinventory":
+        "1", "commitmentfirm": "F", "department": "7", "displayline": "4", "donotdisplayline":
+        "F", "donotprintline": "F", "expenseaccount": "251", "fulfillable": "T", "fxamountlinked":
+        "0", "hascostline": "F", "hasfulfillableitems": "F", "id": "8", "isbillable":
+        "F", "isclosed": "F", "iscogs": "T", "isfullyshipped": "F", "isfxvariance":
+        "F", "isinventoryaffecting": "F", "isitemvalueadjustment": "F", "item": "5211",
+        "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent": "F", "linecreateddate":
+        "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX",
+        "linesequencenumber": "5", "location": "3", "mainline": "F", "matchbilltoreceipt":
+        "F", "memo": "Cost of Sales Adjustment", "oldcommitmentfirm": "F", "quantitybilled":
+        "0", "quantityrejected": "0", "quantityshiprecv": "0", "recordtype": "vendorcredit",
+        "subsidiary": "1", "taxline": "F", "transaction": "21649", "transactiondiscount":
+        "F", "uniquekey": "24564", "unitcostoverridecurrency": "USD"}, {"links": [],
+        "accountinglinetype": "-Fallback-scrubbed-bwtiw", "class": "3", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "department": "7", "displayline":
+        "4", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312",
+        "fulfillable": "T", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "9", "isbillable": "F", "isclosed": "F", "iscogs": "T", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "item": "5211", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "6", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "Cost of Sales Adjustment",
+        "oldcommitmentfirm": "F", "quantitybilled": "0", "quantityrejected": "0",
+        "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary": "1",
+        "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24565", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-LWVGSPSRWdfXBbStJJwD", "class": "1", "cleared": "F", "commitinventory":
+        "1", "commitmentfirm": "F", "department": "5", "displayline": "6", "donotdisplayline":
+        "F", "donotprintline": "F", "expenseaccount": "251", "fulfillable": "T", "fxamountlinked":
+        "0", "hascostline": "F", "hasfulfillableitems": "F", "id": "10", "isbillable":
+        "F", "isclosed": "F", "iscogs": "T", "isfullyshipped": "F", "isfxvariance":
+        "F", "isinventoryaffecting": "F", "isitemvalueadjustment": "F", "item": "5412",
+        "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent": "F", "linecreateddate":
+        "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX",
+        "linesequencenumber": "11", "location": "3", "mainline": "F", "matchbilltoreceipt":
+        "F", "memo": "Cost of Sales Adjustment", "oldcommitmentfirm": "F", "quantitybilled":
+        "0", "quantityrejected": "0", "quantityshiprecv": "0", "recordtype": "vendorcredit",
+        "subsidiary": "1", "taxline": "F", "transaction": "21649", "transactiondiscount":
+        "F", "uniquekey": "24566", "unitcostoverridecurrency": "USD"}, {"links": [],
+        "accountinglinetype": "-Fallback-scrubbed-bwtiw", "class": "1", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "department": "5", "displayline":
+        "6", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312",
+        "fulfillable": "T", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "11", "isbillable": "F", "isclosed": "F", "iscogs": "T", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "item": "5412", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "12", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "Cost of Sales Adjustment",
+        "oldcommitmentfirm": "F", "quantitybilled": "0", "quantityrejected": "0",
+        "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary": "1",
+        "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24567", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-LWVGSPSRWdfXBbStJJwD", "class": "1", "cleared": "F", "commitinventory":
+        "1", "commitmentfirm": "F", "department": "5", "displayline": "7", "donotdisplayline":
+        "F", "donotprintline": "F", "expenseaccount": "251", "fulfillable": "T", "fxamountlinked":
+        "0", "hascostline": "F", "hasfulfillableitems": "F", "id": "12", "isbillable":
+        "F", "isclosed": "F", "iscogs": "T", "isfullyshipped": "F", "isfxvariance":
+        "F", "isinventoryaffecting": "F", "isitemvalueadjustment": "F", "item": "5412",
+        "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent": "F", "linecreateddate":
+        "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX",
+        "linesequencenumber": "14", "location": "9", "mainline": "F", "matchbilltoreceipt":
+        "F", "memo": "Cost of Sales Adjustment", "oldcommitmentfirm": "F", "quantitybilled":
+        "0", "quantityrejected": "0", "quantityshiprecv": "0", "recordtype": "vendorcredit",
+        "subsidiary": "1", "taxline": "F", "transaction": "21649", "transactiondiscount":
+        "F", "uniquekey": "24568", "unitcostoverridecurrency": "USD"}, {"links": [],
+        "accountinglinetype": "-Fallback-scrubbed-bwtiw", "class": "1", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "department": "5", "displayline":
+        "7", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312",
+        "fulfillable": "T", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "13", "isbillable": "F", "isclosed": "F", "iscogs": "T", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "item": "5412", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "15", "location": "9",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "Cost of Sales Adjustment",
+        "oldcommitmentfirm": "F", "quantitybilled": "0", "quantityrejected": "0",
+        "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary": "1",
+        "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24569", "unitcostoverridecurrency": "USD"}, {"links": [], "accountinglinetype":
+        "-Fallback-scrubbed-LWVGSPSRWdfXBbStJJwD", "class": "4", "cleared": "F", "commitinventory":
+        "1", "commitmentfirm": "F", "department": "8", "displayline": "5", "donotdisplayline":
+        "F", "donotprintline": "F", "expenseaccount": "251", "fulfillable": "T", "fxamountlinked":
+        "0", "hascostline": "F", "hasfulfillableitems": "F", "id": "14", "isbillable":
+        "F", "isclosed": "F", "iscogs": "T", "isfullyshipped": "F", "isfxvariance":
+        "F", "isinventoryaffecting": "F", "isitemvalueadjustment": "F", "item": "5911",
+        "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent": "F", "linecreateddate":
+        "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate": "-Fallback-scrubbed-dveWxpMX",
+        "linesequencenumber": "8", "location": "3", "mainline": "F", "matchbilltoreceipt":
+        "F", "memo": "Cost of Sales Adjustment", "oldcommitmentfirm": "F", "quantitybilled":
+        "0", "quantityrejected": "0", "quantityshiprecv": "0", "recordtype": "vendorcredit",
+        "subsidiary": "1", "taxline": "F", "transaction": "21649", "transactiondiscount":
+        "F", "uniquekey": "24570", "unitcostoverridecurrency": "USD"}, {"links": [],
+        "accountinglinetype": "-Fallback-scrubbed-bwtiw", "class": "4", "cleared":
+        "F", "commitinventory": "1", "commitmentfirm": "F", "department": "8", "displayline":
+        "5", "donotdisplayline": "F", "donotprintline": "F", "expenseaccount": "312",
+        "fulfillable": "T", "fxamountlinked": "0", "hascostline": "F", "hasfulfillableitems":
+        "F", "id": "15", "isbillable": "F", "isclosed": "F", "iscogs": "T", "isfullyshipped":
+        "F", "isfxvariance": "F", "isinventoryaffecting": "F", "isitemvalueadjustment":
+        "F", "item": "5911", "itemtype": "-Fallback-scrubbed-ZRoWAVjv", "kitcomponent":
+        "F", "linecreateddate": "-Fallback-scrubbed-dveWxpMX", "linelastmodifieddate":
+        "-Fallback-scrubbed-dveWxpMX", "linesequencenumber": "9", "location": "3",
+        "mainline": "F", "matchbilltoreceipt": "F", "memo": "Cost of Sales Adjustment",
+        "oldcommitmentfirm": "F", "quantitybilled": "0", "quantityrejected": "0",
+        "quantityshiprecv": "0", "recordtype": "vendorcredit", "subsidiary": "1",
+        "taxline": "F", "transaction": "21649", "transactiondiscount": "F", "uniquekey":
+        "24571", "unitcostoverridecurrency": "USD"}], "offset": 0, "totalResults":
+        15}'
+    headers:
+      Akamai-GRN:
+      - 0.6df57468.1794319154.562fccb
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Tue, 10 Nov 2026 13:59:14 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - f1b5b90a-b14d-40ff-ad7a-be094609c445
+      X-NetSuite-JobId:
+      - 4a7b5195-c250-498e-be56-857dd5f2c853
+      content-length:
+      - '15013'
+    status:
+      code: 200
+      message: OK
+version: 1

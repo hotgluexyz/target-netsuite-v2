@@ -1,0 +1,751 @@
+interactions:
+- request:
+    body: '{"q": "SELECT subsidiary.id as internalId, subsidiary.name, subsidiary.externalId
+      FROM subsidiary"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '99'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 5, "hasMore": false, "items":
+        [{"links": [], "internalid": "2", "name": "Fake-Katherine Peterson"}, {"links":
+        [], "internalid": "5", "name": "Fake-Ryan Walker"}, {"links": [], "internalid":
+        "4", "name": "Fake-Nathan Crawford"}, {"links": [], "internalid": "1", "name":
+        "Fake-Bethany Owens"}, {"links": [], "internalid": "3", "name": "Fake-Ruth
+        Russell"}], "offset": 0, "totalResults": 5}'
+    headers:
+      Akamai-GRN:
+      - 0.15fdd417.1794223282.5caa717
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:23 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - f733e07b-19a5-4dc7-9fd7-257b86104b17
+      X-NetSuite-JobId:
+      - 5e52a803-c415-47f8-858f-d6f1fe5ec095
+      content-length:
+      - '457'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT classification.id as internalId, classification.name, classification.externalId,
+      subsidiary as subsidiaryId FROM classification"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '143'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 6, "hasMore": false, "items":
+        [{"links": [], "internalid": "7", "name": "Fake-Ethan Camacho", "subsidiaryid":
+        "5"}, {"links": [], "internalid": "2", "name": "Fake-Mr. Adam White", "subsidiaryid":
+        "1"}, {"links": [], "externalid": "-Fallback-scrubbed-uhgSpq", "internalid":
+        "1", "name": "Fake-Katherine Evans", "subsidiaryid": "-Fallback-scrubbed-izkfWOfivDnBz"},
+        {"links": [], "internalid": "3", "name": "Fake-Catherine Cohen", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "4", "name": "Fake-Brian Hamilton", "subsidiaryid":
+        "-Fallback-scrubbed-izkfWOfivDnBz"}, {"links": [], "internalid": "6", "name":
+        "Fake-Neil Cook", "subsidiaryid": "3"}], "offset": 0, "totalResults": 6}'
+    headers:
+      Akamai-GRN:
+      - 0.24fdd417.1794223283.53264f
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:24 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - a3f3ae31-8158-4fa2-a62c-8f54f65ef4e3
+      X-NetSuite-JobId:
+      - f459085d-8b71-42c8-93a7-e96da3736780
+      content-length:
+      - '671'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT currency.id as internalId, currency.symbol, currency.name
+      FROM currency"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '87'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 4, "hasMore": false, "items":
+        [{"links": [], "internalid": "2", "name": "Fake-Mark Gomez", "symbol": "GBP"},
+        {"links": [], "internalid": "3", "name": "Fake-Elizabeth Pitts DVM", "symbol":
+        "CAD"}, {"links": [], "internalid": "4", "name": "Fake-Sharon Williams", "symbol":
+        "EUR"}, {"links": [], "internalid": "1", "name": "Fake-Keith Taylor", "symbol":
+        "USD"}], "offset": 0, "totalResults": 4}'
+    headers:
+      Akamai-GRN:
+      - 0.15fdd417.1794223284.5cab251
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:25 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 79cb65de-b4bd-433b-bdd3-a80fcf59071b
+      X-NetSuite-JobId:
+      - 7b2b4075-9b14-4628-8a99-b0f2abf6a0aa
+      content-length:
+      - '471'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT department.id as internalId, department.name, department.externalId,
+      subsidiary as subsidiaryId FROM department"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '127'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 9, "hasMore": false, "items":
+        [{"links": [], "internalid": "6", "name": "Fake-Richard Davis", "subsidiaryid":
+        "-Fallback-scrubbed-viJJnwYvDD"}, {"links": [], "internalid": "9", "name":
+        "Fake-Matthew Hernandez", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "8", "name": "Fake-Andrew Johnson", "subsidiaryid": "-Fallback-scrubbed-izkfWOfivDnBz"},
+        {"links": [], "internalid": "1", "name": "Fake-Scott Campbell", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "3", "name": "Fake-Jessica Davis", "subsidiaryid":
+        "1"}, {"links": [], "externalid": "-Fallback-scrubbed-PMbEzKHp", "internalid":
+        "5", "name": "Fake-William Wright", "subsidiaryid": "-Fallback-scrubbed-izkfWOfivDnBz"},
+        {"links": [], "internalid": "4", "name": "Fake-Michael Blackwell", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "2", "name": "Fake-Anthony Tran", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "7", "name": "Fake-Linda Edwards", "subsidiaryid":
+        "1"}], "offset": 0, "totalResults": 9}'
+    headers:
+      Akamai-GRN:
+      - 0.15fdd417.1794223285.5cab95b
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:26 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 559ae21b-a2d8-4bf3-a311-0b23b6a25ade
+      X-NetSuite-JobId:
+      - 2d973fa5-82c1-4a40-8135-456af093bc23
+      content-length:
+      - '958'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT location.id as internalId, location.name as name, location.externalId,
+      location.subsidiary as subsidiaryId FROM location"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '136'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 22, "hasMore": false, "items":
+        [{"links": [], "internalid": "9", "name": "Fake-Samantha Lee", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "15", "name": "Fake-Travis Hester", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "18", "name": "Fake-Nicole Hughes", "subsidiaryid":
+        "1"}, {"links": [], "internalid": "10", "name": "Fake-Elizabeth Gregory",
+        "subsidiaryid": "1"}, {"links": [], "internalid": "19", "name": "Fake-Lynn
+        Morrow", "subsidiaryid": "2"}, {"links": [], "internalid": "12", "name": "Fake-Vanessa
+        Stewart", "subsidiaryid": "1"}, {"links": [], "internalid": "13", "name":
+        "Fake-Brandi Jordan", "subsidiaryid": "1"}, {"links": [], "internalid": "21",
+        "name": "Fake-Jacob Smith", "subsidiaryid": "2"}, {"links": [], "internalid":
+        "11", "name": "Fake-Jerry Stone", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "14", "name": "Fake-Gregory Perry", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "22", "name": "Fake-Ryan Walker", "subsidiaryid": "5"}, {"links": [], "internalid":
+        "4", "name": "Fake-Kevin Thomas", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "8", "name": "Fake-Spencer Larsen", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "7", "name": "Fake-Philip Santana", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "6", "name": "Fake-Ronald Duarte", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "5", "name": "Fake-Alexander King", "subsidiaryid": "1"}, {"links": [], "internalid":
+        "1", "name": "Fake-Timothy Harrison", "subsidiaryid": "1"}, {"links": [],
+        "internalid": "2", "name": "Fake-Jerry Harper", "subsidiaryid": "1"}, {"links":
+        [], "externalid": "-Fallback-scrubbed-LHntzGSgtcua", "internalid": "3", "name":
+        "USA", "subsidiaryid": "1"}, {"links": [], "internalid": "20", "name": "Fake-Scott
+        Beck", "subsidiaryid": "4"}, {"links": [], "internalid": "16", "name": "Fake-Michelle
+        Alexander", "subsidiaryid": "2"}, {"links": [], "internalid": "17", "name":
+        "Fake-Rose Arnold", "subsidiaryid": "2"}], "offset": 0, "totalResults": 22}'
+    headers:
+      Akamai-GRN:
+      - 0.24fdd417.1794223286.533912
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:27 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 208c1c65-57b7-4903-af4b-1020f0b8b0b1
+      X-NetSuite-JobId:
+      - c1f99441-eaf3-4041-9dce-4264110f5168
+      content-length:
+      - '1709'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT account.id as internalId, account.acctName as name, account.acctNumber
+      as number, account.externalId FROM account"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 99, "hasMore": false, "items":
+        [{"links": [], "internalid": "3728", "name": "Fake-Tonya Jackson", "number":
+        "090078601"}, {"links": [], "internalid": "3729", "name": "Fake-Raymond Ramirez",
+        "number": "090078602"}, {"links": [], "internalid": "3735", "name": "Fake-Yolanda
+        Smith", "number": "100001"}, {"links": [], "internalid": "111", "name": "Fake-James
+        Caldwell", "number": "111"}, {"links": [], "internalid": "119", "name": "Fake-Robert
+        Lam", "number": "119"}, {"links": [], "internalid": "3734", "name": "Fake-Angela
+        Carter", "number": "1234"}, {"links": [], "internalid": "3726", "name": "Fake-Paul
+        James", "number": "123455"}, {"links": [], "internalid": "3727", "name": "Fake-Tiffany
+        Rodriguez", "number": "1999"}, {"links": [], "internalid": "3731", "name":
+        "Fake-Brad Davis", "number": "219"}, {"links": [], "internalid": "52", "name":
+        "Fake-Cynthia Simpson", "number": "3000"}, {"links": [], "internalid": "109",
+        "name": "Fake-Ryan Townsend", "number": "3035"}, {"links": [], "internalid":
+        "3732", "name": "Fake-Mary Bartlett", "number": "319"}, {"links": [], "internalid":
+        "53", "name": "Fake-Alyssa Acosta", "number": "3200"}, {"links": [], "internalid":
+        "108", "name": "Fake-John Lopez", "number": "4050"}, {"links": [], "internalid":
+        "58", "name": "Fake-Janet George", "number": "58"}, {"links": [], "internalid":
+        "3733", "name": "Fake-Alex Benson", "number": "59"}, {"links": [], "internalid":
+        "3936", "name": "Fake-Jose Watkins", "number": "65793"}, {"links": [], "internalid":
+        "220", "name": "Fake-Michelle Powell"}, {"links": [], "internalid": "219",
+        "name": "Fake-Veronica Patterson"}, {"links": [], "externalid": "-Fallback-scrubbed-MAfmqzNJZb",
+        "internalid": "1719", "name": "Fake-Brittany Bridges"}, {"links": [], "internalid":
+        "221", "name": "Fake-Ricardo Simmons"}, {"links": [], "internalid": "224",
+        "name": "Fake-Alyssa Vazquez"}, {"links": [], "internalid": "112", "name":
+        "Fake-Christopher Everett"}, {"links": [], "internalid": "222", "name": "Fake-Chelsea
+        Perry"}, {"links": [], "internalid": "223", "name": "Fake-Tammy Doyle"}, {"links":
+        [], "internalid": "118", "name": "Fake-Jordan Parsons"}, {"links": [], "internalid":
+        "250", "name": "Fake-Mark Vance"}, {"links": [], "internalid": "216", "name":
+        "Fake-Melissa Williams"}, {"links": [], "internalid": "1", "name": "Fake-Mrs.
+        Taylor Williams DVM"}, {"links": [], "externalid": "-Fallback-scrubbed-CYZleMOaakftb",
+        "internalid": "1720", "name": "Fake-Julia Reynolds"}, {"links": [], "internalid":
+        "3623", "name": "Fake-Kimberly Small"}, {"links": [], "internalid": "237",
+        "name": "Fake-Jesus Bass"}, {"links": [], "internalid": "239", "name": "Fake-Shannon
+        Brown"}, {"links": [], "internalid": "313", "name": "Fake-Jeff Oconnell"},
+        {"links": [], "internalid": "251", "name": "Fake-Robert Thompson"}, {"links":
+        [], "internalid": "245", "name": "Fake-Sherry Garcia"}, {"links": [], "internalid":
+        "217", "name": "Fake-Jordan Marshall"}, {"links": [], "internalid": "114",
+        "name": "Fake-Donald Walker"}, {"links": [], "internalid": "214", "name":
+        "Fake-Scott Hunter"}, {"links": [], "internalid": "218", "name": "Fake-Susan
+        Howard"}, {"links": [], "internalid": "236", "name": "Fake-Corey Buckley"},
+        {"links": [], "internalid": "247", "name": "Fake-Jade Christensen"}, {"links":
+        [], "internalid": "234", "name": "Fake-Christine Sims"}, {"links": [], "internalid":
+        "211", "name": "Fake-Stephanie Hall"}, {"links": [], "internalid": "312",
+        "name": "Fake-Joseph Scott"}, {"links": [], "internalid": "3622", "name":
+        "Fake-Patricia Frost"}, {"links": [], "internalid": "315", "name": "Fake-Beth
+        Dudley"}, {"links": [], "internalid": "215", "name": "Fake-Stanley Graham"},
+        {"links": [], "internalid": "240", "name": "Fake-John Collins"}, {"links":
+        [], "internalid": "249", "name": "Fake-Brian Vazquez"}, {"links": [], "internalid":
+        "228", "name": "Fake-Donald Hines"}, {"links": [], "internalid": "243", "name":
+        "Fake-Larry Gonzalez"}, {"links": [], "internalid": "229", "name": "Fake-Scott
+        Olson"}, {"links": [], "internalid": "244", "name": "Fake-Gloria Edwards"},
+        {"links": [], "internalid": "124", "name": "Fake-James Lloyd"}, {"links":
+        [], "internalid": "252", "name": "Fake-Sherry Johnson"}, {"links": [], "internalid":
+        "238", "name": "Fake-Sydney Byrd"}, {"links": [], "internalid": "230", "name":
+        "Fake-Derrick Barnes"}, {"links": [], "internalid": "246", "name": "Fake-Alexander
+        Holder"}, {"links": [], "internalid": "115", "name": "Fake-Monica Norman"},
+        {"links": [], "internalid": "121", "name": "Fake-Donna Boyd"}, {"links": [],
+        "internalid": "212", "name": "Fake-Sheri Castillo"}, {"links": [], "internalid":
+        "3730", "name": "Fake-Dwayne Yang MD"}, {"links": [], "internalid": "123",
+        "name": "Fake-Oscar Davis"}, {"links": [], "internalid": "242", "name": "Fake-Christine
+        Hart"}, {"links": [], "internalid": "235", "name": "Fake-Brittany Strickland"},
+        {"links": [], "internalid": "113", "name": "Fake-Nathaniel Kent"}, {"links":
+        [], "internalid": "311", "name": "Fake-David Hamilton"}, {"links": [], "internalid":
+        "241", "name": "Fake-Michele Johnson"}, {"links": [], "internalid": "54",
+        "name": "Fake-William Wright"}, {"links": [], "externalid": "-Fallback-scrubbed-vDaNKrZ",
+        "internalid": "3522", "name": "Fake-Julie Holmes DDS"}, {"links": [], "internalid":
+        "232", "name": "Fake-Megan Avila"}, {"links": [], "internalid": "233", "name":
+        "Fake-Mary Howe"}, {"links": [], "internalid": "116", "name": "Fake-Joanne
+        Keller"}, {"links": [], "internalid": "3627", "name": "Fake-Sierra Scott"},
+        {"links": [], "internalid": "3626", "name": "Fake-Jose Wilson"}, {"links":
+        [], "internalid": "210", "name": "Fake-Marilyn Christensen"}, {"links": [],
+        "internalid": "226", "name": "Fake-Steven Carrillo"}, {"links": [], "internalid":
+        "227", "name": "Fake-Brett Rios"}, {"links": [], "internalid": "225", "name":
+        "Fake-David Everett"}, {"links": [], "internalid": "3631", "name": "Fake-Gina
+        Lopez"}, {"links": [], "internalid": "3629", "name": "Fake-Paul Parker"},
+        {"links": [], "internalid": "314", "name": "Fake-Jessica Leonard"}, {"links":
+        [], "internalid": "248", "name": "Fake-Cody Cole"}, {"links": [], "internalid":
+        "110", "name": "Fake-Leah Pierce"}, {"links": [], "internalid": "117", "name":
+        "Fake-Ashley Nelson"}, {"links": [], "internalid": "1617", "name": "Fake-Christopher
+        Rhodes"}, {"links": [], "internalid": "316", "name": "Fake-Richard White"},
+        {"links": [], "internalid": "122", "name": "Fake-Danielle Simpson"}, {"links":
+        [], "internalid": "3624", "name": "Fake-Hailey Tyler"}, {"links": [], "internalid":
+        "3625", "name": "Fake-Luke Ward"}, {"links": [], "internalid": "3628", "name":
+        "Fake-Karen Wolfe"}, {"links": [], "internalid": "213", "name": "Fake-Rebecca
+        Garcia"}, {"links": [], "externalid": "-Fallback-scrubbed-uDGzgzRXASJanSXramkjpZeviJQSzznS",
+        "internalid": "3736", "name": "Fake-Andrew Rivera", "number": "dep200"}, {"links":
+        [], "externalid": "-Fallback-scrubbed-iUasISNKbqtbNjnfWKlKaMcgcTlaflYD", "internalid":
+        "3836", "name": "Fake-Anna Fields", "number": "dep300"}, {"links": [], "externalid":
+        "-Fallback-scrubbed-mcMbxpUvnoVAdeCWvHLuxRvkYPqydzwU", "internalid": "3838",
+        "name": "Fake-Collin Rodriguez", "number": "loan600"}, {"links": [], "externalid":
+        "-Fallback-scrubbed-eDjdnIPEhFhxxXRjPHlpBguIyKWhTHDr", "internalid": "3837",
+        "name": "Fake-Andrew Harvey", "number": "loan900"}, {"links": [], "internalid":
+        "3630", "name": "Fake-Kelsey Blevins", "number": "somenumber123"}, {"links":
+        [], "internalid": "120", "name": "Fake-Katie Davis"}], "offset": 0, "totalResults":
+        99}'
+    headers:
+      Akamai-GRN:
+      - 0.24fdd417.1794223287.533ee5
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:28 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 61171b23-9198-48d8-9c8f-aa16653f0605
+      X-NetSuite-JobId:
+      - 1173033c-59a5-40d1-9048-03b426ececb4
+      content-length:
+      - '6823'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT customercategory.id as internalid, customercategory.externalid
+      as externalid, customercategory.name FROM customercategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '137'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 2, "hasMore": false, "items":
+        [{"links": [], "internalid": "1", "name": "Fake-Chad Walters MD"}, {"links":
+        [], "internalid": "2", "name": "Fake-Trevor Campos"}], "offset": 0, "totalResults":
+        2}'
+    headers:
+      Akamai-GRN:
+      - 0.24fdd417.1794223289.53452f
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:29 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 4565e932-0868-416d-9f28-24be635fc8ce
+      X-NetSuite-JobId:
+      - 88c48e06-d705-46e2-a4c5-637efa4e302a
+      content-length:
+      - '328'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT vendorcategory.id as internalId, vendorcategory.externalId
+      as externalId, vendorcategory.name FROM vendorcategory"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '129'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 4, "hasMore": false, "items":
+        [{"links": [], "internalid": "1", "name": "Fake-Laura Yates"}, {"links": [],
+        "internalid": "2", "name": "Fake-David Perez"}, {"links": [], "internalid":
+        "4", "name": "Fake-Cody Weber"}, {"links": [], "internalid": "3", "name":
+        "Fake-Rebecca Ward"}], "offset": 0, "totalResults": 4}'
+    headers:
+      Akamai-GRN:
+      - 0.24fdd417.1794223290.534a45
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:30 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - d6d80e87-aeee-4c84-b722-aec84579ebfd
+      X-NetSuite-JobId:
+      - c6c736f6-12f4-46a8-804d-a63b78324bf9
+      content-length:
+      - '413'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"q": "SELECT salestaxitem.id as internalid, salestaxitem.name as name,
+      salestaxitem.taxtype, customrecord_ste_taxrate.custrecord_ste_taxrate_rate as
+      taxrate FROM salestaxitem inner join customrecord_ste_taxrate on customrecord_ste_taxrate.custrecord_ste_taxrate_taxcode
+      = salestaxitem.id"}'
+    headers:
+      Accept:
+      - !!binary |
+        Ki8q
+      Accept-Encoding:
+      - !!binary |
+        Z3ppcCwgZGVmbGF0ZQ==
+      Connection:
+      - !!binary |
+        a2VlcC1hbGl2ZQ==
+      Content-Length:
+      - '290'
+      Content-Type:
+      - !!binary |
+        YXBwbGljYXRpb24vanNvbg==
+      Prefer:
+      - !!binary |
+        dHJhbnNpZW50
+      User-Agent:
+      - !!binary |
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
+    method: POST
+    uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
+  response:
+    body:
+      string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
+        "method": "-Fallback-scrubbed-rGJh"}], "count": 19, "hasMore": false, "items":
+        [{"links": [], "internalid": "7029", "name": "Fake-John Berg", "taxrate":
+        "0", "taxtype": "24"}, {"links": [], "internalid": "7030", "name": "Fake-Joseph
+        Murray", "taxrate": "0", "taxtype": "26"}, {"links": [], "internalid": "7031",
+        "name": "Fake-Sherry Reynolds", "taxrate": "0.07", "taxtype": "24"}, {"links":
+        [], "internalid": "7031", "name": "Fake-Sherry Reynolds", "taxrate": "0.05",
+        "taxtype": "24"}, {"links": [], "internalid": "7031", "name": "Fake-Sherry
+        Reynolds", "taxrate": "0.07", "taxtype": "24"}, {"links": [], "internalid":
+        "7033", "name": "Fake-Tammy Welch", "taxrate": "0.19", "taxtype": "24"}, {"links":
+        [], "internalid": "7033", "name": "Fake-Tammy Welch", "taxrate": "0.16", "taxtype":
+        "24"}, {"links": [], "internalid": "7033", "name": "Fake-Tammy Welch", "taxrate":
+        "0.19", "taxtype": "24"}, {"links": [], "internalid": "7035", "name": "Fake-Daniel
+        Williamson", "taxrate": "0", "taxtype": "24"}, {"links": [], "internalid":
+        "7036", "name": "Fake-Kimberly Huang", "taxrate": "0", "taxtype": "23"}, {"links":
+        [], "internalid": "7039", "name": "Fake-David Randall", "taxrate": "0.06",
+        "taxtype": "7"}, {"links": [], "internalid": "7037", "name": "Fake-Scott Gonzalez",
+        "taxrate": "0.06", "taxtype": "3"}, {"links": [], "internalid": "7038", "name":
+        "Fake-David Snyder", "taxrate": "0.06", "taxtype": "5"}, {"links": [], "internalid":
+        "7129", "name": "Fake-Ashley Day", "taxrate": "0.1", "taxtype": "28"}, {"links":
+        [], "internalid": "7027", "name": "Fake-Stephanie Simmons", "taxrate": "0.15",
+        "taxtype": "-5"}, {"links": [], "internalid": "6612", "name": "Fake-Kari Medina",
+        "taxrate": "0.2", "taxtype": "-2"}, {"links": [], "internalid": "7018", "name":
+        "Fake-Kelly Lara", "taxrate": "0.05", "taxtype": "-5"}, {"links": [], "internalid":
+        "7022", "name": "Fake-Mrs. Rhonda Greene", "taxrate": "0.115", "taxtype":
+        "2"}, {"links": [], "internalid": "7025", "name": "Fake-Marcus Mcintosh",
+        "taxrate": "0.25", "taxtype": "2"}], "offset": 0, "totalResults": 19}'
+    headers:
+      Akamai-GRN:
+      - 0.15fdd417.1794223291.5cada91
+      Cache-Control:
+      - No-Cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
+      Date:
+      - Mon, 09 Nov 2026 11:21:31 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - No-Cache
+      Preference-Applied:
+      - transient
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-N-OperationId:
+      - 88a7ea35-d689-4f0e-be84-24562f1ef55f
+      X-NetSuite-JobId:
+      - 96a0b10d-d84f-496e-b7f3-03a32a3982e8
+      content-length:
+      - '1833'
+    status:
+      code: 200
+      message: OK
+version: 1

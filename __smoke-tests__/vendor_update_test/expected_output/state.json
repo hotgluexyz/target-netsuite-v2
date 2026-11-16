@@ -1,0 +1,19 @@
+{
+  "bookmarks": {
+    "Vendors": [
+      {
+        "success": true,
+        "id": "21998",
+        "externalId": "T_00111"
+      }
+    ]
+  },
+  "summary": {
+    "Vendors": {
+      "success": 0,
+      "fail": 0,
+      "existing": 0,
+      "updated": 1
+    }
+  }
+}
