@@ -8,7 +8,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -22,7 +22,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -35,7 +35,7 @@ interactions:
         "internalid": "3", "name": "Virginia"}], "offset": 0, "totalResults": 5}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253707.2d70da69
+      - 0.3f0a2c17.1794854451.fdab2d3
       Cache-Control:
       - No-Cache
       Connection:
@@ -43,7 +43,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:28 GMT
+      - Mon, 16 Nov 2026 18:40:54 GMT
       Expires:
       - '0'
       Pragma:
@@ -58,9 +58,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - ff9baab0-9f62-4678-95df-710558fa2006
+      - bc9c2ee1-8acf-4d87-88aa-33ac9bab14f8
       X-NetSuite-JobId:
-      - 9f26645f-9892-4496-910f-712b1edeab35
+      - 27fecc95-c3e9-4007-b724-a209c6ac9c88
       content-length:
       - '457'
     status:
@@ -75,7 +75,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -89,7 +89,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -106,7 +106,7 @@ interactions:
         6}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253708.2d70dc88
+      - 0.1d0a2c17.1794854455.ddb0f47
       Cache-Control:
       - No-Cache
       Connection:
@@ -114,7 +114,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:29 GMT
+      - Mon, 16 Nov 2026 18:40:57 GMT
       Expires:
       - '0'
       Pragma:
@@ -129,9 +129,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 0a5a9318-a0cd-4357-a802-8a025ebe7ee9
+      - 6b2d095a-14ac-4f3d-96b5-691fbf5d95d6
       X-NetSuite-JobId:
-      - c17e5c37-e609-4ad6-bfe5-df3844776db3
+      - 3b80bef7-133a-471b-8116-7a167d32fedf
       content-length:
       - '671'
     status:
@@ -146,7 +146,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -160,7 +160,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -174,7 +174,7 @@ interactions:
         "totalResults": 4}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253709.e0e3870
+      - 0.3f0a2c17.1794854458.fdacf60
       Cache-Control:
       - No-Cache
       Connection:
@@ -182,7 +182,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:29 GMT
+      - Mon, 16 Nov 2026 18:40:59 GMT
       Expires:
       - '0'
       Pragma:
@@ -197,9 +197,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 4d60beb8-5ef3-49de-8c38-39188b735b23
+      - 18025d5f-3924-466b-802a-903277b89fd8
       X-NetSuite-JobId:
-      - 84a138b0-3886-46b6-a20c-010b0f45df71
+      - 5359549d-5b40-4619-b5cf-e7b2226fcc56
       content-length:
       - '471'
     status:
@@ -214,7 +214,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -228,7 +228,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -248,7 +248,7 @@ interactions:
         "subsidiaryid": "1"}], "offset": 0, "totalResults": 9}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253709.e0e3a16
+      - 0.3f0a2c17.1794854459.fdad550
       Cache-Control:
       - No-Cache
       Connection:
@@ -256,7 +256,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:30 GMT
+      - Mon, 16 Nov 2026 18:41:00 GMT
       Expires:
       - '0'
       Pragma:
@@ -271,9 +271,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - aac419a6-9d48-4d78-b4dc-40c26e5d3fc5
+      - e76ccfd2-7b87-4ae9-aab1-d3b8ae50f6ca
       X-NetSuite-JobId:
-      - 253a79cd-8959-4537-b832-00d67d3b0dc5
+      - 0f6f2430-cd3f-40ae-89ae-6e6ec102b849
       content-length:
       - '958'
     status:
@@ -288,7 +288,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -302,7 +302,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -334,7 +334,7 @@ interactions:
         22}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253710.2d70dfeb
+      - 0.1d0a2c17.1794854461.ddb3038
       Cache-Control:
       - No-Cache
       Connection:
@@ -342,7 +342,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:30 GMT
+      - Mon, 16 Nov 2026 18:41:02 GMT
       Expires:
       - '0'
       Pragma:
@@ -357,9 +357,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 065155a2-39d8-412d-931f-5edfc648bb36
+      - 5324cf47-c7b2-40f7-b2f4-ba3bbda6a635
       X-NetSuite-JobId:
-      - ba6e4235-2253-4dfc-8ac1-d1174f3ea359
+      - 444d9618-dfea-4d7d-9c85-bee03315ea7f
       content-length:
       - '1709'
     status:
@@ -374,7 +374,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -388,7 +388,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -490,7 +490,7 @@ interactions:
         99}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253710.e0e3cc4
+      - 0.3f0a2c17.1794854462.fdae1ca
       Cache-Control:
       - No-Cache
       Connection:
@@ -498,7 +498,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:31 GMT
+      - Mon, 16 Nov 2026 18:41:03 GMT
       Expires:
       - '0'
       Pragma:
@@ -513,9 +513,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - cfbe429c-e478-46ba-bf4d-624f14dbb6df
+      - 071d8b6c-f63f-420a-b23e-0342aa5a17ee
       X-NetSuite-JobId:
-      - 5bf44ac0-9fa0-45d5-a45e-e57f57c1d18c
+      - 26114d8f-12fc-4143-80c5-ea4d71164e76
       content-length:
       - '6823'
     status:
@@ -530,7 +530,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -544,7 +544,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -556,7 +556,7 @@ interactions:
         2}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253711.e0e3e02
+      - 0.3f0a2c17.1794854464.fdae767
       Cache-Control:
       - No-Cache
       Connection:
@@ -564,7 +564,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:32 GMT
+      - Mon, 16 Nov 2026 18:41:05 GMT
       Expires:
       - '0'
       Pragma:
@@ -579,9 +579,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - dc574276-3dbd-413e-9a9b-c0e17a3fc29c
+      - b7594722-837f-4c60-b54f-81a8cc9b5727
       X-NetSuite-JobId:
-      - 62292617-9d17-4583-a5d7-e305ca8c633f
+      - 252bbdf2-5432-42d5-9307-a5802092e250
       content-length:
       - '328'
     status:
@@ -596,7 +596,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -610,7 +610,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -623,7 +623,7 @@ interactions:
         "offset": 0, "totalResults": 4}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253712.2d70e38c
+      - 0.1d0a2c17.1794854466.ddb4716
       Cache-Control:
       - No-Cache
       Connection:
@@ -631,7 +631,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:32 GMT
+      - Mon, 16 Nov 2026 18:41:06 GMT
       Expires:
       - '0'
       Pragma:
@@ -646,9 +646,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 40c026c1-57d5-4a5f-9c95-57e03a8b0e00
+      - 9dd3c46c-a750-4b93-94fd-548f05fd9e20
       X-NetSuite-JobId:
-      - 913a0c90-0d78-49e0-b6b2-8055a4c5a1b2
+      - a3aa4fe6-486b-4cf1-96ed-262e7d142a89
       content-length:
       - '413'
     status:
@@ -665,7 +665,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -679,7 +679,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -712,7 +712,7 @@ interactions:
         "2"}], "offset": 0, "totalResults": 19}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253712.2d70e4b6
+      - 0.3f0a2c17.1794854467.fdaf314
       Cache-Control:
       - No-Cache
       Connection:
@@ -720,7 +720,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:33 GMT
+      - Mon, 16 Nov 2026 18:41:08 GMT
       Expires:
       - '0'
       Pragma:
@@ -735,9 +735,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - d6514d0b-2c82-4fc1-a7fa-dfb5ec427a53
+      - 88b5d402-d310-4015-9c6d-7dd3afc2c06a
       X-NetSuite-JobId:
-      - e03c5a94-560e-4c7a-a4d3-b5915c415f67
+      - 9b8c4eaa-0c8c-4aa4-b72f-43f38654cb0d
       content-length:
       - '1833'
     status:
@@ -754,7 +754,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -768,7 +768,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -779,7 +779,7 @@ interactions:
         "1", "tranid": "PO-N-Test-2000"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253713.2d70e5ee
+      - 0.3f0a2c17.1794854469.fdafb01
       Cache-Control:
       - No-Cache
       Connection:
@@ -787,7 +787,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:33 GMT
+      - Mon, 16 Nov 2026 18:41:10 GMT
       Expires:
       - '0'
       Pragma:
@@ -802,9 +802,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - d2cd5e04-25f9-4d23-9591-5fecb2955d61
+      - 74028363-1a89-457f-b96b-1e9adc4378e2
       X-NetSuite-JobId:
-      - 13a6c3ff-3adc-465b-b5b3-bc11c123cd4c
+      - 0d10766d-a721-4b99-91d6-659de5b67619
       content-length:
       - '320'
     status:
@@ -820,7 +820,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -834,7 +834,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -846,7 +846,7 @@ interactions:
         1}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253713.2d70e6d9
+      - 0.3f0a2c17.1794854471.fdb0196
       Cache-Control:
       - No-Cache
       Connection:
@@ -854,7 +854,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:34 GMT
+      - Mon, 16 Nov 2026 18:41:11 GMT
       Expires:
       - '0'
       Pragma:
@@ -869,9 +869,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - d7890562-6f48-4f04-afdf-fc2210833b83
+      - 6e1b4981-c00f-4f68-8290-027d6cffb10b
       X-NetSuite-JobId:
-      - c95d713d-ab27-4d63-b992-0c60cde33c4c
+      - c0e669d0-5c40-4888-99f9-7dfbd3403a6a
       content-length:
       - '328'
     status:
@@ -880,20 +880,19 @@ interactions:
 - request:
     body: '{"q": "SELECT employee.id as internalid, employee.externalId as externalid,
       employee.firstname || '' '' || employee.lastname AS name, subsidiary as subsidiaryId
-      FROM employee WHERE employee.firstname || '' '' || employee.lastname IN (''Vinicius
-      Ghellere'')"}'
+      FROM employee WHERE employee.firstname || '' '' || employee.lastname IN (''-Fallback-scrubbed-IQlbblCCqDnKgpxgB'')"}'
     headers:
       Accept:
       - !!binary |
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
       Content-Length:
-      - '252'
+      - '271'
       Content-Type:
       - !!binary |
         YXBwbGljYXRpb24vanNvbg==
@@ -902,18 +901,18 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
     body:
       string: '{"links": [{"rel": "-Fallback-scrubbed-YCqW", "href": "https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?limit=1000&offset=0",
         "method": "-Fallback-scrubbed-rGJh"}], "count": 1, "hasMore": false, "items":
-        [{"links": [], "internalid": "8935", "name": "Vinicius Ghellere", "subsidiaryid":
-        "1"}], "offset": 0, "totalResults": 1}'
+        [{"links": [], "internalid": "8935", "name": "-Fallback-scrubbed-IQlbblCCqDnKgpxgB",
+        "subsidiaryid": "1"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253714.e0e46ab
+      - 0.3f0a2c17.1794854472.fdb06c7
       Cache-Control:
       - No-Cache
       Connection:
@@ -921,7 +920,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:34 GMT
+      - Mon, 16 Nov 2026 18:41:13 GMT
       Expires:
       - '0'
       Pragma:
@@ -936,9 +935,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 01674610-01d5-48da-8f3b-7813ce00855c
+      - a225f00f-7b4a-414d-921c-d8ca708b2416
       X-NetSuite-JobId:
-      - 7d5f0595-4e48-423d-bac3-2380ed321f1e
+      - 11650752-2d77-49b5-b649-e2055ab3a0fd
       content-length:
       - '289'
     status:
@@ -954,7 +953,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -968,7 +967,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -979,7 +978,7 @@ interactions:
         Ac Co"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.cec5ce17.1794253714.2d70e972
+      - 0.3f0a2c17.1794854473.fdb0bf7
       Cache-Control:
       - No-Cache
       Connection:
@@ -987,7 +986,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:35 GMT
+      - Mon, 16 Nov 2026 18:41:14 GMT
       Expires:
       - '0'
       Pragma:
@@ -1002,9 +1001,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 57b74b62-0079-4cbe-a4c2-40c3b7dd71db
+      - 57560f70-d887-4b8c-a44d-1f9b73dc1146
       X-NetSuite-JobId:
-      - 64dcf1f7-de19-4040-b42e-672c828ce175
+      - a94840ea-565c-4b6b-979c-4dcc650d155c
       content-length:
       - '289'
     status:
@@ -1019,7 +1018,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -1033,7 +1032,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql?offset=0&limit=1000
   response:
@@ -1043,7 +1042,7 @@ interactions:
         [], "offset": 0, "totalResults": 0}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253715.e0e49cb
+      - 0.1d0a2c17.1794854475.ddb72b2
       Cache-Control:
       - No-Cache
       Connection:
@@ -1051,7 +1050,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:36 GMT
+      - Mon, 16 Nov 2026 18:41:15 GMT
       Expires:
       - '0'
       Pragma:
@@ -1066,9 +1065,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - f4950cb9-c131-43b3-ad21-f063920d38f6
+      - 572cccdc-d603-40ca-88e2-a756fa4456c3
       X-NetSuite-JobId:
-      - abc70277-e6fa-4b42-8ba3-05d4e764b2ec
+      - d37adef9-df47-4b76-8d41-72fb39df2640
       content-length:
       - '211'
     status:
@@ -1084,7 +1083,7 @@ interactions:
         Ki8q
       Accept-Encoding:
       - !!binary |
-        Z3ppcCwgZGVmbGF0ZSwgenN0ZA==
+        Z3ppcCwgZGVmbGF0ZQ==
       Connection:
       - !!binary |
         a2VlcC1hbGl2ZQ==
@@ -1098,7 +1097,7 @@ interactions:
         dHJhbnNpZW50
       User-Agent:
       - !!binary |
-        cHl0aG9uLXJlcXVlc3RzLzIuMzEuMA==
+        cHl0aG9uLXJlcXVlc3RzLzIuMzQuMg==
     method: POST
     uri: https://2945321.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql
   response:
@@ -1125,7 +1124,7 @@ interactions:
         "unitcostoverridecurrency": "USD"}], "offset": 0, "totalResults": 1}'
     headers:
       Akamai-GRN:
-      - 0.bdc5ce17.1794253716.e0e4b15
+      - 0.3f0a2c17.1794854476.fdb16d4
       Cache-Control:
       - No-Cache
       Connection:
@@ -1133,7 +1132,7 @@ interactions:
       Content-Type:
       - application/vnd.oracle.resource+json; type=collection; charset=UTF-8
       Date:
-      - Mon, 09 Nov 2026 19:48:38 GMT
+      - Mon, 16 Nov 2026 18:41:19 GMT
       Expires:
       - '0'
       Pragma:
@@ -1148,9 +1147,9 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       X-N-OperationId:
-      - 278b5f21-3ff6-400c-a5ce-29d6e99b9c8d
+      - 689e5c48-e9b3-4364-af7a-69d576394ae8
       X-NetSuite-JobId:
-      - 6343b1cf-2b43-4a85-9782-5d3eaaf7e6fb
+      - 512335ce-e073-43ad-9882-6becddb53ed1
       content-length:
       - '1349'
     status:

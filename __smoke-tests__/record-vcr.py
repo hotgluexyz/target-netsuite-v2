@@ -42,7 +42,6 @@ class TargetNetsuiteV2TestRunner(VCRTargetTestRunner):
        "salesRepName",
        "departmentName",
        "subsidiaryName",
-       "employeeName",
        "city",
        "state",
        "hgTenantId",
